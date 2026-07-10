@@ -1,14 +1,14 @@
 # DockBarHero Phase 0 QA Checklist
 
-**Build commit:** 1bd1e8e
-**Tester:**
+**Build commit:** 134c947
+**Tester:** Codex primary QA with owner-assisted physical sleep/wake and Dock checks.
 **Date:** 2026-07-10
 **Machine:** Apple M5 Max MacBook Pro, macOS 26.5.1
 
 ## Automated Gates
 
 - [x] Clean command-line build succeeds.
-- [x] Complete test suite succeeds: 33/33 tests passed.
+- [x] Complete test suite succeeds: 37/37 tests passed.
 - [x] `git diff --check` succeeds.
 
 ## Desktop Behavior
@@ -35,7 +35,7 @@
 
 ## Recorded Evidence
 
-Full test command and result: `xcodegen generate` completed successfully, then `xcodebuild -project DockBarHero.xcodeproj -scheme DockBarHero -destination 'platform=macOS' -derivedDataPath .build/Phase0Verification clean test CODE_SIGNING_ALLOWED=NO` completed with `** CLEAN SUCCEEDED **`, `** TEST SUCCEEDED **`, and 33 tests passing with 0 failures. Focused classifier verification passed 7/7. Current final feature HEAD under QA was `1bd1e8e`. `git diff --check` completed with no output.
+Full test command and result: `xcodegen generate` completed successfully, then `xcodebuild -project DockBarHero.xcodeproj -scheme DockBarHero -destination 'platform=macOS' -derivedDataPath .build/Phase0Verification clean test CODE_SIGNING_ALLOWED=NO` completed with `** CLEAN SUCCEEDED **`, `** TEST SUCCEEDED **`, and 37 tests passing with 0 failures. Focused startup `AppModel` verification passed 13/13; focused fullscreen classifier verification passed 7/7. QA build commit was `134c947`. `git diff --check` completed with no output.
 
 Script contract RED result: absent path invocation returned exit 127 (`no such file or directory`).
 
@@ -51,9 +51,13 @@ Paused resource output: **ACCEPTED DEFERRAL**. The five-minute paused measuremen
 
 Dock auto-hide evidence: switching to auto-hide moved the panel once to stable `293,1013,1141,96`; 20 one-second samples during a physical-reveal attempt were identical. The 20-second video did not visibly capture the Dock itself appearing, so this checkbox remains unresolved unless separately confirmed by the owner.
 
+Startup review/fix: final Sol review found a launch-in-fullscreen visibility risk. `e4781aa` gated outputs until the initial non-nil environment result; `134c947` restored and expanded regression coverage; independent task review approved.
+
+Live launch gate: the app launched while Preview was already in true type-4 fullscreen. WindowServer was sampled at 100 Hz for 3 seconds; the maximum layer-3 panel count was 0 with 0 positive samples. Return restored one `1141x96` panel.
+
 Fullscreen evidence: the original classifier failed with macOS menu-bar-visible fullscreen geometry. Commits `1055289` and `1bd1e8e` fixed it with TDD and independent approval; final type-4 verification had zero fullscreen panels and exactly one panel after return.
 
-Failures, fixes, and retest evidence: current evidence includes the final 33-test suite, focused classifier 7/7, and the fullscreen classifier fix. A final whole-branch verification/review remains to come; these entries are current evidence, not a claim that every strict gate has passed.
+Final whole-branch Sol review approved range `3a8fe29..134c947` with no blocking or important findings. The residual exact-screen false positive is owner accepted; initially nil evaluation safely remains hidden until another monitored event. These entries are evidence of review and retest, not a claim that every strict gate has passed.
 
 ## Decision
 

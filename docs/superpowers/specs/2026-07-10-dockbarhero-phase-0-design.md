@@ -184,6 +184,8 @@ A workspace monitor observes active Space and frontmost application changes, the
 
 The implementation must use documented macOS APIs and must not require Accessibility, Screen Recording, or other privacy permissions for the prototype. If reliable fullscreen detection cannot be achieved under that constraint, Phase 0 is not considered complete; the limitation must be documented and reviewed before changing the requirement.
 
+Fullscreen detection uses documented window geometry. An opaque frontmost layer-zero window matching the target display within two points is intentionally treated as fullscreen so fullscreen games and applications are covered. This may falsely hide the rail for a rare borderless exact-screen window on a normal Space. The owner accepts this Phase 0 limitation because exact Space membership cannot be distinguished under the documented APIs without privacy permissions.
+
 ### 7.6 Scene Host
 
 A SpriteKit scene host owns scene creation, animation state, and interaction forwarding. It exposes only the controls needed by `OverlayState`:
