@@ -10,7 +10,9 @@
 		21D79BC28FD1B426B245BDDB /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07DDCF7DBA016A9D2B399E07 /* AppLog.swift */; };
 		3C27403E8CDC14AB0E53D929 /* OverlayStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FBD88BD9A5FB4043963A4AB /* OverlayStateTests.swift */; };
 		8674F689C5F772CB5950B8A1 /* DockBarHeroApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E17FEA9F1C03CFF1875E99D /* DockBarHeroApp.swift */; };
+		AD5E43CA462AEAC55F3C6389 /* OverlayPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697D836989C5878F5D1E9937 /* OverlayPlacementTests.swift */; };
 		C0435BD6F1CFAEEE8DE56D68 /* OverlayState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8586F52C6908F4FE4E5B9E0A /* OverlayState.swift */; };
+		DFFC0FB551A2996C7A691872 /* OverlayPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70160FF019FFD009FA1DFF7F /* OverlayPlacement.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,6 +30,8 @@
 		0E17FEA9F1C03CFF1875E99D /* DockBarHeroApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockBarHeroApp.swift; sourceTree = "<group>"; };
 		0FBD88BD9A5FB4043963A4AB /* OverlayStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayStateTests.swift; sourceTree = "<group>"; };
 		1E4B92627EE6A337F1D4D4E8 /* DockBarHeroTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DockBarHeroTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		697D836989C5878F5D1E9937 /* OverlayPlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPlacementTests.swift; sourceTree = "<group>"; };
+		70160FF019FFD009FA1DFF7F /* OverlayPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPlacement.swift; sourceTree = "<group>"; };
 		8586F52C6908F4FE4E5B9E0A /* OverlayState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayState.swift; sourceTree = "<group>"; };
 		943AD75B3E2A18F1AC085766 /* DockBarHero.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DockBarHero.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -46,6 +50,7 @@
 		53FBFBED27A7F67E3F59CF34 /* DockBarHeroTests */ = {
 			isa = PBXGroup;
 			children = (
+				697D836989C5878F5D1E9937 /* OverlayPlacementTests.swift */,
 				0FBD88BD9A5FB4043963A4AB /* OverlayStateTests.swift */,
 			);
 			path = DockBarHeroTests;
@@ -63,6 +68,7 @@
 		A6AA104F62EAFAFB4D82B3FC /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				70160FF019FFD009FA1DFF7F /* OverlayPlacement.swift */,
 				8586F52C6908F4FE4E5B9E0A /* OverlayState.swift */,
 			);
 			path = Core;
@@ -167,6 +173,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AD5E43CA462AEAC55F3C6389 /* OverlayPlacementTests.swift in Sources */,
 				3C27403E8CDC14AB0E53D929 /* OverlayStateTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -177,6 +184,7 @@
 			files = (
 				21D79BC28FD1B426B245BDDB /* AppLog.swift in Sources */,
 				8674F689C5F772CB5950B8A1 /* DockBarHeroApp.swift in Sources */,
+				DFFC0FB551A2996C7A691872 /* OverlayPlacement.swift in Sources */,
 				C0435BD6F1CFAEEE8DE56D68 /* OverlayState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
