@@ -54,6 +54,6 @@ Failures, fixes, and retest evidence: No application-code changes made; primary-
 ## Decision
 
 - [ ] PASS: Phase 0 meets every gate.
-- [ ] NO-GO: One or more gate remains unresolved.
+- [x] NO-GO: One or more gate remains unresolved.
 
-**Current status:** **PENDING PRIMARY-MODEL QA**. Manual and resource gates are intentionally not marked passed by the worker.
+**Current status:** **INTERIM NO-GO**. This decision can change only after every manual and resource gate passes. Those gates are intentionally not marked passed by the worker.
