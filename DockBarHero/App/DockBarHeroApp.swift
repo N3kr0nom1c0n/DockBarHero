@@ -1,15 +1,12 @@
-import AppKit
 import SwiftUI
 
 @main
 struct DockBarHeroApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+
     var body: some Scene {
         MenuBarExtra("DockBarHero", systemImage: "sparkles") {
-            Text("Phase 0")
-            Divider()
-            Button("Quit DockBarHero") {
-                NSApplication.shared.terminate(nil)
-            }
+            MenuBarContent(model: appDelegate.model, send: appDelegate.send)
         }
         .menuBarExtraStyle(.menu)
     }
