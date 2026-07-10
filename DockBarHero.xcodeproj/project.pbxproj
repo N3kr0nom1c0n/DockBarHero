@@ -1,0 +1,423 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		21D79BC28FD1B426B245BDDB /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07DDCF7DBA016A9D2B399E07 /* AppLog.swift */; };
+		3C27403E8CDC14AB0E53D929 /* OverlayStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FBD88BD9A5FB4043963A4AB /* OverlayStateTests.swift */; };
+		8674F689C5F772CB5950B8A1 /* DockBarHeroApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E17FEA9F1C03CFF1875E99D /* DockBarHeroApp.swift */; };
+		C0435BD6F1CFAEEE8DE56D68 /* OverlayState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8586F52C6908F4FE4E5B9E0A /* OverlayState.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		556F9FB48BEE068E8D7AF123 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B358D015E2B782F40E3C90E4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BC889D86AE980ADB9C980C17;
+			remoteInfo = DockBarHero;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		07DDCF7DBA016A9D2B399E07 /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
+		0E17FEA9F1C03CFF1875E99D /* DockBarHeroApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockBarHeroApp.swift; sourceTree = "<group>"; };
+		0FBD88BD9A5FB4043963A4AB /* OverlayStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayStateTests.swift; sourceTree = "<group>"; };
+		1E4B92627EE6A337F1D4D4E8 /* DockBarHeroTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DockBarHeroTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8586F52C6908F4FE4E5B9E0A /* OverlayState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayState.swift; sourceTree = "<group>"; };
+		943AD75B3E2A18F1AC085766 /* DockBarHero.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DockBarHero.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		08A18F15BBD1D3FE81CCDE56 /* DockBarHero */ = {
+			isa = PBXGroup;
+			children = (
+				D53C957DF8B65DC661ECA9B9 /* App */,
+				A6AA104F62EAFAFB4D82B3FC /* Core */,
+				F41C324E6CC21CA4AB10CBF2 /* Support */,
+			);
+			path = DockBarHero;
+			sourceTree = "<group>";
+		};
+		53FBFBED27A7F67E3F59CF34 /* DockBarHeroTests */ = {
+			isa = PBXGroup;
+			children = (
+				0FBD88BD9A5FB4043963A4AB /* OverlayStateTests.swift */,
+			);
+			path = DockBarHeroTests;
+			sourceTree = "<group>";
+		};
+		A3E639FF034D43877039A4D2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				943AD75B3E2A18F1AC085766 /* DockBarHero.app */,
+				1E4B92627EE6A337F1D4D4E8 /* DockBarHeroTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A6AA104F62EAFAFB4D82B3FC /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				8586F52C6908F4FE4E5B9E0A /* OverlayState.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		D53C957DF8B65DC661ECA9B9 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				0E17FEA9F1C03CFF1875E99D /* DockBarHeroApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		E336CB480AADB18FF6439E84 = {
+			isa = PBXGroup;
+			children = (
+				08A18F15BBD1D3FE81CCDE56 /* DockBarHero */,
+				53FBFBED27A7F67E3F59CF34 /* DockBarHeroTests */,
+				A3E639FF034D43877039A4D2 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F41C324E6CC21CA4AB10CBF2 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				07DDCF7DBA016A9D2B399E07 /* AppLog.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BC889D86AE980ADB9C980C17 /* DockBarHero */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 258560F2B153AF6EC1B76947 /* Build configuration list for PBXNativeTarget "DockBarHero" */;
+			buildPhases = (
+				83F92E12A99ACD41911F187D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DockBarHero;
+			packageProductDependencies = (
+			);
+			productName = DockBarHero;
+			productReference = 943AD75B3E2A18F1AC085766 /* DockBarHero.app */;
+			productType = "com.apple.product-type.application";
+		};
+		DBEE7ADD3E28AC42ECB781C9 /* DockBarHeroTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ABD8A66E67D7C2BD4A8EAE71 /* Build configuration list for PBXNativeTarget "DockBarHeroTests" */;
+			buildPhases = (
+				540F14310DC6364239785AE9 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7D3045D0E1A3419B35C16D09 /* PBXTargetDependency */,
+			);
+			name = DockBarHeroTests;
+			packageProductDependencies = (
+			);
+			productName = DockBarHeroTests;
+			productReference = 1E4B92627EE6A337F1D4D4E8 /* DockBarHeroTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B358D015E2B782F40E3C90E4 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = E8D995E762EEC1DCF79511E9 /* Build configuration list for PBXProject "DockBarHero" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = E336CB480AADB18FF6439E84;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = A3E639FF034D43877039A4D2 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BC889D86AE980ADB9C980C17 /* DockBarHero */,
+				DBEE7ADD3E28AC42ECB781C9 /* DockBarHeroTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		540F14310DC6364239785AE9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3C27403E8CDC14AB0E53D929 /* OverlayStateTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		83F92E12A99ACD41911F187D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				21D79BC28FD1B426B245BDDB /* AppLog.swift in Sources */,
+				8674F689C5F772CB5950B8A1 /* DockBarHeroApp.swift in Sources */,
+				C0435BD6F1CFAEEE8DE56D68 /* OverlayState.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7D3045D0E1A3419B35C16D09 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BC889D86AE980ADB9C980C17 /* DockBarHero */;
+			targetProxy = 556F9FB48BEE068E8D7AF123 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0CE331949BD7C19E7C8FDF38 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		81F056E73371B8E5D5CDD7DC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = DockBarHero;
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.n3kr0nom1c0n.DockBarHero;
+				PRODUCT_NAME = DockBarHero;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		969006DBA331F8FECA46BC05 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = DockBarHero;
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.n3kr0nom1c0n.DockBarHero;
+				PRODUCT_NAME = DockBarHero;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		CC1308AB1CFDA067560EAEC3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.n3kr0nom1c0n.DockBarHeroTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DockBarHero.app/Contents/MacOS/DockBarHero";
+			};
+			name = Release;
+		};
+		CEE229DC48EF4FEB1F334887 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.n3kr0nom1c0n.DockBarHeroTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DockBarHero.app/Contents/MacOS/DockBarHero";
+			};
+			name = Debug;
+		};
+		D77C9ADC1EA632EF131130F6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		258560F2B153AF6EC1B76947 /* Build configuration list for PBXNativeTarget "DockBarHero" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				81F056E73371B8E5D5CDD7DC /* Debug */,
+				969006DBA331F8FECA46BC05 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		ABD8A66E67D7C2BD4A8EAE71 /* Build configuration list for PBXNativeTarget "DockBarHeroTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CEE229DC48EF4FEB1F334887 /* Debug */,
+				CC1308AB1CFDA067560EAEC3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E8D995E762EEC1DCF79511E9 /* Build configuration list for PBXProject "DockBarHero" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0CE331949BD7C19E7C8FDF38 /* Debug */,
+				D77C9ADC1EA632EF131130F6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B358D015E2B782F40E3C90E4 /* Project object */;
+}

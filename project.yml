@@ -1,0 +1,47 @@
+name: DockBarHero
+options:
+  bundleIdPrefix: com.n3kr0nom1c0n
+  createIntermediateGroups: true
+  deploymentTarget:
+    macOS: "26.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MACOSX_DEPLOYMENT_TARGET: "26.0"
+targets:
+  DockBarHero:
+    type: application
+    platform: macOS
+    sources:
+      - DockBarHero
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.n3kr0nom1c0n.DockBarHero
+        PRODUCT_NAME: DockBarHero
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: DockBarHero
+        INFOPLIST_KEY_LSUIElement: YES
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+  DockBarHeroTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - DockBarHeroTests
+    dependencies:
+      - target: DockBarHero
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  DockBarHero:
+    build:
+      targets:
+        DockBarHero: all
+        DockBarHeroTests:
+          - test
+    test:
+      gatherCoverageData: true
+      targets:
+        - DockBarHeroTests
