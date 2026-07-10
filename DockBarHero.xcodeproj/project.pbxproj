@@ -8,14 +8,17 @@
 
 /* Begin PBXBuildFile section */
 		21D79BC28FD1B426B245BDDB /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07DDCF7DBA016A9D2B399E07 /* AppLog.swift */; };
+		2F7453ED494FDA644BFA43F3 /* PrototypeSceneHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8306A34DA2F75CFA6E21A0B /* PrototypeSceneHost.swift */; };
 		3C27403E8CDC14AB0E53D929 /* OverlayStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FBD88BD9A5FB4043963A4AB /* OverlayStateTests.swift */; };
 		4C74E7C46D369DE0FE0ECE7C /* FullscreenWindowClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D23D28184BD8A05F30D6359 /* FullscreenWindowClassifierTests.swift */; };
 		8674F689C5F772CB5950B8A1 /* DockBarHeroApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E17FEA9F1C03CFF1875E99D /* DockBarHeroApp.swift */; };
+		99B85F8360961389079F6AAE /* PrototypeScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDD14FF849F64AD2F250E89F /* PrototypeScene.swift */; };
 		AD5E43CA462AEAC55F3C6389 /* OverlayPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697D836989C5878F5D1E9937 /* OverlayPlacementTests.swift */; };
 		C0435BD6F1CFAEEE8DE56D68 /* OverlayState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8586F52C6908F4FE4E5B9E0A /* OverlayState.swift */; };
 		C6E726271E35F71BDC6681D0 /* FullscreenWindowClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = E043207E2BD7ACD2F4C89799 /* FullscreenWindowClassifier.swift */; };
 		D12F51121C8BCBAB20F16BE5 /* EnvironmentMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47C35A975941EEBB55C9FF53 /* EnvironmentMonitorTests.swift */; };
 		DFFC0FB551A2996C7A691872 /* OverlayPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70160FF019FFD009FA1DFF7F /* OverlayPlacement.swift */; };
+		E6A843FD10A019EE85795CB2 /* PrototypeSceneHostTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80C47315F197A2C91F065E76 /* PrototypeSceneHostTests.swift */; };
 		FDAC194AE4CA4639187D16B4 /* EnvironmentMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEBB2B89631ABEA126DC445 /* EnvironmentMonitor.swift */; };
 /* End PBXBuildFile section */
 
@@ -39,8 +42,11 @@
 		47C35A975941EEBB55C9FF53 /* EnvironmentMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentMonitorTests.swift; sourceTree = "<group>"; };
 		697D836989C5878F5D1E9937 /* OverlayPlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPlacementTests.swift; sourceTree = "<group>"; };
 		70160FF019FFD009FA1DFF7F /* OverlayPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPlacement.swift; sourceTree = "<group>"; };
+		80C47315F197A2C91F065E76 /* PrototypeSceneHostTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeSceneHostTests.swift; sourceTree = "<group>"; };
 		8586F52C6908F4FE4E5B9E0A /* OverlayState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayState.swift; sourceTree = "<group>"; };
 		943AD75B3E2A18F1AC085766 /* DockBarHero.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DockBarHero.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B8306A34DA2F75CFA6E21A0B /* PrototypeSceneHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeSceneHost.swift; sourceTree = "<group>"; };
+		CDD14FF849F64AD2F250E89F /* PrototypeScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeScene.swift; sourceTree = "<group>"; };
 		E043207E2BD7ACD2F4C89799 /* FullscreenWindowClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenWindowClassifier.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -51,6 +57,7 @@
 				D53C957DF8B65DC661ECA9B9 /* App */,
 				A6AA104F62EAFAFB4D82B3FC /* Core */,
 				E0241D0ACB6188DAD5048529 /* Environment */,
+				F83F46F2C096DFCED5F45261 /* Rendering */,
 				F41C324E6CC21CA4AB10CBF2 /* Support */,
 			);
 			path = DockBarHero;
@@ -63,6 +70,7 @@
 				3D23D28184BD8A05F30D6359 /* FullscreenWindowClassifierTests.swift */,
 				697D836989C5878F5D1E9937 /* OverlayPlacementTests.swift */,
 				0FBD88BD9A5FB4043963A4AB /* OverlayStateTests.swift */,
+				80C47315F197A2C91F065E76 /* PrototypeSceneHostTests.swift */,
 			);
 			path = DockBarHeroTests;
 			sourceTree = "<group>";
@@ -117,6 +125,15 @@
 				07DDCF7DBA016A9D2B399E07 /* AppLog.swift */,
 			);
 			path = Support;
+			sourceTree = "<group>";
+		};
+		F83F46F2C096DFCED5F45261 /* Rendering */ = {
+			isa = PBXGroup;
+			children = (
+				CDD14FF849F64AD2F250E89F /* PrototypeScene.swift */,
+				B8306A34DA2F75CFA6E21A0B /* PrototypeSceneHost.swift */,
+			);
+			path = Rendering;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -197,6 +214,7 @@
 				4C74E7C46D369DE0FE0ECE7C /* FullscreenWindowClassifierTests.swift in Sources */,
 				AD5E43CA462AEAC55F3C6389 /* OverlayPlacementTests.swift in Sources */,
 				3C27403E8CDC14AB0E53D929 /* OverlayStateTests.swift in Sources */,
+				E6A843FD10A019EE85795CB2 /* PrototypeSceneHostTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -210,6 +228,8 @@
 				C6E726271E35F71BDC6681D0 /* FullscreenWindowClassifier.swift in Sources */,
 				DFFC0FB551A2996C7A691872 /* OverlayPlacement.swift in Sources */,
 				C0435BD6F1CFAEEE8DE56D68 /* OverlayState.swift in Sources */,
+				99B85F8360961389079F6AAE /* PrototypeScene.swift in Sources */,
+				2F7453ED494FDA644BFA43F3 /* PrototypeSceneHost.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
