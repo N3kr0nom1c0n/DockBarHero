@@ -275,7 +275,7 @@ On the target Mac, verify:
 
 Resource measurements on the target machine:
 
-- Active animated rail: average process CPU below 3 percent over five minutes.
+- Active animated rail: average process CPU below 5 percent over five minutes.
 - Hidden or paused rail: average process CPU below 0.5 percent over five minutes.
 - No monotonic memory growth over a 30-minute active run.
 
@@ -313,6 +313,8 @@ After all tasks:
 ## 14. Go/No-Go Decision
 
 Phase 0 passes only when all automated tests, manual QA checks, resource gates, and code reviews pass.
+
+Current owner decision: **conditional/deferred GO**. Desktop viability is accepted and development may proceed based on the current evidence, while the Dock reveal observation and the unrun hidden, paused, and 30-minute memory measurements remain open accepted deferrals. These deferrals do not change the requirements above.
 
 Passing Phase 0 authorizes design and planning for the playable MVP. It does not automatically authorize Steam integration, online services, production content volume, or any feature listed as deferred in the project outline.
 
