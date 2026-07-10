@@ -19,6 +19,21 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(dependencies.monitor.startCount, 1)
     }
 
+    func testUnconnectedStartCanConnectAndStartLater() {
+        let dependencies = TestDependencies()
+        let model = AppModel()
+
+        model.start()
+        dependencies.connect(model)
+        model.start()
+
+        XCTAssertEqual(dependencies.window.frames.count, 1)
+        XCTAssertEqual(dependencies.window.visibility, [true])
+        XCTAssertEqual(dependencies.window.inputEnabled, [false])
+        XCTAssertEqual(dependencies.scene.animationEnabled, [true])
+        XCTAssertEqual(dependencies.monitor.startCount, 1)
+    }
+
     func testFullscreenHidesAndPausesThenRestores() {
         let dependencies = TestDependencies()
         let model = dependencies.makeModel()
@@ -64,6 +79,54 @@ final class AppModelTests: XCTestCase {
 
         XCTAssertEqual(dependencies.window.frames.count, 2)
     }
+
+    func testNoTargetScreenHidesDisablesInputAndPausesScene() {
+        let dependencies = TestDependencies()
+        let model = dependencies.makeModel()
+        model.start()
+        model.send(.setInputMode(.interactive))
+
+        dependencies.screen.geometry = nil
+        dependencies.monitor.onGeometryChange?()
+
+        XCTAssertEqual(dependencies.window.visibility.last, false)
+        XCTAssertEqual(dependencies.window.inputEnabled.last, false)
+        XCTAssertEqual(dependencies.scene.animationEnabled.last, false)
+        XCTAssertEqual(dependencies.scene.interactionEnabled.last, false)
+    }
+
+    func testStateActionWhileNoTargetScreenKeepsRailUnavailable() {
+        let dependencies = TestDependencies()
+        let model = dependencies.makeModel()
+        model.start()
+
+        dependencies.screen.geometry = nil
+        dependencies.monitor.onGeometryChange?()
+        model.send(.setInputMode(.interactive))
+
+        XCTAssertEqual(dependencies.window.visibility.last, false)
+        XCTAssertEqual(dependencies.window.inputEnabled.last, false)
+        XCTAssertEqual(dependencies.scene.animationEnabled.last, false)
+        XCTAssertEqual(dependencies.scene.interactionEnabled.last, false)
+    }
+
+    func testValidGeometryRestoresRailUsingCurrentState() {
+        let dependencies = TestDependencies()
+        let model = dependencies.makeModel()
+        model.start()
+
+        dependencies.screen.geometry = nil
+        dependencies.monitor.onGeometryChange?()
+        model.send(.setInputMode(.interactive))
+        dependencies.screen.geometry = FakeScreen.defaultGeometry
+        dependencies.monitor.onGeometryChange?()
+
+        XCTAssertEqual(dependencies.window.frames.count, 2)
+        XCTAssertEqual(dependencies.window.visibility.last, true)
+        XCTAssertEqual(dependencies.window.inputEnabled.last, true)
+        XCTAssertEqual(dependencies.scene.animationEnabled.last, true)
+        XCTAssertEqual(dependencies.scene.interactionEnabled.last, true)
+    }
 }
 
 @MainActor
@@ -75,6 +138,10 @@ private final class TestDependencies {
 
     func makeModel() -> AppModel {
         AppModel(window: window, scene: scene, screen: screen, monitor: monitor)
+    }
+
+    func connect(_ model: AppModel) {
+        model.connect(window: window, scene: scene, screen: screen, monitor: monitor)
     }
 }
 
@@ -101,12 +168,16 @@ private final class FakeScene: SceneControlling {
 
 @MainActor
 private final class FakeScreen: ScreenProviding {
+    static let defaultGeometry = ScreenGeometry(
+        frame: CGRect(x: 0, y: 0, width: 1_728, height: 1_117),
+        visibleFrame: CGRect(x: 0, y: 0, width: 1_728, height: 1_117),
+        dockMode: .autoHidden
+    )
+
+    var geometry: ScreenGeometry? = defaultGeometry
+
     func currentGeometry() -> ScreenGeometry? {
-        ScreenGeometry(
-            frame: CGRect(x: 0, y: 0, width: 1_728, height: 1_117),
-            visibleFrame: CGRect(x: 0, y: 0, width: 1_728, height: 1_117),
-            dockMode: .autoHidden
-        )
+        geometry
     }
 }
 

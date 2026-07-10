@@ -9,6 +9,7 @@ final class AppModel: ObservableObject {
     private var screen: ScreenProviding?
     private var monitor: EnvironmentMonitoring?
     private var placement = PlacementResolver()
+    private var hasCurrentPlacement = false
     private var started = false
 
     init(
@@ -38,6 +39,13 @@ final class AppModel: ObservableObject {
 
     func start() {
         guard !started else { return }
+        guard window != nil,
+              scene != nil,
+              screen != nil,
+              monitor != nil else {
+            AppLog.lifecycle.error("Application coordination requires connected dependencies")
+            return
+        }
         started = true
         monitor?.onVisibilityChange = { [weak self] visibility in
             self?.send(.setEnvironmentVisibility(visibility))
@@ -46,7 +54,6 @@ final class AppModel: ObservableObject {
             self?.refreshPlacement()
         }
         refreshPlacement()
-        applyState()
         monitor?.start()
         AppLog.lifecycle.info("Application coordination started")
     }
@@ -66,17 +73,19 @@ final class AppModel: ObservableObject {
     private func refreshPlacement() {
         guard let geometry = screen?.currentGeometry(),
               let frame = placement.resolve(geometry) else {
-            window?.setVisible(false)
+            hasCurrentPlacement = false
+            applyState()
             return
         }
+        hasCurrentPlacement = true
         window?.setFrame(frame)
+        applyState()
     }
 
     private func applyState() {
-        let hasPlacement = placement.lastValidFrame != nil
-        window?.setVisible(state.isEffectivelyVisible && hasPlacement)
-        window?.setInputEnabled(state.acceptsInput)
-        scene?.setAnimating(state.shouldAnimate && hasPlacement)
-        scene?.setInteractive(state.acceptsInput)
+        window?.setVisible(state.isEffectivelyVisible && hasCurrentPlacement)
+        window?.setInputEnabled(state.acceptsInput && hasCurrentPlacement)
+        scene?.setAnimating(state.shouldAnimate && hasCurrentPlacement)
+        scene?.setInteractive(state.acceptsInput && hasCurrentPlacement)
     }
 }
