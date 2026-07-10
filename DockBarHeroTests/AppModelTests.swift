@@ -129,7 +129,14 @@ final class AppModelTests: XCTestCase {
         let dependencies = TestDependencies()
         let model = dependencies.makeModel()
         model.start()
+        dependencies.monitor.onVisibilityChange?(.normalSpace)
         model.send(.setInputMode(.interactive))
+
+        XCTAssertTrue(model.state.isEffectivelyVisible)
+        XCTAssertEqual(dependencies.window.visibility.last, true)
+        XCTAssertEqual(dependencies.window.inputEnabled.last, true)
+        XCTAssertEqual(dependencies.scene.animationEnabled.last, true)
+        XCTAssertEqual(dependencies.scene.interactionEnabled.last, true)
 
         dependencies.screen.geometry = nil
         dependencies.monitor.onGeometryChange?()
@@ -138,6 +145,22 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(dependencies.window.inputEnabled.last, false)
         XCTAssertEqual(dependencies.scene.animationEnabled.last, false)
         XCTAssertEqual(dependencies.scene.interactionEnabled.last, false)
+    }
+
+    func testManualHideBeforeEnvironmentResolutionRemainsHiddenAfterNormalSpaceCallback() {
+        let dependencies = TestDependencies()
+        let model = dependencies.makeModel()
+        model.start()
+
+        model.send(.setManualVisibility(.hidden))
+        dependencies.monitor.onVisibilityChange?(.normalSpace)
+
+        XCTAssertFalse(dependencies.window.visibility.last ?? true)
+        XCTAssertFalse(dependencies.scene.animationEnabled.last ?? true)
+        XCTAssertFalse(dependencies.window.inputEnabled.last ?? true)
+        XCTAssertFalse(dependencies.scene.interactionEnabled.last ?? true)
+        XCTAssertEqual(model.state.manualVisibility, .hidden)
+        XCTAssertFalse(model.state.isEffectivelyVisible)
     }
 
     func testStateActionWhileNoTargetScreenKeepsRailUnavailable() {
