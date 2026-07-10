@@ -10,6 +10,7 @@ final class AppModel: ObservableObject {
     private var monitor: EnvironmentMonitoring?
     private var placement = PlacementResolver()
     private var hasCurrentPlacement = false
+    private var hasResolvedEnvironment = false
     private var started = false
 
     init(
@@ -22,6 +23,11 @@ final class AppModel: ObservableObject {
         self.scene = scene
         self.screen = screen
         self.monitor = monitor
+    }
+
+    private func handleEnvironmentVisibility(_ visibility: EnvironmentVisibility) {
+        hasResolvedEnvironment = true
+        send(.setEnvironmentVisibility(visibility))
     }
 
     func connect(
@@ -48,7 +54,7 @@ final class AppModel: ObservableObject {
         }
         started = true
         monitor?.onVisibilityChange = { [weak self] visibility in
-            self?.send(.setEnvironmentVisibility(visibility))
+            self?.handleEnvironmentVisibility(visibility)
         }
         monitor?.onGeometryChange = { [weak self] in
             self?.refreshPlacement()
@@ -83,9 +89,10 @@ final class AppModel: ObservableObject {
     }
 
     private func applyState() {
-        window?.setVisible(state.isEffectivelyVisible && hasCurrentPlacement)
-        window?.setInputEnabled(state.acceptsInput && hasCurrentPlacement)
-        scene?.setAnimating(state.shouldAnimate && hasCurrentPlacement)
-        scene?.setInteractive(state.acceptsInput && hasCurrentPlacement)
+        let isAvailable = hasResolvedEnvironment && hasCurrentPlacement
+        window?.setVisible(state.isEffectivelyVisible && isAvailable)
+        window?.setInputEnabled(state.acceptsInput && isAvailable)
+        scene?.setAnimating(state.shouldAnimate && isAvailable)
+        scene?.setInteractive(state.acceptsInput && isAvailable)
     }
 }

@@ -5,7 +5,7 @@ import XCTest
 
 @MainActor
 final class AppModelTests: XCTestCase {
-    func testStartPlacesVisiblePassiveAnimatingRailOnce() {
+    func testStartPlacesButKeepsRailHiddenAndPausedUntilEnvironmentResolves() {
         let dependencies = TestDependencies()
         let model = dependencies.makeModel()
 
@@ -13,9 +13,10 @@ final class AppModelTests: XCTestCase {
         model.start()
 
         XCTAssertEqual(dependencies.window.frames.count, 1)
-        XCTAssertEqual(dependencies.window.visibility, [true])
+        XCTAssertEqual(dependencies.window.visibility, [false])
         XCTAssertEqual(dependencies.window.inputEnabled, [false])
-        XCTAssertEqual(dependencies.scene.animationEnabled, [true])
+        XCTAssertEqual(dependencies.scene.animationEnabled, [false])
+        XCTAssertEqual(dependencies.scene.interactionEnabled, [false])
         XCTAssertEqual(dependencies.monitor.startCount, 1)
     }
 
@@ -28,10 +29,52 @@ final class AppModelTests: XCTestCase {
         model.start()
 
         XCTAssertEqual(dependencies.window.frames.count, 1)
-        XCTAssertEqual(dependencies.window.visibility, [true])
+        XCTAssertEqual(dependencies.window.visibility, [false])
         XCTAssertEqual(dependencies.window.inputEnabled, [false])
-        XCTAssertEqual(dependencies.scene.animationEnabled, [true])
+        XCTAssertEqual(dependencies.scene.animationEnabled, [false])
         XCTAssertEqual(dependencies.monitor.startCount, 1)
+    }
+
+    func testFirstFullscreenCallbackNeverShowsOrAnimatesRail() {
+        let dependencies = TestDependencies()
+        let model = dependencies.makeModel()
+        model.start()
+
+        dependencies.monitor.onVisibilityChange?(.fullscreen)
+
+        XCTAssertEqual(dependencies.window.visibility, [false, false])
+        XCTAssertEqual(dependencies.scene.animationEnabled, [false, false])
+        XCTAssertEqual(dependencies.window.inputEnabled, [false, false])
+        XCTAssertEqual(dependencies.scene.interactionEnabled, [false, false])
+    }
+
+    func testFirstNormalSpaceCallbackRevealsPlacedRail() {
+        let dependencies = TestDependencies()
+        let model = dependencies.makeModel()
+        model.start()
+
+        dependencies.monitor.onVisibilityChange?(.normalSpace)
+
+        XCTAssertEqual(dependencies.window.visibility, [false, true])
+        XCTAssertEqual(dependencies.scene.animationEnabled, [false, true])
+        XCTAssertEqual(dependencies.window.inputEnabled, [false, false])
+        XCTAssertEqual(dependencies.scene.interactionEnabled, [false, false])
+    }
+
+    func testActionsBeforeEnvironmentResolutionApplyAfterNormalSpaceCallback() {
+        let dependencies = TestDependencies()
+        let model = dependencies.makeModel()
+        model.start()
+
+        model.send(.setAnimationMode(.paused))
+        model.send(.setInputMode(.interactive))
+        dependencies.monitor.onVisibilityChange?(.normalSpace)
+
+        XCTAssertTrue(model.state.isEffectivelyVisible)
+        XCTAssertEqual(dependencies.window.visibility.last, true)
+        XCTAssertEqual(dependencies.window.inputEnabled.last, true)
+        XCTAssertEqual(dependencies.scene.animationEnabled.last, false)
+        XCTAssertEqual(dependencies.scene.interactionEnabled.last, true)
     }
 
     func testFullscreenHidesAndPausesThenRestores() {
@@ -39,11 +82,12 @@ final class AppModelTests: XCTestCase {
         let model = dependencies.makeModel()
         model.start()
 
+        dependencies.monitor.onVisibilityChange?(.normalSpace)
         dependencies.monitor.onVisibilityChange?(.fullscreen)
         dependencies.monitor.onVisibilityChange?(.normalSpace)
 
-        XCTAssertEqual(dependencies.window.visibility, [true, false, true])
-        XCTAssertEqual(dependencies.scene.animationEnabled, [true, false, true])
+        XCTAssertEqual(dependencies.window.visibility, [false, true, false, true])
+        XCTAssertEqual(dependencies.scene.animationEnabled, [false, true, false, true])
     }
 
     func testManualHideSurvivesFullscreenRoundTrip() {
@@ -63,6 +107,7 @@ final class AppModelTests: XCTestCase {
         let dependencies = TestDependencies()
         let model = dependencies.makeModel()
         model.start()
+        dependencies.monitor.onVisibilityChange?(.normalSpace)
 
         model.send(.setInputMode(.interactive))
 
@@ -99,6 +144,7 @@ final class AppModelTests: XCTestCase {
         let dependencies = TestDependencies()
         let model = dependencies.makeModel()
         model.start()
+        dependencies.monitor.onVisibilityChange?(.normalSpace)
 
         dependencies.screen.geometry = nil
         dependencies.monitor.onGeometryChange?()
@@ -114,6 +160,7 @@ final class AppModelTests: XCTestCase {
         let dependencies = TestDependencies()
         let model = dependencies.makeModel()
         model.start()
+        dependencies.monitor.onVisibilityChange?(.normalSpace)
 
         dependencies.screen.geometry = nil
         dependencies.monitor.onGeometryChange?()
