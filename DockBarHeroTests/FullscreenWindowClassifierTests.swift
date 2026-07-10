@@ -79,6 +79,53 @@ final class FullscreenWindowClassifierTests: XCTestCase {
         ))
     }
 
+    func testRejectsTransparentBottomOrSideCompanionThatTilesDisplay() {
+        let screen = CGRect(x: 0, y: 0, width: 1_728, height: 1_117)
+        let classifier = FullscreenWindowClassifier()
+
+        XCTAssertFalse(classifier.isFullscreen(
+            frontmostPID: 42,
+            ownPID: 99,
+            screenFrame: screen,
+            windows: [
+                WindowSnapshot(
+                    ownerPID: 42,
+                    layer: 0,
+                    bounds: CGRect(x: 0, y: 0, width: 1_728, height: 1_084),
+                    isOnScreen: true
+                ),
+                WindowSnapshot(
+                    ownerPID: 42,
+                    layer: 7,
+                    bounds: CGRect(x: 0, y: 1_084, width: 1_728, height: 33),
+                    isOnScreen: true,
+                    alpha: 0
+                )
+            ]
+        ))
+
+        XCTAssertFalse(classifier.isFullscreen(
+            frontmostPID: 42,
+            ownPID: 99,
+            screenFrame: screen,
+            windows: [
+                WindowSnapshot(
+                    ownerPID: 42,
+                    layer: 0,
+                    bounds: CGRect(x: 0, y: 0, width: 1_695, height: 1_117),
+                    isOnScreen: true
+                ),
+                WindowSnapshot(
+                    ownerPID: 42,
+                    layer: 7,
+                    bounds: CGRect(x: 1_695, y: 0, width: 33, height: 1_117),
+                    isOnScreen: true,
+                    alpha: 0
+                )
+            ]
+        ))
+    }
+
     func testRejectsMenuBarSizedMainWindowWithoutTransparentTopCompanion() {
         let screen = CGRect(x: 0, y: 0, width: 1_728, height: 1_117)
 

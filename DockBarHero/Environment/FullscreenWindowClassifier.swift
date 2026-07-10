@@ -44,13 +44,32 @@ struct FullscreenWindowClassifier {
         let transparentCompanions = frontmostWindows.filter { $0.alpha <= 0.01 }
         return opaqueMainWindows.contains { mainWindow in
             transparentCompanions.contains { companion in
-                tilesDisplay(mainWindow.bounds, companion.bounds, displayBounds: screenFrame)
+                isTopCompanionTopology(
+                    main: mainWindow.bounds,
+                    companion: companion.bounds,
+                    displayBounds: screenFrame
+                )
             }
         }
     }
 
     private func isOpaqueMainWindow(_ window: WindowSnapshot) -> Bool {
         window.layer == 0 && window.alpha >= 0.99
+    }
+
+    private func isTopCompanionTopology(
+        main: CGRect,
+        companion: CGRect,
+        displayBounds: CGRect
+    ) -> Bool {
+        matches(companion.minX, displayBounds.minX)
+            && matches(companion.minY, displayBounds.minY)
+            && matches(companion.width, displayBounds.width)
+            && matches(main.minX, displayBounds.minX)
+            && matches(main.width, displayBounds.width)
+            && matches(main.minY, companion.maxY)
+            && matches(main.maxY, displayBounds.maxY)
+            && tilesDisplay(main, companion, displayBounds: displayBounds)
     }
 
     private func tilesDisplay(_ first: CGRect, _ second: CGRect, displayBounds: CGRect) -> Bool {
@@ -64,10 +83,14 @@ struct FullscreenWindowClassifier {
     }
 
     private func matches(_ first: CGRect, _ second: CGRect) -> Bool {
-        abs(first.minX - second.minX) <= tolerance
-            && abs(first.minY - second.minY) <= tolerance
-            && abs(first.width - second.width) <= tolerance
-            && abs(first.height - second.height) <= tolerance
+        matches(first.minX, second.minX)
+            && matches(first.minY, second.minY)
+            && matches(first.width, second.width)
+            && matches(first.height, second.height)
+    }
+
+    private func matches(_ first: CGFloat, _ second: CGFloat) -> Bool {
+        abs(first - second) <= tolerance
     }
 }
 
