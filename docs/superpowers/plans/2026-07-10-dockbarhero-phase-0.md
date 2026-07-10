@@ -98,6 +98,7 @@ DerivedData/
 *.xcuserstate
 xcuserdata/
 .superpowers/
+.worktrees/
 ```
 
 Create `project.yml`:
