@@ -6,9 +6,26 @@ struct WindowSnapshot: Equatable {
     let layer: Int
     let bounds: CGRect
     let isOnScreen: Bool
+    let alpha: CGFloat
+
+    init(
+        ownerPID: pid_t,
+        layer: Int,
+        bounds: CGRect,
+        isOnScreen: Bool,
+        alpha: CGFloat = 1
+    ) {
+        self.ownerPID = ownerPID
+        self.layer = layer
+        self.bounds = bounds
+        self.isOnScreen = isOnScreen
+        self.alpha = alpha
+    }
 }
 
 struct FullscreenWindowClassifier {
+    private let tolerance: CGFloat = 2
+
     func isFullscreen(
         frontmostPID: pid_t,
         ownPID: pid_t,
@@ -17,13 +34,40 @@ struct FullscreenWindowClassifier {
     ) -> Bool {
         guard frontmostPID != ownPID else { return false }
 
-        return windows.contains { window in
-            window.ownerPID == frontmostPID
-                && window.layer == 0
-                && window.isOnScreen
-                && abs(window.bounds.width - screenFrame.width) <= 2
-                && abs(window.bounds.height - screenFrame.height) <= 2
+        let frontmostWindows = windows.filter { $0.ownerPID == frontmostPID && $0.isOnScreen }
+        let opaqueMainWindows = frontmostWindows.filter(isOpaqueMainWindow)
+
+        if opaqueMainWindows.contains(where: { matches($0.bounds, screenFrame) }) {
+            return true
         }
+
+        let transparentCompanions = frontmostWindows.filter { $0.alpha <= 0.01 }
+        return opaqueMainWindows.contains { mainWindow in
+            transparentCompanions.contains { companion in
+                tilesDisplay(mainWindow.bounds, companion.bounds, displayBounds: screenFrame)
+            }
+        }
+    }
+
+    private func isOpaqueMainWindow(_ window: WindowSnapshot) -> Bool {
+        window.layer == 0 && window.alpha >= 0.99
+    }
+
+    private func tilesDisplay(_ first: CGRect, _ second: CGRect, displayBounds: CGRect) -> Bool {
+        let union = first.union(second)
+        let combinedArea = first.width * first.height + second.width * second.height
+        let displayArea = displayBounds.width * displayBounds.height
+        let areaTolerance = tolerance * (displayBounds.width + displayBounds.height)
+
+        return matches(union, displayBounds)
+            && abs(combinedArea - displayArea) <= areaTolerance
+    }
+
+    private func matches(_ first: CGRect, _ second: CGRect) -> Bool {
+        abs(first.minX - second.minX) <= tolerance
+            && abs(first.minY - second.minY) <= tolerance
+            && abs(first.width - second.width) <= tolerance
+            && abs(first.height - second.height) <= tolerance
     }
 }
 
@@ -38,9 +82,13 @@ final class WorkspaceEnvironmentEvaluator: EnvironmentEvaluating {
 
     func currentVisibility() -> EnvironmentVisibility? {
         guard let screen = NSScreen.screens.first,
-              let app = NSWorkspace.shared.frontmostApplication else {
+              let app = NSWorkspace.shared.frontmostApplication,
+              let screenNumber = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber else {
             return nil
         }
+
+        let displayBounds = CGDisplayBounds(CGDirectDisplayID(screenNumber.uint32Value))
+        guard !displayBounds.isNull, !displayBounds.isEmpty else { return nil }
 
         guard let rawWindows = CGWindowListCopyWindowInfo(
             [.optionOnScreenOnly, .excludeDesktopElements],
@@ -53,7 +101,7 @@ final class WorkspaceEnvironmentEvaluator: EnvironmentEvaluating {
         let fullscreen = classifier.isFullscreen(
             frontmostPID: app.processIdentifier,
             ownPID: ProcessInfo.processInfo.processIdentifier,
-            screenFrame: screen.frame,
+            screenFrame: displayBounds,
             windows: windows
         )
         return fullscreen ? .fullscreen : .normalSpace
@@ -63,10 +111,17 @@ final class WorkspaceEnvironmentEvaluator: EnvironmentEvaluating {
         guard let ownerPID = info[kCGWindowOwnerPID as String] as? pid_t,
               let layer = info[kCGWindowLayer as String] as? Int,
               let boundsDictionary = info[kCGWindowBounds as String] as? [String: Any],
-              let bounds = CGRect(dictionaryRepresentation: boundsDictionary as CFDictionary) else {
+              let bounds = CGRect(dictionaryRepresentation: boundsDictionary as CFDictionary),
+              let alpha = info[kCGWindowAlpha as String] as? NSNumber else {
             return nil
         }
         let isOnScreen = info[kCGWindowIsOnscreen as String] as? Bool ?? false
-        return WindowSnapshot(ownerPID: ownerPID, layer: layer, bounds: bounds, isOnScreen: isOnScreen)
+        return WindowSnapshot(
+            ownerPID: ownerPID,
+            layer: layer,
+            bounds: bounds,
+            isOnScreen: isOnScreen,
+            alpha: CGFloat(alpha.doubleValue)
+        )
     }
 }
