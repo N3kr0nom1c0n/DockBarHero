@@ -14,6 +14,8 @@ final class OverlayWindowControllerTests: XCTestCase {
         XCTAssertFalse(panel.hasShadow)
         XCTAssertFalse(panel.canBecomeKey)
         XCTAssertFalse(panel.canBecomeMain)
+        XCTAssertTrue(panel.styleMask.contains(.nonactivatingPanel))
+        XCTAssertEqual(panel.level, .floating)
         XCTAssertTrue(panel.ignoresMouseEvents)
         XCTAssertTrue(panel.collectionBehavior.contains(.canJoinAllSpaces))
         XCTAssertTrue(panel.collectionBehavior.contains(.stationary))
@@ -26,6 +28,10 @@ final class OverlayWindowControllerTests: XCTestCase {
 
         controller.setFrame(frame)
         controller.setInputEnabled(true)
+        controller.setVisible(true)
+
+        XCTAssertTrue(controller.panel.isVisible)
+
         controller.setVisible(false)
 
         XCTAssertEqual(controller.panel.frame, frame)
