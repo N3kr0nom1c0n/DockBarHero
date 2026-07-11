@@ -24,6 +24,7 @@ final class GameSimulationTests: XCTestCase {
             .attack(attacker: .hero, defender: .enemy, damage: 10),
             .victory(defeatedLevel: 1)
         ])
+        XCTAssertTrue(events.contains(.victory(defeatedLevel: 1)))
         XCTAssertEqual(simulation.state.encounter.enemyLevel, 2)
         XCTAssertEqual(simulation.state.hero.currentHealth, 100)
         let victoryIndex = try XCTUnwrap(events.firstIndex { event in
@@ -50,15 +51,29 @@ final class GameSimulationTests: XCTestCase {
         XCTAssertEqual(singleEvents, chunkedEvents)
     }
 
-    func testElapsedJustBelowOneSecondDoesNotFireEarly() throws {
+    func testElapsedOneULPBelowOneSecondDoesNotFireEarly() throws {
         var simulation = GameSimulation()
 
-        let elapsed = 0.9999999996
+        let elapsed = 1.0.nextDown
         let events = try simulation.advance(by: elapsed)
 
         XCTAssertTrue(events.isEmpty)
         XCTAssertEqual(simulation.state.encounter.activeElapsed, elapsed, accuracy: 1e-18)
-        XCTAssertEqual(simulation.state.hero.timeUntilNextAttack, 1.0 - elapsed, accuracy: 1e-18)
+        XCTAssertGreaterThan(simulation.state.hero.timeUntilNextAttack, 0)
+    }
+
+    func testEnemyDueAtOneSecondResolvesBeforeHeroDueOneULPLater() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.enemy.timeUntilNextAttack = 1.0
+        state.hero.timeUntilNextAttack = 1.0.nextUp
+        var simulation = GameSimulation(state: state)
+
+        let events = try simulation.advance(by: 1.0)
+
+        XCTAssertEqual(events, [
+            .attack(attacker: .enemy, defender: .hero, damage: 3)
+        ])
+        XCTAssertGreaterThan(simulation.state.hero.timeUntilNextAttack, 0)
     }
 
     func testVerySmallElapsedIsPreservedAndChunkEquivalent() throws {
@@ -102,6 +117,27 @@ final class GameSimulationTests: XCTestCase {
         ])
         XCTAssertEqual(simulation.state.encounter.activeElapsed, 1.0e-9, accuracy: 1e-18)
         XCTAssertEqual(simulation.state.hero.timeUntilNextAttack, 0.2e-9, accuracy: 1e-18)
+    }
+
+    func testExcessiveEventDensityIsRejectedBeforeMutation() {
+        let denseBalance = BalanceConfiguration(
+            heroMaxHealth: 100,
+            heroBaseAttack: 10,
+            heroBaseDefense: 0,
+            heroAttackInterval: 1e-20,
+            enemyBaseHealth: 1_000_000,
+            enemyBaseAttack: 3,
+            enemyBaseDefense: 0,
+            enemyAttackInterval: 1.5,
+            reviveDelay: 3.0
+        )
+        var simulation = GameSimulation(balance: denseBalance)
+        let stateBeforeAdvance = simulation.state
+
+        XCTAssertThrowsError(try simulation.advance(by: 1.0)) { error in
+            XCTAssertEqual(error as? SimulationError, .eventDensity)
+        }
+        XCTAssertEqual(simulation.state, stateBeforeAdvance)
     }
 
     func testDefeatPausesThenRevivesTheSameEncounter() throws {

@@ -3,9 +3,15 @@ import Foundation
 enum SimulationError: Error, Equatable {
     case invalidElapsed
     case invalidTimer
+    case eventDensity
 }
 
 struct GameSimulation {
+    // A finite, positive interval can still be too small to reduce a much larger
+    // remaining duration in Double precision. Bound work deterministically and
+    // run on a candidate so the caller never observes a partial advance on error.
+    private static let maximumScheduledEventsPerAdvance = 100_000
+
     private(set) var state: GameState
     let balance: BalanceConfiguration
     private let policy: any ActionPolicy
@@ -26,10 +32,19 @@ struct GameSimulation {
         guard elapsed.isFinite, elapsed >= 0 else {
             throw SimulationError.invalidElapsed
         }
+
+        var candidate = self
+        let events = try candidate.advanceCandidate(by: elapsed)
+        self = candidate
+        return events
+    }
+
+    private mutating func advanceCandidate(by elapsed: TimeInterval) throws -> [GameEvent] {
         try validateTimerState()
 
         var remaining = elapsed
         var events: [GameEvent] = []
+        var scheduledEventCount = 0
 
         while true {
             switch state.encounter.phase {
@@ -49,10 +64,12 @@ struct GameSimulation {
 
                 var heroWon = false
                 if heroReady {
+                    try consumeEventBudget(&scheduledEventCount)
                     heroWon = resolveHeroAction(into: &events)
                 }
 
                 if enemyReady, !heroWon, state.encounter.phase == .active {
+                    try consumeEventBudget(&scheduledEventCount)
                     resolveEnemyAction(into: &events)
                 }
 
@@ -64,6 +81,7 @@ struct GameSimulation {
                 }
 
                 guard state.encounter.reviveRemaining <= 0 else { break }
+                try consumeEventBudget(&scheduledEventCount)
                 let enemyLevel = state.encounter.enemyLevel
                 finishRevive()
                 events.append(.revived(enemyLevel: enemyLevel))
@@ -198,10 +216,15 @@ struct GameSimulation {
     }
 
     private func subtracting(_ amount: TimeInterval, from value: TimeInterval) -> TimeInterval {
-        let result = value - amount
+        let result = Decimal(value) - Decimal(amount)
         guard result > 0 else { return 0 }
+        return NSDecimalNumber(decimal: result).doubleValue
+    }
 
-        let roundingBound = 8 * max(value.ulp, amount.ulp)
-        return result <= roundingBound ? 0 : result
+    private func consumeEventBudget(_ scheduledEventCount: inout Int) throws {
+        guard scheduledEventCount < Self.maximumScheduledEventsPerAdvance else {
+            throw SimulationError.eventDensity
+        }
+        scheduledEventCount += 1
     }
 }
