@@ -2,6 +2,7 @@ import Foundation
 
 enum SimulationError: Error, Equatable {
     case invalidElapsed
+    case invalidTimer
 }
 
 struct GameSimulation {
@@ -25,8 +26,9 @@ struct GameSimulation {
         guard elapsed.isFinite, elapsed >= 0 else {
             throw SimulationError.invalidElapsed
         }
+        try validateTimerState()
 
-        var remaining = normalized(elapsed)
+        var remaining = elapsed
         var events: [GameEvent] = []
 
         while true {
@@ -38,7 +40,7 @@ struct GameSimulation {
 
                 if step > 0 {
                     consumeActiveTime(step)
-                    remaining = normalized(remaining - step)
+                    remaining = subtracting(step, from: remaining)
                 }
 
                 let heroReady = state.hero.timeUntilNextAttack <= 0
@@ -57,8 +59,8 @@ struct GameSimulation {
             case .reviving:
                 let step = min(remaining, max(0, state.encounter.reviveRemaining))
                 if step > 0 {
-                    state.encounter.reviveRemaining = normalized(state.encounter.reviveRemaining - step)
-                    remaining = normalized(remaining - step)
+                    state.encounter.reviveRemaining = subtracting(step, from: state.encounter.reviveRemaining)
+                    remaining = subtracting(step, from: remaining)
                 }
 
                 guard state.encounter.reviveRemaining <= 0 else { break }
@@ -139,9 +141,9 @@ struct GameSimulation {
     }
 
     private mutating func consumeActiveTime(_ elapsed: TimeInterval) {
-        state.hero.timeUntilNextAttack = normalized(max(0, state.hero.timeUntilNextAttack - elapsed))
-        state.enemy.timeUntilNextAttack = normalized(max(0, state.enemy.timeUntilNextAttack - elapsed))
-        state.encounter.activeElapsed = normalized(state.encounter.activeElapsed + elapsed)
+        state.hero.timeUntilNextAttack = subtracting(elapsed, from: state.hero.timeUntilNextAttack)
+        state.enemy.timeUntilNextAttack = subtracting(elapsed, from: state.enemy.timeUntilNextAttack)
+        state.encounter.activeElapsed += elapsed
     }
 
     private mutating func beginNextEncounter() {
@@ -171,12 +173,35 @@ struct GameSimulation {
         state.enemy.timeUntilNextAttack = state.enemy.attackInterval
     }
 
-    private func normalized(_ value: TimeInterval) -> TimeInterval {
-        guard value.isFinite else { return value }
-        let scale = 1_000_000_000.0
-        let scaled = value * scale
-        guard scaled.isFinite else { return value }
-        let result = scaled.rounded() / scale
-        return result == 0 ? 0 : result
+    private func validateTimerState() throws {
+        let attackIntervals = [
+            state.hero.attackInterval,
+            state.enemy.attackInterval,
+            balance.heroAttackInterval,
+            balance.enemyAttackInterval
+        ]
+        let countdowns = [
+            state.hero.timeUntilNextAttack,
+            state.enemy.timeUntilNextAttack
+        ]
+
+        guard attackIntervals.allSatisfy({ $0.isFinite && $0 > 0 }),
+              countdowns.allSatisfy({ $0.isFinite && $0 >= 0 }),
+              state.encounter.activeElapsed.isFinite,
+              state.encounter.activeElapsed >= 0,
+              state.encounter.reviveRemaining.isFinite,
+              state.encounter.reviveRemaining >= 0,
+              balance.reviveDelay.isFinite,
+              balance.reviveDelay >= 0 else {
+            throw SimulationError.invalidTimer
+        }
+    }
+
+    private func subtracting(_ amount: TimeInterval, from value: TimeInterval) -> TimeInterval {
+        let result = value - amount
+        guard result > 0 else { return 0 }
+
+        let roundingBound = 8 * max(value.ulp, amount.ulp)
+        return result <= roundingBound ? 0 : result
     }
 }
