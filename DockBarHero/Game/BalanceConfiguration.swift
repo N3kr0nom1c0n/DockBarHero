@@ -23,30 +23,71 @@ struct BalanceConfiguration: Codable, Equatable, Sendable {
         reviveDelay: .nanoseconds(3_000_000_000)
     )
 
-    func enemy(level: Int) -> CombatantState {
-        precondition(level >= 1)
-        let enemyHealth = Int((Double(enemyBaseHealth) * pow(1.06, Double(level - 1))).rounded())
-        let enemyAttack = Int((Double(enemyBaseAttack) * pow(1.04, Double(level - 1))).rounded())
+    func enemy(level: Int) -> CombatantState? {
+        guard level >= 1 else { return nil }
+        guard level > 1 else { return initialEnemy }
+        guard let enemyHealth = scaledInteger(enemyBaseHealth, rate: 1.06, level: level, rounding: .toNearestOrAwayFromZero),
+              let enemyAttack = scaledInteger(enemyBaseAttack, rate: 1.04, level: level, rounding: .toNearestOrAwayFromZero) else {
+            return nil
+        }
 
-        return CombatantState(
+        return makeEnemy(health: enemyHealth, attack: enemyAttack)
+    }
+
+    func itemPrimaryStat(level: Int, slot: EquipmentSlot) -> Int? {
+        guard level >= 1 else { return nil }
+        switch slot {
+        case .weapon:
+            return scaledItemPrimaryStat(base: 10, rate: 1.06, level: level)
+        case .armor:
+            return scaledItemPrimaryStat(base: 3, rate: 1.04, level: level)
+        }
+    }
+
+    var initialEnemy: CombatantState {
+        makeEnemy(health: enemyBaseHealth, attack: enemyBaseAttack)
+    }
+
+    private func makeEnemy(health: Int, attack: Int) -> CombatantState {
+        CombatantState(
             id: .enemy,
-            currentHealth: enemyHealth,
-            maxHealth: enemyHealth,
-            baseAttack: enemyAttack,
+            currentHealth: health,
+            maxHealth: health,
+            baseAttack: attack,
             baseDefense: enemyBaseDefense,
             attackInterval: enemyAttackInterval,
             timeUntilNextAttack: enemyAttackInterval
         )
     }
 
-    func itemPrimaryStat(level: Int, slot: EquipmentSlot) -> Int {
-        precondition(level >= 1)
-        switch slot {
-        case .weapon:
-            return Int(ceil(10.0 * (pow(1.06, Double(level)) - 1.0)))
-        case .armor:
-            return Int(ceil(3.0 * (pow(1.04, Double(level)) - 1.0)))
+    private func scaledInteger(
+        _ base: Int,
+        rate: Double,
+        level: Int,
+        offset: Double = 0,
+        rounding: FloatingPointRoundingRule
+    ) -> Int? {
+        guard base >= 0, level >= 1 else { return nil }
+        let exponent = level - 1
+        let scaled = Double(base) * pow(rate, Double(exponent)) + offset
+        let rounded = scaled.rounded(rounding)
+        guard rounded.isFinite,
+              rounded >= Double(Int.min),
+              rounded < Double(Int.max) else {
+            return nil
         }
+        return Int(rounded)
+    }
+
+    private func scaledItemPrimaryStat(base: Int, rate: Double, level: Int) -> Int? {
+        let scaled = Double(base) * (pow(rate, Double(level)) - 1)
+        let rounded = scaled.rounded(.up)
+        guard rounded.isFinite,
+              rounded >= Double(Int.min),
+              rounded < Double(Int.max) else {
+            return nil
+        }
+        return Int(rounded)
     }
 }
 
@@ -64,7 +105,7 @@ extension GameState {
 
         return GameState(
             hero: hero,
-            enemy: balance.enemy(level: 1),
+            enemy: balance.initialEnemy,
             encounter: EncounterState(
                 enemyLevel: 1,
                 phase: .active,

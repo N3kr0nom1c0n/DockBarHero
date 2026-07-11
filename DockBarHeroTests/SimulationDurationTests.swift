@@ -13,12 +13,13 @@ final class SimulationDurationTests: XCTestCase {
         XCTAssertEqual(oneAndHalfSeconds.timeInterval, 1.5)
     }
 
-    func testCodableRoundTripPreservesNegativeRawValueForValidation() throws {
+    func testCodableUsesOneExplicitScalarInt64() throws {
         let original = SimulationDuration(rawValue: -1)
 
         let encoded = try JSONEncoder().encode(original)
         let decoded = try JSONDecoder().decode(SimulationDuration.self, from: encoded)
 
+        XCTAssertEqual(String(decoding: encoded, as: UTF8.self), "-1")
         XCTAssertEqual(decoded, original)
     }
 

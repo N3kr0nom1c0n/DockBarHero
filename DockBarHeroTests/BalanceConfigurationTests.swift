@@ -20,9 +20,30 @@ final class BalanceConfigurationTests: XCTestCase {
     func testStandardScalingMatchesApprovedFormulas() {
         let balance = BalanceConfiguration.standard
 
-        XCTAssertEqual(balance.enemy(level: 1).maxHealth, 30)
-        XCTAssertEqual(balance.enemy(level: 2).maxHealth, 32)
+        XCTAssertEqual(balance.enemy(level: 1)?.maxHealth, 30)
+        XCTAssertEqual(balance.enemy(level: 2)?.maxHealth, 32)
         XCTAssertEqual(balance.itemPrimaryStat(level: 1, slot: .weapon), 1)
         XCTAssertEqual(balance.itemPrimaryStat(level: 2, slot: .armor), 1)
+    }
+
+    func testLevelOneExtremeBalanceConstructsAndIsRejectedDuringAdvance() {
+        let balance = BalanceConfiguration(
+            heroMaxHealth: 100,
+            heroBaseAttack: 10,
+            heroBaseDefense: 0,
+            heroAttackInterval: .nanoseconds(1_000_000_000),
+            enemyBaseHealth: .max,
+            enemyBaseAttack: 3,
+            enemyBaseDefense: 0,
+            enemyAttackInterval: .nanoseconds(1_500_000_000),
+            reviveDelay: .nanoseconds(3_000_000_000)
+        )
+        var simulation = GameSimulation(balance: balance)
+        let stateBeforeAdvance = simulation.state
+
+        XCTAssertThrowsError(try simulation.advance(by: .zero)) { error in
+            XCTAssertEqual(error as? SimulationError, .invalidBalance)
+        }
+        XCTAssertEqual(simulation.state, stateBeforeAdvance)
     }
 }

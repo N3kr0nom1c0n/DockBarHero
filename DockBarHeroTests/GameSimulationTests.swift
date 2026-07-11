@@ -80,7 +80,7 @@ final class GameSimulationTests: XCTestCase {
         let original = simulation.state
 
         XCTAssertThrowsError(try simulation.advance(by: .nanoseconds(1))) { error in
-            XCTAssertEqual(error as? SimulationError, .invalidTimer)
+            XCTAssertEqual(error as? SimulationError, .invalidBalance)
         }
         XCTAssertEqual(simulation.state, original)
     }
@@ -151,6 +151,129 @@ final class GameSimulationTests: XCTestCase {
         XCTAssertEqual(simulation.state.encounter.enemyLevel, 1)
         XCTAssertEqual(simulation.state.hero.currentHealth, simulation.state.hero.maxHealth)
         XCTAssertEqual(simulation.state.enemy.currentHealth, simulation.state.enemy.maxHealth)
+    }
+
+    func testEquippedWeaponAndArmorAffectDamage() throws {
+        var state = GameState.newGame(balance: .standard)
+        let weapon = Item(id: ItemID(rawValue: 1), level: 1, slot: .weapon, primaryStat: 5, creationSequence: 1)
+        let armor = Item(id: ItemID(rawValue: 2), level: 1, slot: .armor, primaryStat: 2, creationSequence: 2)
+        state.inventory = [weapon, armor]
+        state.equipment.weaponID = weapon.id
+        state.equipment.armorID = armor.id
+        state.enemy.timeUntilNextAttack = try duration(seconds: 1)
+        var simulation = GameSimulation(state: state)
+
+        let events = try simulation.advance(by: try duration(seconds: 1))
+
+        XCTAssertEqual(events, [
+            .attack(attacker: .hero, defender: .enemy, damage: 15),
+            .attack(attacker: .enemy, defender: .hero, damage: 1)
+        ])
+    }
+
+    func testEnemyLevelMaximumVictoryRejectsBeforeMutation() {
+        var state = GameState.newGame(balance: .standard)
+        state.encounter.enemyLevel = .max
+        state.enemy.currentHealth = 1
+        state.hero.timeUntilNextAttack = .zero
+        var simulation = GameSimulation(state: state)
+        let stateBeforeAdvance = simulation.state
+
+        XCTAssertThrowsError(try simulation.advance(by: .zero)) { error in
+            XCTAssertEqual(error as? SimulationError, .invalidBalance)
+        }
+        XCTAssertEqual(simulation.state, stateBeforeAdvance)
+    }
+
+    func testMaximumHeroDamageAttackRejectsBeforeMutation() {
+        var state = GameState.newGame(balance: .standard)
+        state.encounter.heroDamage = .max
+        state.hero.timeUntilNextAttack = .zero
+        var simulation = GameSimulation(state: state)
+        let stateBeforeAdvance = simulation.state
+
+        XCTAssertThrowsError(try simulation.advance(by: .zero)) { error in
+            XCTAssertEqual(error as? SimulationError, .arithmeticOverflow)
+        }
+        XCTAssertEqual(simulation.state, stateBeforeAdvance)
+    }
+
+    func testEquippedStatOverflowIsRejectedBeforeMutation() {
+        var state = GameState.newGame(balance: .standard)
+        let weapon = Item(id: ItemID(rawValue: 1), level: 1, slot: .weapon, primaryStat: 1, creationSequence: 1)
+        state.hero = CombatantState(
+            id: .hero,
+            currentHealth: state.hero.currentHealth,
+            maxHealth: state.hero.maxHealth,
+            baseAttack: .max,
+            baseDefense: state.hero.baseDefense,
+            attackInterval: state.hero.attackInterval,
+            timeUntilNextAttack: .zero
+        )
+        state.inventory = [weapon]
+        state.equipment.weaponID = weapon.id
+        var simulation = GameSimulation(state: state)
+        let stateBeforeAdvance = simulation.state
+
+        XCTAssertThrowsError(try simulation.advance(by: .zero)) { error in
+            XCTAssertEqual(error as? SimulationError, .invalidState)
+        }
+        XCTAssertEqual(simulation.state, stateBeforeAdvance)
+    }
+
+    func testMalformedCombatStateIsRejectedBeforeMutation() {
+        var state = GameState.newGame(balance: .standard)
+        state.hero = CombatantState(
+            id: .enemy,
+            currentHealth: state.hero.maxHealth + 1,
+            maxHealth: state.hero.maxHealth,
+            baseAttack: -1,
+            baseDefense: state.hero.baseDefense,
+            attackInterval: state.hero.attackInterval,
+            timeUntilNextAttack: state.hero.timeUntilNextAttack
+        )
+        state.encounter.reviveRemaining = .nanoseconds(1)
+        var simulation = GameSimulation(state: state)
+        let stateBeforeAdvance = simulation.state
+
+        XCTAssertThrowsError(try simulation.advance(by: .zero)) { error in
+            XCTAssertEqual(error as? SimulationError, .invalidState)
+        }
+        XCTAssertEqual(simulation.state, stateBeforeAdvance)
+    }
+
+    func testIncoherentRevivingStateIsRejectedBeforeMutation() {
+        var state = GameState.newGame(balance: .standard)
+        state.encounter.phase = .reviving
+        state.encounter.reviveRemaining = try! duration(seconds: 1)
+        var simulation = GameSimulation(state: state)
+        let stateBeforeAdvance = simulation.state
+
+        XCTAssertThrowsError(try simulation.advance(by: .zero)) { error in
+            XCTAssertEqual(error as? SimulationError, .invalidState)
+        }
+        XCTAssertEqual(simulation.state, stateBeforeAdvance)
+    }
+
+    func testInvalidBalanceValuesAreRejectedBeforeMutation() {
+        let balance = BalanceConfiguration(
+            heroMaxHealth: 0,
+            heroBaseAttack: -1,
+            heroBaseDefense: -1,
+            heroAttackInterval: try! duration(seconds: 1),
+            enemyBaseHealth: 0,
+            enemyBaseAttack: -1,
+            enemyBaseDefense: -1,
+            enemyAttackInterval: try! duration(milliseconds: 1_500),
+            reviveDelay: try! duration(seconds: 3)
+        )
+        var simulation = GameSimulation(balance: balance)
+        let stateBeforeAdvance = simulation.state
+
+        XCTAssertThrowsError(try simulation.advance(by: .zero)) { error in
+            XCTAssertEqual(error as? SimulationError, .invalidBalance)
+        }
+        XCTAssertEqual(simulation.state, stateBeforeAdvance)
     }
 
     private func duration(milliseconds: Int64) throws -> SimulationDuration {

@@ -1,6 +1,8 @@
 enum SimulationError: Error, Equatable {
     case invalidElapsed
     case invalidTimer
+    case invalidState
+    case invalidBalance
     case arithmeticOverflow
 }
 
@@ -33,7 +35,7 @@ struct GameSimulation {
     }
 
     private mutating func advanceCandidate(by elapsed: SimulationDuration) throws -> [GameEvent] {
-        try validateTimerState()
+        try validateStateAndBalance()
 
         var remaining = elapsed
         var events: [GameEvent] = []
@@ -53,11 +55,11 @@ struct GameSimulation {
 
                 var heroWon = false
                 if heroReady {
-                    heroWon = resolveHeroAction(into: &events)
+                    heroWon = try resolveHeroAction(into: &events)
                 }
 
                 if enemyReady, !heroWon, state.encounter.phase == .active {
-                    resolveEnemyAction(into: &events)
+                    try resolveEnemyAction(into: &events)
                 }
 
             case .reviving:
@@ -69,7 +71,7 @@ struct GameSimulation {
 
                 guard state.encounter.reviveRemaining == .zero else { return events }
                 let enemyLevel = state.encounter.enemyLevel
-                finishRevive()
+                try finishRevive()
                 events.append(.revived(enemyLevel: enemyLevel))
             }
 
@@ -84,62 +86,65 @@ struct GameSimulation {
         }
     }
 
-    private mutating func resolveHeroAction(into events: inout [GameEvent]) -> Bool {
+    private mutating func resolveHeroAction(into events: inout [GameEvent]) throws -> Bool {
         switch policy.action(for: .hero, in: state) {
         case .basicAttack:
-            let damage = damage(attacker: .hero, defender: .enemy)
-            state.enemy.currentHealth = max(0, state.enemy.currentHealth - damage)
+            let damage = try damage(attacker: .hero, defender: .enemy)
+            let enemyHealth = try health(afterTaking: damage, from: state.enemy.currentHealth)
+            let heroDamage = try adding(damage, to: state.encounter.heroDamage)
+            state.enemy.currentHealth = enemyHealth
             state.hero.timeUntilNextAttack = state.hero.attackInterval
-            state.encounter.heroDamage += damage
+            state.encounter.heroDamage = heroDamage
             events.append(.attack(attacker: .hero, defender: .enemy, damage: damage))
 
             guard state.enemy.currentHealth == 0 else { return false }
             let defeatedLevel = state.encounter.enemyLevel
             events.append(.victory(defeatedLevel: defeatedLevel))
-            beginNextEncounter()
+            try beginNextEncounter()
             return true
         }
     }
 
-    private mutating func resolveEnemyAction(into events: inout [GameEvent]) {
+    private mutating func resolveEnemyAction(into events: inout [GameEvent]) throws {
         switch policy.action(for: .enemy, in: state) {
         case .basicAttack:
-            let damage = damage(attacker: .enemy, defender: .hero)
-            state.hero.currentHealth = max(0, state.hero.currentHealth - damage)
+            let damage = try damage(attacker: .enemy, defender: .hero)
+            let heroHealth = try health(afterTaking: damage, from: state.hero.currentHealth)
+            state.hero.currentHealth = heroHealth
             state.enemy.timeUntilNextAttack = state.enemy.attackInterval
             events.append(.attack(attacker: .enemy, defender: .hero, damage: damage))
 
             guard state.hero.currentHealth == 0 else { return }
             let enemyLevel = state.encounter.enemyLevel
             events.append(.defeat(enemyLevel: enemyLevel))
-            beginRevive()
+            try beginRevive()
         }
     }
 
-    private func damage(attacker: CombatantID, defender: CombatantID) -> Int {
-        max(1, effectiveAttack(for: attacker) - effectiveDefense(for: defender))
+    private func damage(attacker: CombatantID, defender: CombatantID) throws -> Int {
+        let attack = try effectiveAttack(for: attacker)
+        let defense = try effectiveDefense(for: defender)
+        let (difference, overflow) = attack.subtractingReportingOverflow(defense)
+        guard !overflow else { throw SimulationError.arithmeticOverflow }
+        return max(1, difference)
     }
 
-    private func effectiveAttack(for combatant: CombatantID) -> Int {
+    private func effectiveAttack(for combatant: CombatantID) throws -> Int {
         let baseAttack = combatant == .hero ? state.hero.baseAttack : state.enemy.baseAttack
         guard combatant == .hero,
-              let weaponID = state.equipment.weaponID,
-              let weapon = state.inventory.first(where: { $0.id == weaponID }),
-              weapon.slot == .weapon else {
+              let weapon = try equippedItem(in: .weapon) else {
             return baseAttack
         }
-        return baseAttack + weapon.primaryStat
+        return try adding(weapon.primaryStat, to: baseAttack)
     }
 
-    private func effectiveDefense(for combatant: CombatantID) -> Int {
+    private func effectiveDefense(for combatant: CombatantID) throws -> Int {
         let baseDefense = combatant == .hero ? state.hero.baseDefense : state.enemy.baseDefense
         guard combatant == .hero,
-              let armorID = state.equipment.armorID,
-              let armor = state.inventory.first(where: { $0.id == armorID }),
-              armor.slot == .armor else {
+              let armor = try equippedItem(in: .armor) else {
             return baseDefense
         }
-        return baseDefense + armor.primaryStat
+        return try adding(armor.primaryStat, to: baseDefense)
     }
 
     private mutating func consumeActiveTime(_ elapsed: SimulationDuration) throws {
@@ -148,21 +153,32 @@ struct GameSimulation {
         state.encounter.activeElapsed = try adding(elapsed, to: state.encounter.activeElapsed)
     }
 
-    private mutating func beginNextEncounter() {
-        state.encounter.enemyLevel += 1
+    private mutating func beginNextEncounter() throws {
+        let (enemyLevel, overflow) = state.encounter.enemyLevel.addingReportingOverflow(1)
+        guard !overflow else { throw SimulationError.arithmeticOverflow }
+        guard let enemy = balance.enemy(level: enemyLevel) else {
+            throw SimulationError.invalidBalance
+        }
+        state.encounter.enemyLevel = enemyLevel
         state.hero.currentHealth = state.hero.maxHealth
-        state.enemy = balance.enemy(level: state.encounter.enemyLevel)
+        state.enemy = enemy
         resetEncounterMetrics(phase: .active, reviveRemaining: .zero)
     }
 
-    private mutating func beginRevive() {
+    private mutating func beginRevive() throws {
+        guard balance.reviveDelay >= .zero, balance.reviveDelay <= .maximumAdvance else {
+            throw SimulationError.invalidBalance
+        }
         state.encounter.phase = .reviving
         state.encounter.reviveRemaining = balance.reviveDelay
     }
 
-    private mutating func finishRevive() {
+    private mutating func finishRevive() throws {
+        guard let enemy = balance.enemy(level: state.encounter.enemyLevel) else {
+            throw SimulationError.invalidBalance
+        }
         state.hero.currentHealth = state.hero.maxHealth
-        state.enemy = balance.enemy(level: state.encounter.enemyLevel)
+        state.enemy = enemy
         resetEncounterMetrics(phase: .active, reviveRemaining: .zero)
     }
 
@@ -173,6 +189,87 @@ struct GameSimulation {
         state.encounter.reviveRemaining = reviveRemaining
         state.hero.timeUntilNextAttack = state.hero.attackInterval
         state.enemy.timeUntilNextAttack = state.enemy.attackInterval
+    }
+
+    private func validateStateAndBalance() throws {
+        try validateBalance()
+        try validateCombatant(state.hero, expectedID: .hero)
+        try validateCombatant(state.enemy, expectedID: .enemy)
+
+        guard state.encounter.enemyLevel >= 1,
+              state.encounter.heroDamage >= 0 else {
+            throw SimulationError.invalidState
+        }
+
+        switch state.encounter.phase {
+        case .active:
+            guard state.encounter.reviveRemaining == .zero else {
+                throw SimulationError.invalidState
+            }
+        case .reviving:
+            guard state.hero.currentHealth == 0,
+                  state.encounter.reviveRemaining <= balance.reviveDelay else {
+                throw SimulationError.invalidState
+            }
+        }
+
+        _ = try equippedItem(in: .weapon)
+        _ = try equippedItem(in: .armor)
+        try validateEnemyScaling()
+        try validateTimerState()
+    }
+
+    private func validateBalance() throws {
+        guard balance.heroMaxHealth > 0,
+              balance.heroBaseAttack >= 0,
+              balance.heroBaseDefense >= 0,
+              balance.enemyBaseHealth > 0,
+              balance.enemyBaseAttack >= 0,
+              balance.enemyBaseDefense >= 0,
+              balance.heroAttackInterval >= .minimumAttackInterval,
+              balance.enemyAttackInterval >= .minimumAttackInterval,
+              balance.reviveDelay >= .zero,
+              balance.reviveDelay <= .maximumAdvance else {
+            throw SimulationError.invalidBalance
+        }
+    }
+
+    private func validateCombatant(_ combatant: CombatantState, expectedID: CombatantID) throws {
+        guard combatant.id == expectedID,
+              combatant.maxHealth > 0,
+              combatant.currentHealth >= 0,
+              combatant.currentHealth <= combatant.maxHealth,
+              combatant.baseAttack >= 0,
+              combatant.baseDefense >= 0 else {
+            throw SimulationError.invalidState
+        }
+    }
+
+    private func validateEnemyScaling() throws {
+        guard balance.enemy(level: state.encounter.enemyLevel) != nil else {
+            throw SimulationError.invalidBalance
+        }
+        let (nextLevel, overflow) = state.encounter.enemyLevel.addingReportingOverflow(1)
+        guard !overflow, balance.enemy(level: nextLevel) != nil else {
+            throw SimulationError.invalidBalance
+        }
+    }
+
+    private func equippedItem(in slot: EquipmentSlot) throws -> Item? {
+        guard let itemID = state.equipment[slot] else { return nil }
+        let items = state.inventory.filter { $0.id == itemID }
+        guard items.count == 1,
+              let item = items.first,
+              item.slot == slot,
+              item.level >= 1,
+              item.primaryStat >= 0 else {
+            throw SimulationError.invalidState
+        }
+
+        let baseStat = slot == .weapon ? state.hero.baseAttack : state.hero.baseDefense
+        let (_, overflow) = baseStat.addingReportingOverflow(item.primaryStat)
+        guard !overflow else { throw SimulationError.invalidState }
+        return item
     }
 
     private func validateTimerState() throws {
@@ -191,9 +288,7 @@ struct GameSimulation {
               countdowns.allSatisfy({ $0 >= .zero }),
               state.encounter.activeElapsed >= .zero,
               state.encounter.reviveRemaining >= .zero,
-              state.encounter.reviveRemaining <= .maximumAdvance,
-              balance.reviveDelay >= .zero,
-              balance.reviveDelay <= .maximumAdvance else {
+              state.encounter.reviveRemaining <= .maximumAdvance else {
             throw SimulationError.invalidTimer
         }
     }
@@ -208,5 +303,17 @@ struct GameSimulation {
         let (rawValue, overflow) = value.rawValue.subtractingReportingOverflow(amount.rawValue)
         guard !overflow else { throw SimulationError.arithmeticOverflow }
         return SimulationDuration(rawValue: rawValue)
+    }
+
+    private func adding(_ amount: Int, to value: Int) throws -> Int {
+        let (result, overflow) = value.addingReportingOverflow(amount)
+        guard !overflow else { throw SimulationError.arithmeticOverflow }
+        return result
+    }
+
+    private func health(afterTaking damage: Int, from currentHealth: Int) throws -> Int {
+        let (remaining, overflow) = currentHealth.subtractingReportingOverflow(damage)
+        guard !overflow else { throw SimulationError.arithmeticOverflow }
+        return max(0, remaining)
     }
 }

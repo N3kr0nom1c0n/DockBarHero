@@ -3,6 +3,10 @@ import Foundation
 struct SimulationDuration: RawRepresentable, Codable, Hashable, Comparable, Sendable {
     let rawValue: Int64
 
+    init(rawValue: Int64) {
+        self.rawValue = rawValue
+    }
+
     static let zero = SimulationDuration(rawValue: 0)
     static let minimumAttackInterval = SimulationDuration(rawValue: 1_000_000)
     static let maximumAdvance = SimulationDuration(rawValue: 10_000_000_000)
@@ -25,6 +29,16 @@ struct SimulationDuration: RawRepresentable, Codable, Hashable, Comparable, Send
 
     static func < (lhs: SimulationDuration, rhs: SimulationDuration) -> Bool {
         lhs.rawValue < rhs.rawValue
+    }
+
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        rawValue = try container.decode(Int64.self)
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
     }
 
     private static func multiplied(_ value: Int64, by multiplier: Int64) -> SimulationDuration? {
