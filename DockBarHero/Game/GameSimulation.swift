@@ -1,17 +1,10 @@
-import Foundation
-
 enum SimulationError: Error, Equatable {
     case invalidElapsed
     case invalidTimer
-    case eventDensity
+    case arithmeticOverflow
 }
 
 struct GameSimulation {
-    // A finite, positive interval can still be too small to reduce a much larger
-    // remaining duration in Double precision. Bound work deterministically and
-    // run on a candidate so the caller never observes a partial advance on error.
-    private static let maximumScheduledEventsPerAdvance = 100_000
-
     private(set) var state: GameState
     let balance: BalanceConfiguration
     private let policy: any ActionPolicy
@@ -28,8 +21,8 @@ struct GameSimulation {
         self.policy = policy
     }
 
-    mutating func advance(by elapsed: TimeInterval) throws -> [GameEvent] {
-        guard elapsed.isFinite, elapsed >= 0 else {
+    mutating func advance(by elapsed: SimulationDuration) throws -> [GameEvent] {
+        guard elapsed >= .zero, elapsed <= .maximumAdvance else {
             throw SimulationError.invalidElapsed
         }
 
@@ -39,65 +32,56 @@ struct GameSimulation {
         return events
     }
 
-    private mutating func advanceCandidate(by elapsed: TimeInterval) throws -> [GameEvent] {
+    private mutating func advanceCandidate(by elapsed: SimulationDuration) throws -> [GameEvent] {
         try validateTimerState()
 
         var remaining = elapsed
         var events: [GameEvent] = []
-        var scheduledEventCount = 0
 
         while true {
             switch state.encounter.phase {
             case .active:
-                let heroCountdown = max(0, state.hero.timeUntilNextAttack)
-                let enemyCountdown = max(0, state.enemy.timeUntilNextAttack)
-                let step = min(remaining, heroCountdown, enemyCountdown)
-
-                if step > 0 {
-                    consumeActiveTime(step)
-                    remaining = subtracting(step, from: remaining)
+                let step = min(remaining, state.hero.timeUntilNextAttack, state.enemy.timeUntilNextAttack)
+                if step > .zero {
+                    try consumeActiveTime(step)
+                    remaining = try subtracting(step, from: remaining)
                 }
 
-                let heroReady = state.hero.timeUntilNextAttack <= 0
-                let enemyReady = state.enemy.timeUntilNextAttack <= 0
-                guard heroReady || enemyReady else { break }
+                let heroReady = state.hero.timeUntilNextAttack == .zero
+                let enemyReady = state.enemy.timeUntilNextAttack == .zero
+                guard heroReady || enemyReady else { return events }
 
                 var heroWon = false
                 if heroReady {
-                    try consumeEventBudget(&scheduledEventCount)
                     heroWon = resolveHeroAction(into: &events)
                 }
 
                 if enemyReady, !heroWon, state.encounter.phase == .active {
-                    try consumeEventBudget(&scheduledEventCount)
                     resolveEnemyAction(into: &events)
                 }
 
             case .reviving:
-                let step = min(remaining, max(0, state.encounter.reviveRemaining))
-                if step > 0 {
-                    state.encounter.reviveRemaining = subtracting(step, from: state.encounter.reviveRemaining)
-                    remaining = subtracting(step, from: remaining)
+                let step = min(remaining, state.encounter.reviveRemaining)
+                if step > .zero {
+                    state.encounter.reviveRemaining = try subtracting(step, from: state.encounter.reviveRemaining)
+                    remaining = try subtracting(step, from: remaining)
                 }
 
-                guard state.encounter.reviveRemaining <= 0 else { break }
-                try consumeEventBudget(&scheduledEventCount)
+                guard state.encounter.reviveRemaining == .zero else { return events }
                 let enemyLevel = state.encounter.enemyLevel
                 finishRevive()
                 events.append(.revived(enemyLevel: enemyLevel))
             }
 
-            if remaining <= 0 {
+            if remaining == .zero {
                 let hasReadyActor = state.encounter.phase == .active &&
-                    (state.hero.timeUntilNextAttack <= 0 || state.enemy.timeUntilNextAttack <= 0)
-                let reviveIsDue = state.encounter.phase == .reviving && state.encounter.reviveRemaining <= 0
+                    (state.hero.timeUntilNextAttack == .zero || state.enemy.timeUntilNextAttack == .zero)
+                let reviveIsDue = state.encounter.phase == .reviving && state.encounter.reviveRemaining == .zero
                 if !hasReadyActor && !reviveIsDue {
-                    break
+                    return events
                 }
             }
         }
-
-        return events
     }
 
     private mutating func resolveHeroAction(into events: inout [GameEvent]) -> Bool {
@@ -158,17 +142,17 @@ struct GameSimulation {
         return baseDefense + armor.primaryStat
     }
 
-    private mutating func consumeActiveTime(_ elapsed: TimeInterval) {
-        state.hero.timeUntilNextAttack = subtracting(elapsed, from: state.hero.timeUntilNextAttack)
-        state.enemy.timeUntilNextAttack = subtracting(elapsed, from: state.enemy.timeUntilNextAttack)
-        state.encounter.activeElapsed += elapsed
+    private mutating func consumeActiveTime(_ elapsed: SimulationDuration) throws {
+        state.hero.timeUntilNextAttack = try subtracting(elapsed, from: state.hero.timeUntilNextAttack)
+        state.enemy.timeUntilNextAttack = try subtracting(elapsed, from: state.enemy.timeUntilNextAttack)
+        state.encounter.activeElapsed = try adding(elapsed, to: state.encounter.activeElapsed)
     }
 
     private mutating func beginNextEncounter() {
         state.encounter.enemyLevel += 1
         state.hero.currentHealth = state.hero.maxHealth
         state.enemy = balance.enemy(level: state.encounter.enemyLevel)
-        resetEncounterMetrics(phase: .active, reviveRemaining: 0)
+        resetEncounterMetrics(phase: .active, reviveRemaining: .zero)
     }
 
     private mutating func beginRevive() {
@@ -179,12 +163,12 @@ struct GameSimulation {
     private mutating func finishRevive() {
         state.hero.currentHealth = state.hero.maxHealth
         state.enemy = balance.enemy(level: state.encounter.enemyLevel)
-        resetEncounterMetrics(phase: .active, reviveRemaining: 0)
+        resetEncounterMetrics(phase: .active, reviveRemaining: .zero)
     }
 
-    private mutating func resetEncounterMetrics(phase: EncounterPhase, reviveRemaining: TimeInterval) {
+    private mutating func resetEncounterMetrics(phase: EncounterPhase, reviveRemaining: SimulationDuration) {
         state.encounter.phase = phase
-        state.encounter.activeElapsed = 0
+        state.encounter.activeElapsed = .zero
         state.encounter.heroDamage = 0
         state.encounter.reviveRemaining = reviveRemaining
         state.hero.timeUntilNextAttack = state.hero.attackInterval
@@ -203,28 +187,26 @@ struct GameSimulation {
             state.enemy.timeUntilNextAttack
         ]
 
-        guard attackIntervals.allSatisfy({ $0.isFinite && $0 > 0 }),
-              countdowns.allSatisfy({ $0.isFinite && $0 >= 0 }),
-              state.encounter.activeElapsed.isFinite,
-              state.encounter.activeElapsed >= 0,
-              state.encounter.reviveRemaining.isFinite,
-              state.encounter.reviveRemaining >= 0,
-              balance.reviveDelay.isFinite,
-              balance.reviveDelay >= 0 else {
+        guard attackIntervals.allSatisfy({ $0 >= .minimumAttackInterval }),
+              countdowns.allSatisfy({ $0 >= .zero }),
+              state.encounter.activeElapsed >= .zero,
+              state.encounter.reviveRemaining >= .zero,
+              state.encounter.reviveRemaining <= .maximumAdvance,
+              balance.reviveDelay >= .zero,
+              balance.reviveDelay <= .maximumAdvance else {
             throw SimulationError.invalidTimer
         }
     }
 
-    private func subtracting(_ amount: TimeInterval, from value: TimeInterval) -> TimeInterval {
-        let result = Decimal(value) - Decimal(amount)
-        guard result > 0 else { return 0 }
-        return NSDecimalNumber(decimal: result).doubleValue
+    private func adding(_ amount: SimulationDuration, to value: SimulationDuration) throws -> SimulationDuration {
+        let (rawValue, overflow) = value.rawValue.addingReportingOverflow(amount.rawValue)
+        guard !overflow else { throw SimulationError.arithmeticOverflow }
+        return SimulationDuration(rawValue: rawValue)
     }
 
-    private func consumeEventBudget(_ scheduledEventCount: inout Int) throws {
-        guard scheduledEventCount < Self.maximumScheduledEventsPerAdvance else {
-            throw SimulationError.eventDensity
-        }
-        scheduledEventCount += 1
+    private func subtracting(_ amount: SimulationDuration, from value: SimulationDuration) throws -> SimulationDuration {
+        let (rawValue, overflow) = value.rawValue.subtractingReportingOverflow(amount.rawValue)
+        guard !overflow else { throw SimulationError.arithmeticOverflow }
+        return SimulationDuration(rawValue: rawValue)
     }
 }

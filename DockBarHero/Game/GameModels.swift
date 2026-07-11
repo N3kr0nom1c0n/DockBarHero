@@ -33,8 +33,8 @@ struct CombatantState: Codable, Equatable, Sendable {
     let maxHealth: Int
     let baseAttack: Int
     let baseDefense: Int
-    let attackInterval: TimeInterval
-    var timeUntilNextAttack: TimeInterval
+    let attackInterval: SimulationDuration
+    var timeUntilNextAttack: SimulationDuration
 }
 
 enum EncounterPhase: String, Codable, Equatable, Sendable { case active, reviving }
@@ -42,9 +42,9 @@ enum EncounterPhase: String, Codable, Equatable, Sendable { case active, revivin
 struct EncounterState: Codable, Equatable, Sendable {
     var enemyLevel: Int
     var phase: EncounterPhase
-    var activeElapsed: TimeInterval
+    var activeElapsed: SimulationDuration
     var heroDamage: Int
-    var reviveRemaining: TimeInterval
+    var reviveRemaining: SimulationDuration
 }
 
 struct GameState: Codable, Equatable, Sendable {

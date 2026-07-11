@@ -101,11 +101,11 @@ Gameplay rules must remain independent from AppKit, SwiftUI, SpriteKit, wall-clo
 - Equipment and inventory.
 - DPS calculations.
 
-The simulation accepts elapsed active time through `advance(by:)` and returns a snapshot plus ordered domain events. It never reads a global clock itself.
+The simulation accepts elapsed active time through `advance(by:)` and returns a snapshot plus ordered domain events. It never reads a global clock itself. `SimulationDuration` is the sole gameplay-time value: its canonical representation is signed `Int64` nanoseconds, with checked nanosecond, millisecond, and whole-second construction. Combatant intervals and countdowns, encounter elapsed time, revive time, balance timers, and combat timestamps use this type; floating-point conversion is presentation-only.
 
 ### 5.2 Simulation Driver
 
-A `SimulationDriver` uses a monotonic clock to calculate elapsed active time and advances the simulation independently from SpriteKit rendering. Normal timer delays are caught up deterministically. A single elapsed interval is capped at one second; excess time is discarded as suspension time so machine sleep does not become accidental offline progress.
+A `SimulationDriver` uses an integer monotonic-nanosecond source to calculate elapsed active time and advances the simulation independently from SpriteKit rendering. Normal timer delays are caught up deterministically. A single elapsed interval is capped at one billion nanoseconds (one second), inside the simulation's ten-billion-nanosecond advance limit; excess time is discarded as suspension time so machine sleep does not become accidental offline progress.
 
 Gameplay continues while the rail is hidden or visual animation is paused. The simulation stops only during application shutdown. Offline progress will later replace the suspension-discard policy through a separately approved design.
 
@@ -137,6 +137,8 @@ Effective hero attack and defense are derived from base stats plus equipped item
 - Active encounter elapsed time.
 - Total hero damage dealt in the encounter.
 - Remaining revive time when applicable.
+
+Every gameplay-time field is a `SimulationDuration`. Negative raw values remain representable only so validation can reject malformed state without trapping. Attack intervals must be at least one million nanoseconds (one millisecond); one `advance(by:)` accepts `0...10_000_000_000` nanoseconds; revive delay and remaining revive time must be `0...10_000_000_000` nanoseconds. Countdown and active-elapsed arithmetic is checked `Int64` arithmetic, and an overflow fails the advance before caller-visible state mutation.
 
 ### 5.5 Loot And Equipment
 
@@ -185,12 +187,12 @@ Initial balance values live in a `BalanceConfiguration` value rather than being 
 - Hero maximum health: 100.
 - Hero base attack damage: 10.
 - Hero base defense: 0.
-- Hero attack interval: 1.0 second.
+- Hero attack interval: 1,000,000,000 nanoseconds (1 second).
 - Enemy base maximum health: 30.
 - Enemy base attack damage: 3.
 - Enemy base defense: 0.
-- Enemy attack interval: 1.5 seconds.
-- Revive delay: 3.0 seconds.
+- Enemy attack interval: 1,500,000,000 nanoseconds (1.5 seconds).
+- Revive delay: 3,000,000,000 nanoseconds (3 seconds).
 
 For enemy level `L`, where `L` begins at 1:
 
@@ -207,7 +209,7 @@ These formulas keep the first deterministic progression loop moving while exerci
 
 ### 6.2 Attack Resolution
 
-Hero and enemy actions are scheduled independently. `advance(by:)` resolves every due event in timestamp order within the supplied interval.
+Hero and enemy actions are scheduled independently. `advance(by:)` resolves every due event in exact integer-nanosecond timestamp order within the supplied interval. It runs against a candidate simulation and commits only on success; there is no epsilon, rounding, readiness clamp, or event-count budget.
 
 When attack times are identical, the hero resolves first. If that attack defeats the enemy, the enemy does not retaliate at the same timestamp.
 
@@ -248,7 +250,7 @@ Defeat does not grant loot.
 
 ## 7. Damage Metrics
 
-`DamageMetrics` records timestamped hero damage events in simulation time.
+`DamageMetrics` records timestamped hero damage events as `SimulationDuration` values in simulation time. It may convert a duration to a floating-point result only when deriving the presentation-only DPS value.
 
 Rolling DPS:
 
@@ -317,7 +319,7 @@ Loading follows this order:
 3. If the backup succeeds, resume from it and report recovered status.
 4. If neither succeeds, preserve unreadable files with diagnostic suffixes and start a new game.
 
-Validation rejects non-finite numbers, negative timers, invalid health ranges, duplicate item identifiers, unknown required equipment slots, unsupported schema versions, and structurally inconsistent encounter state.
+Validation rejects negative timers, intervals below one million nanoseconds, elapsed advances or revive values above ten billion nanoseconds, invalid health ranges, duplicate item identifiers, unknown required equipment slots, unsupported schema versions, and structurally inconsistent encounter state.
 
 Save failures are logged and shown as a non-blocking management-window status. Gameplay may continue. A repeated failure during overnight QA fails the persistence gate.
 
@@ -374,6 +376,8 @@ Closing the management window does not pause combat or quit the menu-bar applica
 - Independent attack schedules across uneven elapsed intervals.
 - Identical outcomes for one large step and equivalent smaller steps.
 - Hero-first exact-timestamp tie resolution.
+- One-nanosecond no-early-fire and one-nanosecond ordering boundaries.
+- Rejection before mutation for unsupported intervals, elapsed values, and checked arithmetic overflow.
 - Minimum damage and health clamping.
 - Victory ordering and immediate next encounter.
 - Defeat, three-second revive, and same-enemy retry.

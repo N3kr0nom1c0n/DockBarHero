@@ -8,6 +8,8 @@ final class BalanceConfigurationTests: XCTestCase {
         XCTAssertEqual(state.hero.maxHealth, 100)
         XCTAssertEqual(state.hero.baseAttack, 10)
         XCTAssertEqual(state.enemy.maxHealth, 30)
+        XCTAssertEqual(state.hero.attackInterval, try! XCTUnwrap(SimulationDuration.seconds(1)))
+        XCTAssertEqual(state.enemy.attackInterval, try! XCTUnwrap(SimulationDuration.milliseconds(1_500)))
         XCTAssertEqual(state.encounter.enemyLevel, 1)
         XCTAssertEqual(state.encounter.phase, .active)
         XCTAssertTrue(state.autoEquipEnabled)

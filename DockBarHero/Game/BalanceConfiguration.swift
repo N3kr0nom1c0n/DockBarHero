@@ -4,23 +4,23 @@ struct BalanceConfiguration: Codable, Equatable, Sendable {
     let heroMaxHealth: Int
     let heroBaseAttack: Int
     let heroBaseDefense: Int
-    let heroAttackInterval: TimeInterval
+    let heroAttackInterval: SimulationDuration
     let enemyBaseHealth: Int
     let enemyBaseAttack: Int
     let enemyBaseDefense: Int
-    let enemyAttackInterval: TimeInterval
-    let reviveDelay: TimeInterval
+    let enemyAttackInterval: SimulationDuration
+    let reviveDelay: SimulationDuration
 
     static let standard = BalanceConfiguration(
         heroMaxHealth: 100,
         heroBaseAttack: 10,
         heroBaseDefense: 0,
-        heroAttackInterval: 1.0,
+        heroAttackInterval: .nanoseconds(1_000_000_000),
         enemyBaseHealth: 30,
         enemyBaseAttack: 3,
         enemyBaseDefense: 0,
-        enemyAttackInterval: 1.5,
-        reviveDelay: 3.0
+        enemyAttackInterval: .nanoseconds(1_500_000_000),
+        reviveDelay: .nanoseconds(3_000_000_000)
     )
 
     func enemy(level: Int) -> CombatantState {
@@ -68,9 +68,9 @@ extension GameState {
             encounter: EncounterState(
                 enemyLevel: 1,
                 phase: .active,
-                activeElapsed: 0,
+                activeElapsed: .zero,
                 heroDamage: 0,
-                reviveRemaining: 0
+                reviveRemaining: .zero
             ),
             inventory: [],
             equipment: EquipmentState(weaponID: nil, armorID: nil),

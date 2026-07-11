@@ -17,9 +17,9 @@
 - Use only Apple frameworks and no third-party runtime dependency.
 - Preserve the Phase 0 panel, placement, passive-input default, fullscreen suppression, no-focus-theft behavior, and 30 FPS render cap.
 - Gameplay advances from elapsed active time, never from rendered frames.
-- Clamp one driver callback to at most 1.0 simulated second; discard excess as suspension time.
+- Use `SimulationDuration` signed `Int64` nanoseconds for every gameplay-time value; clamp one integer-monotonic driver callback to at most 1,000,000,000 nanoseconds and discard excess as suspension time.
 - Use one hero, automatic basic attacks, hero-first exact-timestamp ties, and `max(1, attack - defense)` damage.
-- Retry the same enemy after a 3.0-second revive delay and lose no progression on defeat.
+- Reject attack intervals below 1,000,000 nanoseconds, elapsed values outside `0...10_000_000_000` nanoseconds, and checked timing overflow before state mutation. Retry the same enemy after a 3,000,000,000-nanosecond revive delay and lose no progression on defeat.
 - Grant exactly one deterministic item per victory, alternating weapon then armor.
 - Keep all owned items in unlimited inventory; equipment slots reference item identifiers.
 - Enable auto-equip by default and equip only strict primary-stat upgrades from new drops.
@@ -200,8 +200,8 @@ struct CombatantState: Codable, Equatable, Sendable {
     let maxHealth: Int
     let baseAttack: Int
     let baseDefense: Int
-    let attackInterval: TimeInterval
-    var timeUntilNextAttack: TimeInterval
+    let attackInterval: SimulationDuration
+    var timeUntilNextAttack: SimulationDuration
 }
 
 enum EncounterPhase: String, Codable, Equatable, Sendable { case active, reviving }
@@ -209,9 +209,9 @@ enum EncounterPhase: String, Codable, Equatable, Sendable { case active, revivin
 struct EncounterState: Codable, Equatable, Sendable {
     var enemyLevel: Int
     var phase: EncounterPhase
-    var activeElapsed: TimeInterval
+    var activeElapsed: SimulationDuration
     var heroDamage: Int
-    var reviveRemaining: TimeInterval
+    var reviveRemaining: SimulationDuration
 }
 
 struct GameState: Codable, Equatable, Sendable {
@@ -278,8 +278,10 @@ git commit -m "feat: add gameplay domain foundation"
 
 **Files:**
 
+- Create: `DockBarHero/Game/SimulationDuration.swift`
 - Create: `DockBarHero/Game/ActionPolicy.swift`
 - Create: `DockBarHero/Game/GameSimulation.swift`
+- Create: `DockBarHeroTests/SimulationDurationTests.swift`
 - Create: `DockBarHeroTests/GameSimulationTests.swift`
 
 **Interfaces:**
@@ -290,13 +292,13 @@ git commit -m "feat: add gameplay domain foundation"
 
 - [ ] **Step 1: Write focused failing simulation tests**
 
-Create tests covering independent schedules, chunk-size invariance, hero-first ties, victory, defeat, and revive. The first two tests must use these assertions:
+Create `SimulationDuration` tests for checked construction, ordering, Codable round-trip, and overflow. Create simulation tests using `.milliseconds(...)`, `.seconds(...)`, or exact nanoseconds for independent schedules, exact chunk invariance, hero-first ties, victory, defeat, and revive. Include a 999,999,999-nanosecond no-early-fire boundary, a one-nanosecond enemy-before-hero ordering boundary, rejected 999,999-nanosecond interval and out-of-range elapsed inputs, and rejected checked overflow before mutation.
 
 ```swift
 func testIndependentAttackSchedulesAdvanceChronologically() throws {
     var simulation = GameSimulation()
 
-    let events = try simulation.advance(by: 2.1)
+    let events = try simulation.advance(by: .milliseconds(2_100)!)
 
     XCTAssertEqual(simulation.state.enemy.currentHealth, 10)
     XCTAssertEqual(simulation.state.hero.currentHealth, 97)
@@ -306,7 +308,7 @@ func testIndependentAttackSchedulesAdvanceChronologically() throws {
 func testThreeSecondVictoryTieResolvesHeroBeforeEnemy() throws {
     var simulation = GameSimulation()
 
-    let events = try simulation.advance(by: 3.0)
+    let events = try simulation.advance(by: .seconds(3)!)
 
     XCTAssertTrue(events.contains(.victory(defeatedLevel: 1)))
     XCTAssertEqual(simulation.state.encounter.enemyLevel, 2)
@@ -325,7 +327,7 @@ private extension GameEvent {
 }
 ```
 
-For chunk-size invariance, compare state and events after `2.1` once against `0.7` three times. For defeat, inject a valid state with hero health 1 and both attack countdowns 1.0, confirm `.defeat`, advance 2.9 seconds with no revive, then 0.1 seconds and confirm `.revived` with the same enemy level and both combatants full.
+For chunk-size invariance, compare complete `GameState` equality and events after 2,100 milliseconds once against 700 milliseconds three times, and after 1,200,000 nanoseconds once against 400,000 nanoseconds three times. For defeat, inject a valid state with hero health 1 and both attack countdowns one second, confirm `.defeat`, advance 2,900 milliseconds with no revive, then 100 milliseconds and confirm `.revived` with the same enemy level and both combatants full.
 
 - [ ] **Step 2: Verify the focused test fails for missing simulation types**
 
@@ -354,7 +356,7 @@ struct BasicAttackPolicy: ActionPolicy {
 Create `GameSimulation.swift` as a value type with this interface:
 
 ```swift
-enum SimulationError: Error, Equatable { case invalidElapsed }
+enum SimulationError: Error, Equatable { case invalidElapsed, invalidTimer, arithmeticOverflow }
 
 struct GameSimulation {
     private(set) var state: GameState
@@ -373,11 +375,11 @@ struct GameSimulation {
         self.policy = policy
     }
 
-    mutating func advance(by elapsed: TimeInterval) throws -> [GameEvent]
+    mutating func advance(by elapsed: SimulationDuration) throws -> [GameEvent]
 }
 ```
 
-`advance(by:)` must reject negative or non-finite elapsed values. While active, repeatedly advance by the minimum of remaining elapsed time and both attack countdowns, then resolve ready actors. Resolve the hero first when both are ready. Reset an actor's countdown to its full interval after acting. Stop enemy retaliation if the hero's same-timestamp attack wins.
+`advance(by:)` must reject elapsed values outside `0...10_000_000_000` nanoseconds. While active, repeatedly advance by the exact minimum of remaining elapsed time and both attack countdowns, then resolve ready actors. Resolve the hero first when both are ready. Reset an actor's countdown to its full interval after acting. Stop enemy retaliation if the hero's same-timestamp attack wins. Validate intervals at or above one million nanoseconds and nonnegative countdowns/revive values; use checked integer addition/subtraction and a candidate copy so errors leave caller-visible state unchanged.
 
 Use these exact transition operations:
 
@@ -386,7 +388,7 @@ private mutating func beginNextEncounter() {
     state.encounter.enemyLevel += 1
     state.hero.currentHealth = state.hero.maxHealth
     state.enemy = balance.enemy(level: state.encounter.enemyLevel)
-    resetEncounterMetrics(phase: .active, reviveRemaining: 0)
+    resetEncounterMetrics(phase: .active, reviveRemaining: .zero)
 }
 
 private mutating func beginRevive() {
@@ -397,7 +399,7 @@ private mutating func beginRevive() {
 private mutating func finishRevive() {
     state.hero.currentHealth = state.hero.maxHealth
     state.enemy = balance.enemy(level: state.encounter.enemyLevel)
-    resetEncounterMetrics(phase: .active, reviveRemaining: 0)
+    resetEncounterMetrics(phase: .active, reviveRemaining: .zero)
 }
 ```
 
@@ -435,21 +437,21 @@ git commit -m "feat: add deterministic combat simulation"
 
 - [ ] **Step 1: Write failing DPS tests**
 
-Create tests for startup zero, partial-window denominator, five-second eviction, encounter average, and reset:
+Create tests for startup zero, partial-window denominator, five-second eviction, encounter average, and reset. All metric timestamps and elapsed inputs use `SimulationDuration`; only the derived DPS result is `Double`.
 
 ```swift
 func testRollingDPSUsesPartialWindowThenEvictsOldDamage() {
     var metrics = DamageMetrics()
-    metrics.record(damage: 10, at: 1.0)
-    metrics.record(damage: 20, at: 4.0)
+    metrics.record(damage: 10, at: .seconds(1)!)
+    metrics.record(damage: 20, at: .seconds(4)!)
 
-    XCTAssertEqual(metrics.rollingDPS(at: 4.0, encounterElapsed: 4.0), 7.5, accuracy: 0.001)
-    XCTAssertEqual(metrics.rollingDPS(at: 6.1, encounterElapsed: 6.1), 4.0, accuracy: 0.001)
+    XCTAssertEqual(metrics.rollingDPS(at: .seconds(4)!, encounterElapsed: .seconds(4)!), 7.5, accuracy: 0.001)
+    XCTAssertEqual(metrics.rollingDPS(at: .milliseconds(6_100)!, encounterElapsed: .milliseconds(6_100)!), 4.0, accuracy: 0.001)
 }
 
 func testEncounterAverageExcludesZeroDuration() {
-    XCTAssertEqual(DamageMetrics.encounterAverage(totalDamage: 30, elapsed: 0), 0)
-    XCTAssertEqual(DamageMetrics.encounterAverage(totalDamage: 30, elapsed: 3), 10)
+    XCTAssertEqual(DamageMetrics.encounterAverage(totalDamage: 30, elapsed: .zero), 0)
+    XCTAssertEqual(DamageMetrics.encounterAverage(totalDamage: 30, elapsed: .seconds(3)!), 10)
 }
 ```
 
@@ -463,12 +465,12 @@ Expected: FAIL because `DamageMetrics` and `GameSimulation.presentation` do not 
 
 - [ ] **Step 3: Implement metrics and simulation integration**
 
-Create `DamageMetrics` with a private ordered sample array containing simulation timestamp and integer damage. `rollingDPS` is nonmutating: it sums only samples whose timestamp is greater than `now - 5.0`, divides by `min(5.0, encounterElapsed)`, and returns zero when that denominator is zero. `record` may prune expired samples to keep storage bounded, and `reset` removes every sample.
+Create `DamageMetrics` with a private ordered sample array containing `SimulationDuration` timestamps and integer damage. `rollingDPS` is nonmutating: it sums only samples whose timestamp is greater than `now - 5_000_000_000` nanoseconds, divides by the lesser of 5,000,000,000 nanoseconds and encounter elapsed time, and returns zero when that denominator is zero. Convert that exact duration to `Double` only to derive the presentation DPS. `record` may prune expired samples to keep storage bounded, and `reset` removes every sample.
 
 Add to `GameSimulation`:
 
 ```swift
-private var simulationTime: TimeInterval = 0
+private var simulationTime: SimulationDuration = .zero
 private var damageMetrics = DamageMetrics()
 
 var presentation: GamePresentation {
@@ -520,15 +522,15 @@ git commit -m "feat: add real-time damage metrics"
 
 - [ ] **Step 1: Write failing driver tests**
 
-Create `@MainActor` tests with an injected monotonic-time closure. Cover initial publication, one-second suspension cap, 0.25-second publication throttle, immediate event delivery, and idempotent start/stop. Use explicit time steps:
+Create `@MainActor` tests with an injected integer monotonic-nanosecond closure. Cover initial publication, one-second suspension cap, 250-millisecond publication throttle, immediate event delivery, and idempotent start/stop. Use explicit time steps:
 
 ```swift
 func testLargeClockGapAdvancesOnlyOneSecond() throws {
-    var now = 10.0
+    var now: UInt64 = 10_000_000_000
     let driver = SimulationDriver(now: { now })
     driver.start(startLoop: false)
 
-    now = 20.0
+    now = 20_000_000_000
     driver.step(at: now)
 
     XCTAssertEqual(driver.currentState.enemy.currentHealth, 20)
@@ -559,17 +561,17 @@ protocol SimulationDriving: AnyObject {
 }
 ```
 
-`SimulationDriver` owns a `GameSimulation`, stores `lastTick` and `lastPublish`, and accepts `now: @escaping @MainActor () -> TimeInterval`, defaulting to `ProcessInfo.processInfo.systemUptime`. `start(startLoop:)` is internal for tests; production `start()` passes `true` and creates one MainActor `Task` that sleeps 100 milliseconds between `step(at:)` calls.
+`SimulationDriver` owns a `GameSimulation`, stores `lastTick` and `lastPublish` as monotonic nanoseconds, and accepts `now: @escaping @MainActor () -> UInt64`, defaulting to `DispatchTime.now().uptimeNanoseconds`. `start(startLoop:)` is internal for tests; production `start()` passes `true` and creates one MainActor `Task` that sleeps 100 milliseconds between `step(at:)` calls.
 
 In `step(at:)`:
 
 ```swift
+guard now >= lastTick else { return }
 let rawDelta = now - lastTick
-guard rawDelta.isFinite, rawDelta >= 0 else { return }
-let elapsed = min(rawDelta, 1.0)
+let elapsed = SimulationDuration.nanoseconds(Int64(min(rawDelta, 1_000_000_000)))
 let events = try simulation.advance(by: elapsed)
 if !events.isEmpty { onEvents?(events) }
-if now - lastPublish >= 0.25 {
+if now - lastPublish >= 250_000_000 {
     lastPublish = now
     onPresentation?(simulation.presentation)
 }
@@ -699,7 +701,7 @@ git commit -m "feat: add deterministic loot and equipment"
 
 - [ ] **Step 1: Write failing codec and validation tests**
 
-Cover round trip for active and reviving states, schema version 1, timestamp preservation, future-version rejection before body decoding, non-finite/negative timers, invalid health, enemy level below one, duplicate item IDs, missing or wrong-slot equipment references, and inconsistent revive state.
+Cover round trip for active and reviving states, schema version 1, timestamp preservation, future-version rejection before body decoding, negative or unsupported fixed-point timers, invalid health, enemy level below one, duplicate item IDs, missing or wrong-slot equipment references, and inconsistent revive state.
 
 Use this future-version fixture so the header is tested independently:
 
@@ -743,7 +745,7 @@ enum SaveValidationError: Error, Equatable {
 }
 ```
 
-`SaveCodec.decode` first decodes a private `{ schemaVersion: Int }` header, rejects every version other than 1, then decodes and validates the full document. Configure encoder/decoder dates as ISO 8601 and encoder output as sorted keys. Validation must inspect every `Double` with `isFinite`, require attack intervals greater than zero, countdowns nonnegative, current health within `0...maxHealth`, unique positive item IDs, positive item levels/stats, valid equipment references, active revive remaining equal to zero, and reviving remaining within `0...3.0`.
+`SaveCodec.decode` first decodes a private `{ schemaVersion: Int }` header, rejects every version other than 1, then decodes and validates the full document. Configure encoder/decoder dates as ISO 8601 and encoder output as sorted keys. Validation must require attack intervals at or above one million nanoseconds, nonnegative countdowns, current health within `0...maxHealth`, unique positive item IDs, positive item levels/stats, valid equipment references, active revive remaining equal to zero, and reviving remaining within `0...10_000_000_000` nanoseconds.
 
 - [ ] **Step 4: Run focused and full tests**
 
