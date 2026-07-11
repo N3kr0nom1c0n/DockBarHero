@@ -77,3 +77,25 @@ After adding only those enum cases, the behavioral red run executed 16 tests and
 ### Repair Commit
 
 `8ebd3684d39ffeec8ead661c407a3ce4b5ae6d1c` (`fix: align save validation with gameplay`)
+
+## Repair Cycle 2
+
+### Finding Addressed
+
+- Active encounter validation now uses checked `Int` addition to ensure `heroDamage` can absorb all remaining `enemy.currentHealth` without overflow.
+- The existing `inconsistentEncounter` error remains the semantic failure for an active encounter whose cumulative damage cannot represent the final health-clamped victory damage.
+- The exact non-overflow boundary where the sum equals `Int.max` round trips successfully.
+- A state produced by `GameSimulation` entering `.reviving` round trips successfully. No new reviving metric rule was added because the current defeat transition resets `heroDamage` and `activeElapsed` to zero.
+
+### Cycle 2 Red Evidence
+
+The focused red run executed 19 tests. The new overflow regression failed twice as intended because both `SaveCodec.encode` and `SaveCodec.decode` accepted `heroDamage == Int.max` with positive remaining enemy health. The exact non-overflow boundary and runtime-generated reviving-state tests passed during the red run.
+
+### Cycle 2 Green Verification
+
+- Focused `SaveDocumentTests`: `TEST SUCCEEDED`; 19 tests passed with 0 failures.
+- Full suite: `TEST SUCCEEDED`; 111 tests passed with 0 failures.
+
+### Cycle 2 Code Commit
+
+`57e001d9c4cc43fa609fd1d4e648cba8fce1f2db` (`fix: validate encounter damage capacity`)
