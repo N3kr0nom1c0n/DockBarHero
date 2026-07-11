@@ -7,8 +7,8 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 ## Current Milestone
 
 - Goal: finish the Phase 1 playable slice on feature/phase-1-playable-slice.
-- Current checkpoint: Task 9 implementation and repair are at 40027d1; its final static re-review was interrupted by the owner-requested pause.
-- Remaining: accept Task 9, implement Task 10 management UI, then run Gate D, Terra integration review, Sol final review, QA evidence, and feature-branch push.
+- Current checkpoint: Task 9 is accepted after a clean static Terra re-review; compact context is committed at 1f50dec.
+- Remaining: implement Task 10 management UI, then pause for owner clearance before Gate D, Terra integration review, Sol final review, QA evidence, and feature-branch push.
 - Acceptance: clean worktree; required tests and arm64 build pass after the focus hold is cleared; live verification succeeds; no blocking findings; push without merge or force.
 
 ## Architecture
@@ -45,7 +45,7 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 
 ## Active Work
 
-- Parent orchestrator: static Task 9 re-review, then Task 10 implementation planning.
+- Parent orchestrator: Task 10 code and test authoring only; execution remains blocked by the focus hold.
 - Focus safety: static reads, reviews, and edits only. Do not launch DockBarHero, an XCTest host, Xcode UI, build_and_run.sh, UI automation, screenshots, or any command that may activate a window.
 - Subagent routing: Spark for bounded reads or mechanical edits, Luna for implementation, Terra for required review or QA, Sol only for final deep review.
 - Feature branch is local-only and must not be merged; final approved work may be pushed without force.
@@ -53,9 +53,9 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 ## Last Verified State
 
 - Date: 2026-07-11.
-- Worktree: /Users/n3kr0/Projects/TBH/.worktrees/phase-1-playable-slice, clean at 40027d1 before context initialization.
+- Worktree: /Users/n3kr0/Projects/TBH/.worktrees/phase-1-playable-slice, Task 9 reviewed code at 40027d1 and compact context commit at 1f50dec.
 - Task 9 repair evidence in .superpowers/sdd/task-9-report.md: 41 focused tests, 156 full tests, and clean arm64 build passed before the pause.
-- Tasks 1-8 passed Gates A-C. Task 9 repair has not completed its final independent re-review.
+- Tasks 1-8 passed Gates A-C. Task 9 final static Terra review is clean; runtime evidence remains the pre-pause 41 focused, 156 full, and clean arm64 build.
 
 ## Decisions and Risks
 
