@@ -9,6 +9,8 @@ protocol SceneControlling: AnyObject {
     var view: SKView { get }
     func setAnimating(_ isAnimating: Bool)
     func setInteractive(_ isInteractive: Bool)
+    func render(_ presentation: GamePresentation)
+    func handle(_ events: [GameEvent])
 }
 
 @MainActor
@@ -35,5 +37,13 @@ final class PrototypeSceneHost: SceneControlling {
 
     func setInteractive(_ isInteractive: Bool) {
         scene.isUserInteractionEnabled = isInteractive
+    }
+
+    func render(_ presentation: GamePresentation) {
+        scene.render(presentation)
+    }
+
+    func handle(_ events: [GameEvent]) {
+        scene.handle(events)
     }
 }

@@ -197,6 +197,96 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(dependencies.scene.animationEnabled.last, true)
         XCTAssertEqual(dependencies.scene.interactionEnabled.last, true)
     }
+
+    func testGameplayStartsWithoutOverlayDependencies() {
+        let session = FakeGameSession()
+        let model = AppModel(gameSession: session)
+
+        model.start()
+
+        XCTAssertEqual(session.startCount, 1)
+    }
+
+    func testGameplayCallbacksPublishAndRenderWithoutChangingOverlayRules() {
+        let dependencies = TestDependencies()
+        let session = FakeGameSession()
+        let model = dependencies.makeModel(gameSession: session)
+        var presentation = GameSimulation().presentation
+        presentation = GamePresentation(
+            state: presentation.state,
+            heroAttack: presentation.heroAttack,
+            heroDefense: presentation.heroDefense,
+            rollingDPS: 12.3,
+            encounterDPS: presentation.encounterDPS
+        )
+
+        model.start()
+        session.emit(presentation)
+        session.emit([.attack(attacker: .hero, defender: .enemy, damage: 10)])
+        session.emit(.unsupportedVersion(7))
+
+        XCTAssertEqual(model.game, presentation)
+        XCTAssertEqual(dependencies.scene.presentations, [presentation])
+        XCTAssertEqual(dependencies.scene.events, [[.attack(attacker: .hero, defender: .enemy, damage: 10)]])
+        XCTAssertEqual(model.saveStatus, .unsupportedVersion(7))
+    }
+
+    func testIntentForwardsExactlyOnce() throws {
+        let session = FakeGameSession()
+        let model = AppModel(gameSession: session)
+
+        model.start()
+        try model.send(.setAutoEquip(false))
+
+        XCTAssertEqual(session.intents, [.setAutoEquip(false)])
+    }
+
+    func testStopAndSaveStopsOverlayAndAwaitsGameSession() async {
+        let dependencies = TestDependencies()
+        let session = FakeGameSession()
+        let model = dependencies.makeModel(gameSession: session)
+        model.start()
+
+        let stopTask = Task { @MainActor in
+            await model.stopAndSave()
+        }
+        await Task.yield()
+
+        XCTAssertEqual(dependencies.monitor.stopCount, 1)
+        XCTAssertEqual(session.stopCount, 1)
+        XCTAssertFalse(session.stopCompleted)
+
+        session.completeStop()
+        await stopTask.value
+
+        XCTAssertTrue(session.stopCompleted)
+    }
+
+    func testTerminationHelperReturnsWhenSaveCompletes() async {
+        let outcome = await AppDelegate.waitForSaveOrTimeout(
+            timeout: .seconds(5),
+            sleep: { _ in
+                try await Task.sleep(for: .seconds(30))
+            },
+            save: {}
+        )
+
+        XCTAssertEqual(outcome, .completed)
+    }
+
+    func testTerminationHelperReturnsTimeoutWhenSaveDoesNotComplete() async {
+        let outcome = await AppDelegate.waitForSaveOrTimeout(
+            timeout: .milliseconds(1),
+            sleep: { duration in
+                try await Task.sleep(for: duration)
+            },
+            save: {
+                try? await Task.sleep(for: .seconds(30))
+            }
+        )
+
+        XCTAssertEqual(outcome, .timedOut)
+    }
 }
 
 @MainActor
@@ -206,8 +296,14 @@ private final class TestDependencies {
     let screen = FakeScreen()
     let monitor = FakeMonitor()
 
-    func makeModel() -> AppModel {
-        AppModel(window: window, scene: scene, screen: screen, monitor: monitor)
+    func makeModel(gameSession: GameSessionControlling? = nil) -> AppModel {
+        AppModel(
+            window: window,
+            scene: scene,
+            screen: screen,
+            monitor: monitor,
+            gameSession: gameSession
+        )
     }
 
     func connect(_ model: AppModel) {
@@ -231,9 +327,13 @@ private final class FakeScene: SceneControlling {
     let view = SKView()
     var animationEnabled: [Bool] = []
     var interactionEnabled: [Bool] = []
+    var presentations: [GamePresentation] = []
+    var events: [[GameEvent]] = []
 
     func setAnimating(_ isAnimating: Bool) { animationEnabled.append(isAnimating) }
     func setInteractive(_ isInteractive: Bool) { interactionEnabled.append(isInteractive) }
+    func render(_ presentation: GamePresentation) { presentations.append(presentation) }
+    func handle(_ events: [GameEvent]) { self.events.append(events) }
 }
 
 @MainActor
@@ -256,7 +356,51 @@ private final class FakeMonitor: EnvironmentMonitoring {
     var onVisibilityChange: (@MainActor (EnvironmentVisibility) -> Void)?
     var onGeometryChange: (@MainActor () -> Void)?
     var startCount = 0
+    var stopCount = 0
 
     func start() { startCount += 1 }
-    func stop() {}
+    func stop() { stopCount += 1 }
+}
+
+@MainActor
+private final class FakeGameSession: GameSessionControlling {
+    var onPresentation: ((GamePresentation) -> Void)?
+    var onEvents: (([GameEvent]) -> Void)?
+    var onSaveStatus: ((SaveStatus) -> Void)?
+    var startCount = 0
+    var intents: [GameIntent] = []
+    var stopCount = 0
+    var stopCompleted = false
+    private var stopContinuation: CheckedContinuation<Void, Never>?
+
+    func start() { startCount += 1 }
+
+    func send(_ intent: GameIntent) throws {
+        intents.append(intent)
+    }
+
+    func stopAndSave() async {
+        stopCount += 1
+        await withCheckedContinuation { continuation in
+            stopContinuation = continuation
+        }
+        stopCompleted = true
+    }
+
+    func emit(_ presentation: GamePresentation) {
+        onPresentation?(presentation)
+    }
+
+    func emit(_ events: [GameEvent]) {
+        onEvents?(events)
+    }
+
+    func emit(_ status: SaveStatus) {
+        onSaveStatus?(status)
+    }
+
+    func completeStop() {
+        stopContinuation?.resume()
+        stopContinuation = nil
+    }
 }
