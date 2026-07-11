@@ -17,10 +17,12 @@
 		3D9A0E211849967844474C4D /* OverlayPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5430494B15B5CF80A136872A /* OverlayPanel.swift */; };
 		4C74E7C46D369DE0FE0ECE7C /* FullscreenWindowClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D23D28184BD8A05F30D6359 /* FullscreenWindowClassifierTests.swift */; };
 		50D611A9B73A82EC3938F28D /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DFB967DB50E4309E608F612 /* AppModel.swift */; };
+		5F742D47E8DC4246E38A43E3 /* GameSimulationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E4509B61BEEFA0FF1C5FE4 /* GameSimulationTests.swift */; };
 		7C8006DEC5C5A9D61C649B8B /* AppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8443E0D34AB8B0707A79331 /* AppModelTests.swift */; };
 		8674F689C5F772CB5950B8A1 /* DockBarHeroApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E17FEA9F1C03CFF1875E99D /* DockBarHeroApp.swift */; };
 		91B2505FE7F5AC43E2E34B9E /* BalanceConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C6867E3AC329AA6C53A38E /* BalanceConfiguration.swift */; };
 		99B85F8360961389079F6AAE /* PrototypeScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDD14FF849F64AD2F250E89F /* PrototypeScene.swift */; };
+		9B25CEBFFD043DABD9553B1F /* ActionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACAE5AC0485F6080C673233C /* ActionPolicy.swift */; };
 		AD5E43CA462AEAC55F3C6389 /* OverlayPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697D836989C5878F5D1E9937 /* OverlayPlacementTests.swift */; };
 		AF9896646F223301E5123E54 /* OverlayWindowControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C11309CD62DDBF6F14591880 /* OverlayWindowControllerTests.swift */; };
 		C0435BD6F1CFAEEE8DE56D68 /* OverlayState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8586F52C6908F4FE4E5B9E0A /* OverlayState.swift */; };
@@ -29,6 +31,7 @@
 		DCE10BEFC2693E92CEFFFCC2 /* BalanceConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97A36783977BA1422D08114 /* BalanceConfigurationTests.swift */; };
 		DFFC0FB551A2996C7A691872 /* OverlayPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70160FF019FFD009FA1DFF7F /* OverlayPlacement.swift */; };
 		E0F406C8C78C69FA07260E71 /* AppKitScreenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50E5986E66736133E5E7924 /* AppKitScreenProvider.swift */; };
+		E27A1FA17198466ECF6F5A3C /* GameSimulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC12B1C4B82A58431E39CF96 /* GameSimulation.swift */; };
 		E6A843FD10A019EE85795CB2 /* PrototypeSceneHostTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80C47315F197A2C91F065E76 /* PrototypeSceneHostTests.swift */; };
 		FDAC194AE4CA4639187D16B4 /* EnvironmentMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEBB2B89631ABEA126DC445 /* EnvironmentMonitor.swift */; };
 /* End PBXBuildFile section */
@@ -50,6 +53,7 @@
 		1E4B92627EE6A337F1D4D4E8 /* DockBarHeroTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DockBarHeroTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		25A8CCEBA359DCE30C12AD27 /* MenuBarContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarContent.swift; sourceTree = "<group>"; };
 		2B83DA476844707F0BE3DB96 /* OverlayWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowController.swift; sourceTree = "<group>"; };
+		36E4509B61BEEFA0FF1C5FE4 /* GameSimulationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSimulationTests.swift; sourceTree = "<group>"; };
 		3D23D28184BD8A05F30D6359 /* FullscreenWindowClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenWindowClassifierTests.swift; sourceTree = "<group>"; };
 		3FEBB2B89631ABEA126DC445 /* EnvironmentMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentMonitor.swift; sourceTree = "<group>"; };
 		47C35A975941EEBB55C9FF53 /* EnvironmentMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentMonitorTests.swift; sourceTree = "<group>"; };
@@ -63,12 +67,14 @@
 		80C47315F197A2C91F065E76 /* PrototypeSceneHostTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeSceneHostTests.swift; sourceTree = "<group>"; };
 		8586F52C6908F4FE4E5B9E0A /* OverlayState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayState.swift; sourceTree = "<group>"; };
 		943AD75B3E2A18F1AC085766 /* DockBarHero.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DockBarHero.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		ACAE5AC0485F6080C673233C /* ActionPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionPolicy.swift; sourceTree = "<group>"; };
 		B8306A34DA2F75CFA6E21A0B /* PrototypeSceneHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeSceneHost.swift; sourceTree = "<group>"; };
 		C11309CD62DDBF6F14591880 /* OverlayWindowControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowControllerTests.swift; sourceTree = "<group>"; };
 		C50E5986E66736133E5E7924 /* AppKitScreenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppKitScreenProvider.swift; sourceTree = "<group>"; };
 		C8443E0D34AB8B0707A79331 /* AppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelTests.swift; sourceTree = "<group>"; };
 		CDD14FF849F64AD2F250E89F /* PrototypeScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeScene.swift; sourceTree = "<group>"; };
 		E043207E2BD7ACD2F4C89799 /* FullscreenWindowClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenWindowClassifier.swift; sourceTree = "<group>"; };
+		EC12B1C4B82A58431E39CF96 /* GameSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSimulation.swift; sourceTree = "<group>"; };
 		F97A36783977BA1422D08114 /* BalanceConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceConfigurationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -94,6 +100,7 @@
 				F97A36783977BA1422D08114 /* BalanceConfigurationTests.swift */,
 				47C35A975941EEBB55C9FF53 /* EnvironmentMonitorTests.swift */,
 				3D23D28184BD8A05F30D6359 /* FullscreenWindowClassifierTests.swift */,
+				36E4509B61BEEFA0FF1C5FE4 /* GameSimulationTests.swift */,
 				697D836989C5878F5D1E9937 /* OverlayPlacementTests.swift */,
 				0FBD88BD9A5FB4043963A4AB /* OverlayStateTests.swift */,
 				C11309CD62DDBF6F14591880 /* OverlayWindowControllerTests.swift */,
@@ -115,8 +122,10 @@
 		60D7045030DFFA7BBA317C36 /* Game */ = {
 			isa = PBXGroup;
 			children = (
+				ACAE5AC0485F6080C673233C /* ActionPolicy.swift */,
 				61C6867E3AC329AA6C53A38E /* BalanceConfiguration.swift */,
 				7C253FA011076DCBFA498E4B /* GameModels.swift */,
+				EC12B1C4B82A58431E39CF96 /* GameSimulation.swift */,
 			);
 			path = Game;
 			sourceTree = "<group>";
@@ -263,6 +272,7 @@
 				DCE10BEFC2693E92CEFFFCC2 /* BalanceConfigurationTests.swift in Sources */,
 				D12F51121C8BCBAB20F16BE5 /* EnvironmentMonitorTests.swift in Sources */,
 				4C74E7C46D369DE0FE0ECE7C /* FullscreenWindowClassifierTests.swift in Sources */,
+				5F742D47E8DC4246E38A43E3 /* GameSimulationTests.swift in Sources */,
 				AD5E43CA462AEAC55F3C6389 /* OverlayPlacementTests.swift in Sources */,
 				3C27403E8CDC14AB0E53D929 /* OverlayStateTests.swift in Sources */,
 				AF9896646F223301E5123E54 /* OverlayWindowControllerTests.swift in Sources */,
@@ -274,6 +284,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B25CEBFFD043DABD9553B1F /* ActionPolicy.swift in Sources */,
 				2C378817AE82E13592A72B68 /* AppDelegate.swift in Sources */,
 				E0F406C8C78C69FA07260E71 /* AppKitScreenProvider.swift in Sources */,
 				21D79BC28FD1B426B245BDDB /* AppLog.swift in Sources */,
@@ -283,6 +294,7 @@
 				FDAC194AE4CA4639187D16B4 /* EnvironmentMonitor.swift in Sources */,
 				C6E726271E35F71BDC6681D0 /* FullscreenWindowClassifier.swift in Sources */,
 				2E65DEB89F07322368ED6E17 /* GameModels.swift in Sources */,
+				E27A1FA17198466ECF6F5A3C /* GameSimulation.swift in Sources */,
 				1AC6D3EDFF22908386E99C35 /* MenuBarContent.swift in Sources */,
 				3D9A0E211849967844474C4D /* OverlayPanel.swift in Sources */,
 				DFFC0FB551A2996C7A691872 /* OverlayPlacement.swift in Sources */,
