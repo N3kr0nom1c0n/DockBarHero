@@ -8,4 +8,6 @@ enum AppLog {
     static let placement = Logger(subsystem: subsystem, category: "placement")
     static let environment = Logger(subsystem: subsystem, category: "environment")
     static let scene = Logger(subsystem: subsystem, category: "scene")
+    static let gameplay = Logger(subsystem: subsystem, category: "gameplay")
+    static let persistence = Logger(subsystem: subsystem, category: "persistence")
 }
