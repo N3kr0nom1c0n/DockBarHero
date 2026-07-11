@@ -80,6 +80,8 @@ mutating func advance(by elapsed: SimulationDuration) throws -> [GameEvent]
 ```swift
 case invalidElapsed
 case invalidTimer
+case invalidState
+case invalidBalance
 case arithmeticOverflow
 ```
 
@@ -98,6 +100,7 @@ Remove `eventDensity` because the supported time domain statically bounds work.
    - Negative and greater-than-10-second elapsed values are rejected before mutation.
    - Checked arithmetic overflow is rejected before mutation.
    - The three-second hero-first victory order and same-level revive behavior remain unchanged.
+   - Active state with a dead hero or dead enemy, and reviving state with a dead enemy, are rejected as `invalidState` before mutation.
 4. Run the focused tests and capture the expected compile failures from the old timing types.
 5. Implement `SimulationDuration` and migrate domain state.
 6. Replace floating arithmetic with checked integer arithmetic on a candidate copy.

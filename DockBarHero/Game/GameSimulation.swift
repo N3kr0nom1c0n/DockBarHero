@@ -203,11 +203,14 @@ struct GameSimulation {
 
         switch state.encounter.phase {
         case .active:
-            guard state.encounter.reviveRemaining == .zero else {
+            guard state.hero.currentHealth > 0,
+                  state.enemy.currentHealth > 0,
+                  state.encounter.reviveRemaining == .zero else {
                 throw SimulationError.invalidState
             }
         case .reviving:
             guard state.hero.currentHealth == 0,
+                  state.enemy.currentHealth > 0,
                   state.encounter.reviveRemaining <= balance.reviveDelay else {
                 throw SimulationError.invalidState
             }

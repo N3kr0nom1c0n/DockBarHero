@@ -118,7 +118,7 @@ DockBarHero.xcodeproj/
 **Interfaces:**
 
 - Produces: `CombatantID`, `EquipmentSlot`, `ItemID`, `Item`, `EquipmentState`, `CombatantState`, `EncounterPhase`, `EncounterState`, `GameState`, `GameIntent`, `GameEvent`, and `GamePresentation`.
-- Produces: `BalanceConfiguration.standard`, `enemy(level:)`, and `itemPrimaryStat(level:slot:)`.
+- Produces: `BalanceConfiguration.standard`, `enemy(level:) -> CombatantState?`, and `itemPrimaryStat(level:slot:) -> Int?`; scaling failures are represented as `nil` rather than trapping or converting an out-of-range floating value.
 - Consumes: no new Phase 1 interface.
 
 - [ ] **Step 1: Write the failing balance and new-game tests**
@@ -146,8 +146,8 @@ final class BalanceConfigurationTests: XCTestCase {
     func testStandardScalingMatchesApprovedFormulas() {
         let balance = BalanceConfiguration.standard
 
-        XCTAssertEqual(balance.enemy(level: 1).maxHealth, 30)
-        XCTAssertEqual(balance.enemy(level: 2).maxHealth, 32)
+        XCTAssertEqual(balance.enemy(level: 1)?.maxHealth, 30)
+        XCTAssertEqual(balance.enemy(level: 2)?.maxHealth, 32)
         XCTAssertEqual(balance.itemPrimaryStat(level: 1, slot: .weapon), 1)
         XCTAssertEqual(balance.itemPrimaryStat(level: 2, slot: .armor), 1)
     }
@@ -248,13 +248,13 @@ struct GamePresentation: Equatable, Sendable {
 }
 ```
 
-Create `BalanceConfiguration.swift` with immutable standard values, formula helpers, `enemy(level:)`, and `GameState.newGame(balance:)`. Use `precondition(level >= 1)`, `rounded()` for enemy values, and `ceil` for item values exactly as specified:
+Create `BalanceConfiguration.swift` with immutable standard values, checked formula helpers, `enemy(level:) -> CombatantState?`, `itemPrimaryStat(level:slot:) -> Int?`, and `GameState.newGame(balance:)`. Both helpers return `nil` for a level below one, invalid inputs, nonfinite scaling, or a result outside `Int` range. Do not use `precondition`, force unwrap, or direct `Int` conversion of an unchecked floating value. Apply the approved rates only after confirming the rounded result is finite and representable:
 
 ```swift
-enemyHealth = Int((30.0 * pow(1.06, Double(level - 1))).rounded())
-enemyAttack = Int((3.0 * pow(1.04, Double(level - 1))).rounded())
-weaponBonus = Int(ceil(10.0 * (pow(1.06, Double(level)) - 1.0)))
-armorBonus = Int(ceil(3.0 * (pow(1.04, Double(level)) - 1.0)))
+enemyHealth = checkedRounded(30.0 * pow(1.06, Double(level - 1)))
+enemyAttack = checkedRounded(3.0 * pow(1.04, Double(level - 1)))
+weaponBonus = checkedCeiling(10.0 * (pow(1.06, Double(level)) - 1.0))
+armorBonus = checkedCeiling(3.0 * (pow(1.04, Double(level)) - 1.0))
 ```
 
 `newGame` must create full-health combatants, initialize each attack countdown to its full interval, set active encounter metrics to zero, enable auto-equip, and start with empty inventory/equipment and loot sequence zero.
@@ -356,7 +356,13 @@ struct BasicAttackPolicy: ActionPolicy {
 Create `GameSimulation.swift` as a value type with this interface:
 
 ```swift
-enum SimulationError: Error, Equatable { case invalidElapsed, invalidTimer, arithmeticOverflow }
+enum SimulationError: Error, Equatable {
+    case invalidElapsed
+    case invalidTimer
+    case invalidState
+    case invalidBalance
+    case arithmeticOverflow
+}
 
 struct GameSimulation {
     private(set) var state: GameState
@@ -379,26 +385,37 @@ struct GameSimulation {
 }
 ```
 
-`advance(by:)` must reject elapsed values outside `0...10_000_000_000` nanoseconds. While active, repeatedly advance by the exact minimum of remaining elapsed time and both attack countdowns, then resolve ready actors. Resolve the hero first when both are ready. Reset an actor's countdown to its full interval after acting. Stop enemy retaliation if the hero's same-timestamp attack wins. Validate intervals at or above one million nanoseconds and nonnegative countdowns/revive values; use checked integer addition/subtraction and a candidate copy so errors leave caller-visible state unchanged.
+`advance(by:)` must reject elapsed values outside `0...10_000_000_000` nanoseconds. While active, repeatedly advance by the exact minimum of remaining elapsed time and both attack countdowns, then resolve ready actors. Resolve the hero first when both are ready. Reset an actor's countdown to its full interval after acting. Stop enemy retaliation if the hero's same-timestamp attack wins. Validate intervals at or above one million nanoseconds and nonnegative countdowns/revive values; active state requires both current health values above zero and zero revive remaining, while reviving state requires a dead hero, live enemy, and revive remaining in `0...balance.reviveDelay`. Return `invalidState`, `invalidBalance`, or `arithmeticOverflow` as applicable and use checked integer arithmetic on a candidate copy so errors leave caller-visible state unchanged.
 
 Use these exact transition operations:
 
 ```swift
-private mutating func beginNextEncounter() {
-    state.encounter.enemyLevel += 1
+private mutating func beginNextEncounter() throws {
+    let (enemyLevel, overflow) = state.encounter.enemyLevel.addingReportingOverflow(1)
+    guard !overflow else { throw SimulationError.arithmeticOverflow }
+    guard let enemy = balance.enemy(level: enemyLevel) else {
+        throw SimulationError.invalidBalance
+    }
+    state.encounter.enemyLevel = enemyLevel
     state.hero.currentHealth = state.hero.maxHealth
-    state.enemy = balance.enemy(level: state.encounter.enemyLevel)
+    state.enemy = enemy
     resetEncounterMetrics(phase: .active, reviveRemaining: .zero)
 }
 
-private mutating func beginRevive() {
+private mutating func beginRevive() throws {
+    guard balance.reviveDelay >= .zero, balance.reviveDelay <= .maximumAdvance else {
+        throw SimulationError.invalidBalance
+    }
     state.encounter.phase = .reviving
     state.encounter.reviveRemaining = balance.reviveDelay
 }
 
-private mutating func finishRevive() {
+private mutating func finishRevive() throws {
+    guard let enemy = balance.enemy(level: state.encounter.enemyLevel) else {
+        throw SimulationError.invalidBalance
+    }
     state.hero.currentHealth = state.hero.maxHealth
-    state.enemy = balance.enemy(level: state.encounter.enemyLevel)
+    state.enemy = enemy
     resetEncounterMetrics(phase: .active, reviveRemaining: .zero)
 }
 ```
@@ -654,7 +671,7 @@ Expected: FAIL because loot generation and intent application are absent.
 
 - [ ] **Step 3: Implement loot and equipment rules**
 
-`LootSystem.drop` must use current `state.lootSequence` before incrementing it, choose `.weapon` for even zero-based sequence and `.armor` for odd, assign `ItemID(rawValue: sequence + 1)`, append the item once, and return it.
+`LootSystem.drop` must use current `state.lootSequence` before incrementing it, choose `.weapon` for even zero-based sequence and `.armor` for odd, assign `ItemID(rawValue: sequence + 1)`, request `balance.itemPrimaryStat(level:slot:)`, append the item once, and return it. A `nil` primary-stat result is `SimulationError.invalidBalance`; do not force unwrap it.
 
 Add `GameIntentError: Error, Equatable` with `.itemNotFound` and `.slotMismatch`. Implement:
 
@@ -745,7 +762,7 @@ enum SaveValidationError: Error, Equatable {
 }
 ```
 
-`SaveCodec.decode` first decodes a private `{ schemaVersion: Int }` header, rejects every version other than 1, then decodes and validates the full document. Configure encoder/decoder dates as ISO 8601 and encoder output as sorted keys. Validation must require attack intervals at or above one million nanoseconds, nonnegative countdowns, current health within `0...maxHealth`, unique positive item IDs, positive item levels/stats, valid equipment references, active revive remaining equal to zero, and reviving remaining within `0...10_000_000_000` nanoseconds.
+`SaveCodec.decode` first decodes a private `{ schemaVersion: Int }` header, rejects every version other than 1, then decodes and validates the full document. Configure encoder/decoder dates as ISO 8601 and encoder output as sorted keys. Validation must require attack intervals at or above one million nanoseconds, nonnegative countdowns, current health within `0...maxHealth`, unique positive item IDs, positive item levels/stats, and valid equipment references. Active state additionally requires both combatants alive and revive remaining equal to zero; reviving state requires a dead hero, live enemy, and revive remaining within `0...balance.reviveDelay`.
 
 - [ ] **Step 4: Run focused and full tests**
 

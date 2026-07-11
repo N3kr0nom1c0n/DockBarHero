@@ -138,7 +138,7 @@ Effective hero attack and defense are derived from base stats plus equipped item
 - Total hero damage dealt in the encounter.
 - Remaining revive time when applicable.
 
-Every gameplay-time field is a `SimulationDuration`. Negative raw values remain representable only so validation can reject malformed state without trapping. Attack intervals must be at least one million nanoseconds (one millisecond); one `advance(by:)` accepts `0...10_000_000_000` nanoseconds; revive delay and remaining revive time must be `0...10_000_000_000` nanoseconds. Countdown and active-elapsed arithmetic is checked `Int64` arithmetic, and an overflow fails the advance before caller-visible state mutation.
+Every gameplay-time field is a `SimulationDuration`. Negative raw values remain representable only so validation can reject malformed state without trapping. Attack intervals must be at least one million nanoseconds (one millisecond); one `advance(by:)` accepts `0...10_000_000_000` nanoseconds; revive delay and remaining revive time must be `0...10_000_000_000` nanoseconds. Countdown and active-elapsed arithmetic is checked `Int64` arithmetic, and an overflow fails the advance before caller-visible state mutation. Active state requires a live hero, live enemy, and zero revive remaining. Reviving state requires a dead hero, live enemy, and revive remaining in `0...balance.reviveDelay`; violations return `invalidState` without mutation.
 
 ### 5.5 Loot And Equipment
 
@@ -194,16 +194,9 @@ Initial balance values live in a `BalanceConfiguration` value rather than being 
 - Enemy attack interval: 1,500,000,000 nanoseconds (1.5 seconds).
 - Revive delay: 3,000,000,000 nanoseconds (3 seconds).
 
-For enemy level `L`, where `L` begins at 1:
+For enemy level `L`, where `L` begins at 1, `BalanceConfiguration.enemy(level:) -> CombatantState?` applies the approved health and attack growth rates and returns `nil` when inputs are invalid, the scaled value is nonfinite, or the rounded result is outside `Int` range. Enemy defense and attack interval remain unchanged.
 
-- Enemy maximum health is `round(30 * 1.06^(L - 1))`.
-- Enemy attack damage is `round(3 * 1.04^(L - 1))`.
-- Enemy defense and attack interval remain unchanged.
-
-For an item dropped from enemy level `L`:
-
-- A weapon's damage bonus is `ceil(10 * (1.06^L - 1))`.
-- Armor's defense bonus is `ceil(3 * (1.04^L - 1))`.
+For an item dropped from enemy level `L`, `BalanceConfiguration.itemPrimaryStat(level:slot:) -> Int?` applies the approved weapon or armor growth rate with the same safe finite/range checks. Loot generation treats `nil` as `invalidBalance`; it never force unwraps a generated primary stat.
 
 These formulas keep the first deterministic progression loop moving while exercising meaningful equipment upgrades. Balance constants may be tuned later without altering simulation contracts or save shape.
 
@@ -223,7 +216,7 @@ Health cannot fall below zero. No critical hits, misses, evasion, healing, abili
 
 ### 6.3 Victory
 
-When the enemy reaches zero health:
+When the enemy reaches zero health, the checked transition either completes or throws `invalidBalance`/`arithmeticOverflow` before committing the candidate simulation:
 
 1. Emit a victory event.
 2. Generate exactly one deterministic drop.
@@ -237,7 +230,7 @@ When the enemy reaches zero health:
 
 ### 6.4 Defeat
 
-When the hero reaches zero health:
+When the hero reaches zero health, the checked transition either completes or throws `invalidBalance` before committing the candidate simulation:
 
 1. Emit a defeat event.
 2. Enter a three-second revive phase.

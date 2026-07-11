@@ -255,6 +255,45 @@ final class GameSimulationTests: XCTestCase {
         XCTAssertEqual(simulation.state, stateBeforeAdvance)
     }
 
+    func testActiveStateWithDeadHeroIsRejectedBeforeMutation() {
+        var state = GameState.newGame(balance: .standard)
+        state.hero.currentHealth = 0
+        var simulation = GameSimulation(state: state)
+        let stateBeforeAdvance = simulation.state
+
+        XCTAssertThrowsError(try simulation.advance(by: .zero)) { error in
+            XCTAssertEqual(error as? SimulationError, .invalidState)
+        }
+        XCTAssertEqual(simulation.state, stateBeforeAdvance)
+    }
+
+    func testActiveStateWithDeadEnemyIsRejectedBeforeMutation() {
+        var state = GameState.newGame(balance: .standard)
+        state.enemy.currentHealth = 0
+        var simulation = GameSimulation(state: state)
+        let stateBeforeAdvance = simulation.state
+
+        XCTAssertThrowsError(try simulation.advance(by: .zero)) { error in
+            XCTAssertEqual(error as? SimulationError, .invalidState)
+        }
+        XCTAssertEqual(simulation.state, stateBeforeAdvance)
+    }
+
+    func testRevivingStateWithDeadEnemyIsRejectedBeforeMutation() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.hero.currentHealth = 0
+        state.enemy.currentHealth = 0
+        state.encounter.phase = .reviving
+        state.encounter.reviveRemaining = try duration(seconds: 1)
+        var simulation = GameSimulation(state: state)
+        let stateBeforeAdvance = simulation.state
+
+        XCTAssertThrowsError(try simulation.advance(by: .zero)) { error in
+            XCTAssertEqual(error as? SimulationError, .invalidState)
+        }
+        XCTAssertEqual(simulation.state, stateBeforeAdvance)
+    }
+
     func testInvalidBalanceValuesAreRejectedBeforeMutation() {
         let balance = BalanceConfiguration(
             heroMaxHealth: 0,
