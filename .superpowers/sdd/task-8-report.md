@@ -129,3 +129,67 @@ Result: exit 65 during compilation because `GameSession` had no `outstandingSave
 ### Repair Commit
 
 `3a5b99f86f076c94259abb15be7abaabfdcc5936` (`fix: bound session save coordination`)
+
+## Gate C Repair Cycle 2
+
+### Files
+
+- Updated `DockBarHero/Persistence/SaveStore.swift` with structured `SaveLoadIssue` propagation while retaining exact loaded state and source.
+- Updated `DockBarHero/Persistence/SaveCoordinator.swift` with the UI-facing structured `.unsupportedVersion(Int)` status.
+- Updated `DockBarHero/Game/GameSession.swift` with deterministic load-status delivery and corrected startup presentation ordering.
+- Updated `DockBarHeroTests/SaveStoreTests.swift` and `DockBarHeroTests/GameSessionTests.swift` with unsupported-version and production-driver regressions.
+- No AppDelegate, AppModel, UI, project-file, or Task 9 composition work was changed.
+
+### RED Evidence
+
+The SaveStore issue tests first ran with:
+
+```text
+xcodebuild -project DockBarHero.xcodeproj -scheme DockBarHero -destination 'platform=macOS' -derivedDataPath .build/Task8Repair2StoreRed test -only-testing:DockBarHeroTests/SaveStoreTests
+```
+
+Result: exit 65 during test compilation because `SaveLoadResult` had no `issue` member and no structured unsupported-version load issue existed.
+
+The GameSession load-status test then ran with:
+
+```text
+xcodebuild -project DockBarHero.xcodeproj -scheme DockBarHero -destination 'platform=macOS' -derivedDataPath .build/Task8Repair2StatusRed test -only-testing:DockBarHeroTests/GameSessionTests
+```
+
+Result: exit 65 during test compilation because `SaveStatus` had no `unsupportedVersion` case.
+
+The production-driver presentation regression ran with:
+
+```text
+xcodebuild -project DockBarHero.xcodeproj -scheme DockBarHero -destination 'platform=macOS' -derivedDataPath .build/Task8Repair2PresentationRed test -only-testing:DockBarHeroTests/GameSessionTests/testProductionDriverPublishesLoadedStateInitialPresentationDuringStartup
+```
+
+Result: 1 test executed with 1 assertion failure; the session received `[]` instead of the loaded state's initial presentation.
+
+### Verification
+
+- SaveStore focused: 17 tests passed, 0 failures using `.build/Task8Repair2SaveStoreFinal`.
+- SaveCoordinator focused: 2 tests passed, 0 failures using `.build/Task8Repair2SaveCoordinatorFinal`.
+- GameSession focused: 13 tests passed, 0 failures using `.build/Task8Repair2GameSessionFinal`.
+- Persistence focused: 51 tests passed, 0 failures across SaveStore, SaveCoordinator, SaveDocument, and GameSession using `.build/Task8Repair2PersistenceFinal`.
+- Full suite: 143 tests passed, 0 failures using `.build/Task8Repair2FullFinal`.
+- `git diff --check` passed before the repair commit.
+
+### Persistence And Startup Decisions
+
+- `SaveLoadIssue` is `Equatable` and `Sendable`; `SaveLoadResult` accepts it through a defaulted initializer so existing state/source construction remains source-compatible.
+- `SaveStore.load` records only `SaveDecodingError.unsupportedVersion` as an issue. Ordinary corrupt or validation failures retain quarantine behavior without being mislabeled.
+- A future primary followed by a valid backup returns the exact backup state/source plus the future-version issue. With no usable backup, the exact supplied new-game state/source is returned with the same issue.
+- `GameSession` publishes `.unsupportedVersion(version)` before `.recovered` when a backup supplies state. New-game fallback publishes only the unsupported-version status.
+- State replacement and load statuses still happen before driver start. The session becomes active immediately before `driver.start()`, allowing the production driver's one start publication through without advancing simulation or accepting the earlier replacement publication.
+- Cycle-1 status observation, terminal generation guards, bounded submission tracking, serialized coalescing, failure recovery, and final flush behavior remain unchanged.
+
+### Risks
+
+- When multiple unusable saves contain unsupported versions, the first encountered version is retained as the load issue; primary remains authoritative for diagnostics.
+- Unsupported files continue to be quarantined to preserve their bytes for diagnostics rather than decoded or overwritten.
+- Gate C was not dispatched; the controller retains ownership of that gate.
+
+### Repair Commit
+
+`f05d0b3267dbee90df8da6d208327b073594b7b1` (`fix: report unsupported save versions`)
