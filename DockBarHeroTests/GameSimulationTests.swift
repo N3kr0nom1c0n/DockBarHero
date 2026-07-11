@@ -467,6 +467,32 @@ final class GameSimulationTests: XCTestCase {
         XCTAssertEqual(simulation.state, original)
     }
 
+    func testVictoryItemIDCollisionRollsBackEntireCandidate() {
+        var state = GameState.newGame(balance: .standard)
+        state.inventory = [
+            Item(
+                id: ItemID(rawValue: 1),
+                level: 1,
+                slot: .armor,
+                primaryStat: 1,
+                creationSequence: 99
+            )
+        ]
+        state.enemy.currentHealth = 1
+        state.hero.timeUntilNextAttack = .zero
+        var simulation = GameSimulation(state: state)
+        let original = simulation.state
+
+        XCTAssertThrowsError(try simulation.advance(by: .zero)) { error in
+            XCTAssertEqual(error as? SimulationError, .invalidState)
+        }
+        XCTAssertEqual(simulation.state.hero, original.hero)
+        XCTAssertEqual(simulation.state.inventory, original.inventory)
+        XCTAssertEqual(simulation.state.encounter, original.encounter)
+        XCTAssertEqual(simulation.state.lootSequence, original.lootSequence)
+        XCTAssertEqual(simulation.state, original)
+    }
+
     private func duration(milliseconds: Int64) throws -> SimulationDuration {
         try XCTUnwrap(SimulationDuration.milliseconds(milliseconds))
     }

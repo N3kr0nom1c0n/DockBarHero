@@ -55,4 +55,44 @@ final class LootSystemTests: XCTestCase {
         }
         XCTAssertEqual(firstState, secondState)
     }
+
+    func testNextItemIDCollisionThrowsBeforeMutation() {
+        var state = GameState.newGame(balance: .standard)
+        state.inventory = [
+            Item(
+                id: ItemID(rawValue: 1),
+                level: 1,
+                slot: .armor,
+                primaryStat: 1,
+                creationSequence: 99
+            )
+        ]
+        let original = state
+        var loot = LootSystem(balance: .standard)
+
+        XCTAssertThrowsError(try loot.drop(defeatedLevel: 1, state: &state)) { error in
+            XCTAssertEqual(error as? SimulationError, .invalidState)
+        }
+        XCTAssertEqual(state, original)
+    }
+
+    func testNextCreationSequenceCollisionThrowsBeforeMutation() {
+        var state = GameState.newGame(balance: .standard)
+        state.inventory = [
+            Item(
+                id: ItemID(rawValue: 99),
+                level: 1,
+                slot: .armor,
+                primaryStat: 1,
+                creationSequence: 1
+            )
+        ]
+        let original = state
+        var loot = LootSystem(balance: .standard)
+
+        XCTAssertThrowsError(try loot.drop(defeatedLevel: 1, state: &state)) { error in
+            XCTAssertEqual(error as? SimulationError, .invalidState)
+        }
+        XCTAssertEqual(state, original)
+    }
 }
