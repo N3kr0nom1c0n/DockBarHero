@@ -13,10 +13,16 @@ protocol SaveCoordinating: Sendable {
     func flush(_ state: GameState) async
 }
 
-actor SaveCoordinator: SaveCoordinating {
+protocol SaveStatusObserving: Sendable {
+    func setStatusHandler(
+        _ handler: (@MainActor @Sendable (SaveStatus) -> Void)?
+    ) async
+}
+
+actor SaveCoordinator: SaveCoordinating, SaveStatusObserving {
     private let store: any SaveStoring
     private let now: @Sendable () -> Date
-    private let onStatus: (@MainActor @Sendable (SaveStatus) -> Void)?
+    private var onStatus: (@MainActor @Sendable (SaveStatus) -> Void)?
 
     private var pendingState: GameState?
     private var isDraining = false
@@ -35,6 +41,12 @@ actor SaveCoordinator: SaveCoordinating {
     func request(_ state: GameState) async {
         pendingState = state
         startDrainIfNeeded()
+    }
+
+    func setStatusHandler(
+        _ handler: (@MainActor @Sendable (SaveStatus) -> Void)?
+    ) async {
+        onStatus = handler
     }
 
     func flush(_ state: GameState) async {

@@ -19,6 +19,7 @@ final class GameSession: GameSessionControlling {
     private let driver: any SimulationDriving
     private let store: any SaveStoring
     private let coordinator: any SaveCoordinating
+    private let statusObserver: (any SaveStatusObserving)?
     private let newGame: GameState
     private let autosaveInterval: Duration
     private let sleep: @Sendable (Duration) async throws -> Void
@@ -30,7 +31,8 @@ final class GameSession: GameSessionControlling {
     private var generation: UInt64 = 0
     private var startupTask: Task<Void, Never>?
     private var autosaveTask: Task<Void, Never>?
-    private var saveRequestTasks: [Task<Void, Never>] = []
+    private(set) var outstandingSaveSubmissionCount = 0
+    private var saveSubmissionWaiters: [CheckedContinuation<Void, Never>] = []
     private var stopWaiters: [CheckedContinuation<Void, Never>] = []
     private var intentEventRequestedSave = false
 
@@ -47,6 +49,7 @@ final class GameSession: GameSessionControlling {
         self.driver = driver
         self.store = store
         self.coordinator = coordinator
+        self.statusObserver = coordinator as? any SaveStatusObserving
         self.newGame = newGame
         self.autosaveInterval = autosaveInterval
         self.sleep = sleep
@@ -60,6 +63,13 @@ final class GameSession: GameSessionControlling {
         let startGeneration = generation
         startupTask = Task { @MainActor [weak self] in
             guard let self else { return }
+            guard self.canContinueStartup(startGeneration) else { return }
+            if let statusObserver = self.statusObserver {
+                await statusObserver.setStatusHandler { @MainActor [weak self] status in
+                    self?.receive(status, generation: startGeneration)
+                }
+            }
+            guard self.canContinueStartup(startGeneration) else { return }
             let result = await self.store.load(newGame: self.newGame)
             self.finishStart(result, generation: startGeneration)
         }
@@ -97,13 +107,10 @@ final class GameSession: GameSessionControlling {
         autosaveTask = nil
         driver.stop()
 
+        await waitForSaveSubmissions()
         let finalState = driver.currentState
-        let requestTasks = saveRequestTasks
-        saveRequestTasks.removeAll()
-        for task in requestTasks {
-            await task.value
-        }
         await coordinator.flush(finalState)
+        await statusObserver?.setStatusHandler(nil)
 
         hasStopped = true
         isStopping = false
@@ -113,11 +120,7 @@ final class GameSession: GameSessionControlling {
     }
 
     private func finishStart(_ result: SaveLoadResult, generation startGeneration: UInt64) {
-        guard !Task.isCancelled,
-              startGeneration == generation,
-              hasStarted,
-              !isStopping,
-              !hasStopped else { return }
+        guard canContinueStartup(startGeneration) else { return }
 
         driver.onPresentation = { @MainActor [weak self] presentation in
             self?.receive(presentation, generation: startGeneration)
@@ -127,7 +130,7 @@ final class GameSession: GameSessionControlling {
         }
         driver.replaceState(result.state)
         if result.source == .backup {
-            onSaveStatus?(.recovered)
+            receive(.recovered, generation: startGeneration)
         }
         driver.start()
         isRunning = true
@@ -150,6 +153,14 @@ final class GameSession: GameSessionControlling {
         requestSave()
     }
 
+    private func receive(_ status: SaveStatus, generation callbackGeneration: UInt64) {
+        guard callbackGeneration == generation,
+              hasStarted,
+              !isStopping,
+              !hasStopped else { return }
+        onSaveStatus?(status)
+    }
+
     private func shouldSave(for event: GameEvent) -> Bool {
         switch event {
         case .victory, .loot, .equipped, .autoEquipChanged:
@@ -160,12 +171,32 @@ final class GameSession: GameSessionControlling {
     }
 
     private func requestSave() {
+        guard isRunning, !isStopping, !hasStopped else { return }
+
         let state = driver.currentState
         let coordinator = coordinator
-        let task = Task {
+        outstandingSaveSubmissionCount += 1
+        Task { @MainActor [weak self] in
             await coordinator.request(state)
+            self?.saveSubmissionCompleted()
         }
-        saveRequestTasks.append(task)
+    }
+
+    private func saveSubmissionCompleted() {
+        precondition(outstandingSaveSubmissionCount > 0)
+        outstandingSaveSubmissionCount -= 1
+        guard outstandingSaveSubmissionCount == 0 else { return }
+
+        let waiters = saveSubmissionWaiters
+        saveSubmissionWaiters.removeAll()
+        waiters.forEach { $0.resume() }
+    }
+
+    private func waitForSaveSubmissions() async {
+        guard outstandingSaveSubmissionCount > 0 else { return }
+        await withCheckedContinuation { continuation in
+            saveSubmissionWaiters.append(continuation)
+        }
     }
 
     private func runAutosave(generation autosaveGeneration: UInt64) async {
@@ -183,5 +214,13 @@ final class GameSession: GameSessionControlling {
 
     private func isActive(_ callbackGeneration: UInt64) -> Bool {
         callbackGeneration == generation && isRunning && !isStopping && !hasStopped
+    }
+
+    private func canContinueStartup(_ startupGeneration: UInt64) -> Bool {
+        !Task.isCancelled
+            && startupGeneration == generation
+            && hasStarted
+            && !isStopping
+            && !hasStopped
     }
 }

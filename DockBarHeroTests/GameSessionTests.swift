@@ -38,6 +38,50 @@ final class GameSessionTests: XCTestCase {
         XCTAssertEqual(statuses.values, [SaveStatus.recovered])
     }
 
+    func testProductionCoordinatorStatusesReachSessionAndStopClearsObservation() async {
+        let loaded = state(autoEquip: false)
+        let store = SessionStatusStore(
+            loadResult: SaveLoadResult(state: loaded, source: .backup),
+            failingSaveAttempt: 2
+        )
+        let driver = SessionDriverFake()
+        let savedAt = Date(timeIntervalSince1970: 456)
+        let coordinator = SaveCoordinator(store: store, now: { savedAt })
+        let session = GameSession(
+            driver: driver,
+            store: store,
+            coordinator: coordinator,
+            newGame: state(autoEquip: true)
+        )
+        let statuses = GameStatusRecorder()
+        session.onSaveStatus = { statuses.values.append($0) }
+
+        session.start()
+        await waitUntil { driver.startCount == 1 }
+        driver.emit([.victory(defeatedLevel: 1)])
+        await waitUntil { statuses.values.count == 3 }
+        driver.emit([.loot(Item(
+            id: ItemID(rawValue: 1),
+            level: 1,
+            slot: .weapon,
+            primaryStat: 1,
+            creationSequence: 1
+        ))])
+        await waitUntil { statuses.values.count == 5 }
+
+        XCTAssertEqual(statuses.values, [
+            .recovered,
+            .saving,
+            .saved(savedAt),
+            .saving,
+            .failed("controlled status failure")
+        ])
+
+        await session.stopAndSave()
+        await coordinator.flush(driver.currentState)
+        XCTAssertEqual(statuses.values.count, 5)
+    }
+
     func testOnlyDurableEventsRequestEventSaves() async {
         let store = SessionStoreFake(result: SaveLoadResult(state: state(autoEquip: true), source: .newGame))
         let driver = SessionDriverFake()
@@ -129,6 +173,53 @@ final class GameSessionTests: XCTestCase {
         XCTAssertTrue(wasCancelled)
     }
 
+    func testStopWaitsForBlockedRequestSubmissionBeforeFinalFlush() async {
+        let store = SessionStoreFake(result: SaveLoadResult(state: state(autoEquip: true), source: .newGame))
+        let driver = SessionDriverFake()
+        let coordinator = BlockingSessionSaveCoordinator()
+        let session = makeSession(store: store, driver: driver, coordinator: coordinator)
+        session.start()
+        await waitUntil { driver.startCount == 1 }
+
+        driver.emit([.victory(defeatedLevel: 1)])
+        await coordinator.waitForRequestStart()
+        let completion = SessionCompletionRecorder()
+        let stopTask = Task {
+            await session.stopAndSave()
+            await completion.markComplete()
+        }
+        await Task.yield()
+
+        let didFlushBeforeRelease = await coordinator.didFlush()
+        let didCompleteBeforeRelease = await completion.isComplete()
+        XCTAssertFalse(didFlushBeforeRelease)
+        XCTAssertFalse(didCompleteBeforeRelease)
+
+        await coordinator.releaseRequest()
+        await stopTask.value
+
+        let events = await coordinator.events()
+        XCTAssertEqual(events, ["request-start", "request-finish", "flush"])
+    }
+
+    func testCompletedSaveSubmissionsAreReleasedDuringHighVolumeSteadyState() async {
+        let store = SessionStoreFake(result: SaveLoadResult(state: state(autoEquip: true), source: .newGame))
+        let driver = SessionDriverFake()
+        let coordinator = SessionSaveCoordinatorFake()
+        let session = makeSession(store: store, driver: driver, coordinator: coordinator)
+        session.start()
+        await waitUntil { driver.startCount == 1 }
+
+        for level in 1...500 {
+            driver.emit([.victory(defeatedLevel: level)])
+        }
+        await waitUntil { session.outstandingSaveSubmissionCount == 0 }
+
+        let requestedStates = await coordinator.requestedStates()
+        XCTAssertEqual(requestedStates.count, 500)
+        XCTAssertEqual(session.outstandingSaveSubmissionCount, 0)
+    }
+
     func testStopBeforeLoadPreventsLateLoadFromStartingDriver() async {
         let loaded = state(autoEquip: false)
         let store = SessionStoreFake(result: SaveLoadResult(state: loaded, source: .primary), blockLoad: true)
@@ -151,7 +242,7 @@ final class GameSessionTests: XCTestCase {
     private func makeSession(
         store: SessionStoreFake,
         driver: SessionDriverFake,
-        coordinator: SessionSaveCoordinatorFake,
+        coordinator: any SaveCoordinating,
         autosaveInterval: Duration = .seconds(30),
         sleep: @escaping @Sendable (Duration) async throws -> Void = { duration in
             try await Task.sleep(for: duration)
@@ -178,7 +269,7 @@ final class GameSessionTests: XCTestCase {
         file: StaticString = #filePath,
         line: UInt = #line
     ) async {
-        for _ in 0..<100 {
+        for _ in 0..<1_000 {
             if condition() { return }
             await Task.yield()
         }
@@ -197,6 +288,18 @@ final class GameSessionTests: XCTestCase {
 @MainActor
 private final class GameStatusRecorder {
     var values: [SaveStatus] = []
+}
+
+actor SessionCompletionRecorder {
+    private var complete = false
+
+    func markComplete() {
+        complete = true
+    }
+
+    func isComplete() -> Bool {
+        complete
+    }
 }
 
 @MainActor
@@ -283,6 +386,34 @@ actor SessionStoreFake: SaveStoring {
     }
 }
 
+actor SessionStatusStore: SaveStoring {
+    private let loadResult: SaveLoadResult
+    private let failingSaveAttempt: Int
+    private var saveAttempt = 0
+
+    init(loadResult: SaveLoadResult, failingSaveAttempt: Int) {
+        self.loadResult = loadResult
+        self.failingSaveAttempt = failingSaveAttempt
+    }
+
+    func load(newGame: GameState) async -> SaveLoadResult {
+        loadResult
+    }
+
+    func save(_ state: GameState) async throws {
+        saveAttempt += 1
+        if saveAttempt == failingSaveAttempt {
+            throw SessionStatusError.failure
+        }
+    }
+}
+
+private enum SessionStatusError: Error, CustomStringConvertible {
+    case failure
+
+    var description: String { "controlled status failure" }
+}
+
 actor SessionSaveCoordinatorFake: SaveCoordinating {
     private var requests: [GameState] = []
     private var flushes: [GameState] = []
@@ -297,6 +428,49 @@ actor SessionSaveCoordinatorFake: SaveCoordinating {
 
     func requestedStates() -> [GameState] { requests }
     func flushedStates() -> [GameState] { flushes }
+}
+
+actor BlockingSessionSaveCoordinator: SaveCoordinating {
+    private var recordedEvents: [String] = []
+    private var requestContinuation: CheckedContinuation<Void, Never>?
+    private var requestStarted = false
+    private var requestStartWaiters: [CheckedContinuation<Void, Never>] = []
+
+    func request(_ state: GameState) async {
+        recordedEvents.append("request-start")
+        requestStarted = true
+        let waiters = requestStartWaiters
+        requestStartWaiters.removeAll()
+        waiters.forEach { $0.resume() }
+        await withCheckedContinuation { continuation in
+            requestContinuation = continuation
+        }
+        recordedEvents.append("request-finish")
+    }
+
+    func flush(_ state: GameState) async {
+        recordedEvents.append("flush")
+    }
+
+    func waitForRequestStart() async {
+        if requestStarted { return }
+        await withCheckedContinuation { continuation in
+            requestStartWaiters.append(continuation)
+        }
+    }
+
+    func releaseRequest() {
+        requestContinuation?.resume()
+        requestContinuation = nil
+    }
+
+    func didFlush() -> Bool {
+        recordedEvents.contains("flush")
+    }
+
+    func events() -> [String] {
+        recordedEvents
+    }
 }
 
 actor AutosaveSleeper {
