@@ -1,10 +1,43 @@
 import AppKit
 
+struct TerminationRequestGate {
+    enum Decision: Equatable {
+        case startAndWait
+        case wait
+        case terminateNow
+    }
+
+    private enum State {
+        case ready
+        case pending
+        case replied
+    }
+
+    private var state: State = .ready
+
+    mutating func request() -> Decision {
+        switch state {
+        case .ready:
+            state = .pending
+            return .startAndWait
+        case .pending:
+            return .wait
+        case .replied:
+            return .terminateNow
+        }
+    }
+
+    mutating func markReplyIssued() -> Bool {
+        guard state == .pending else { return false }
+        state = .replied
+        return true
+    }
+}
+
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let model: AppModel
-    private var terminationTask: Task<Void, Never>?
-    private var didReplyToTermination = false
+    private var terminationGate = TerminationRequestGate()
 
     override init() {
         let store = SaveStore(urls: .applicationSupport)
@@ -36,23 +69,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        guard !didReplyToTermination, terminationTask == nil else { return .terminateNow }
-        terminationTask = Task { @MainActor [weak self] in
-            guard let self else { return }
-            let outcome = await Self.waitForSaveOrTimeout {
-                await self.model.stopAndSave()
+        switch terminationGate.request() {
+        case .startAndWait:
+            Task { @MainActor in
+                let outcome = await Self.waitForSaveOrTimeout {
+                    await self.model.stopAndSave()
+                }
+                switch outcome {
+                case .completed:
+                    AppLog.lifecycle.info("Clean termination save completed")
+                case .timedOut:
+                    AppLog.lifecycle.error("Clean termination save timed out")
+                }
+                sender.reply(toApplicationShouldTerminate: true)
+                precondition(self.terminationGate.markReplyIssued())
             }
-            switch outcome {
-            case .completed:
-                AppLog.lifecycle.info("Clean termination save completed")
-            case .timedOut:
-                AppLog.lifecycle.error("Clean termination save timed out")
-            }
-            sender.reply(toApplicationShouldTerminate: true)
-            self.didReplyToTermination = true
-            self.terminationTask = nil
+            return .terminateLater
+        case .wait:
+            return .terminateLater
+        case .terminateNow:
+            return .terminateNow
         }
-        return .terminateLater
     }
 
     enum TerminationOutcome: Equatable {

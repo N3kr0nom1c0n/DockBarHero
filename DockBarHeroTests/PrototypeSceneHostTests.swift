@@ -75,4 +75,39 @@ final class PrototypeSceneHostTests: XCTestCase {
 
         XCTAssertNotNil(host.scene.childNode(withName: "//hit"))
     }
+
+    func testVictoryUsesBriefEnemyFadeOutAndIn() throws {
+        let host = try PrototypeSceneHost()
+        let enemy = try XCTUnwrap(host.scene.childNode(withName: "enemy"))
+
+        host.scene.handle([.victory(defeatedLevel: 7)])
+
+        let action = try XCTUnwrap(enemy.action(forKey: "eventFade"))
+        XCTAssertEqual(action.duration, 0.26, accuracy: 0.001)
+        XCTAssertNil(enemy.action(forKey: "reviveVisibility"))
+    }
+
+    func testDefeatFadesHeroOutWithoutAutomaticRestore() throws {
+        let host = try PrototypeSceneHost()
+        let hero = try XCTUnwrap(host.scene.childNode(withName: "hero"))
+
+        host.scene.handle([.defeat(enemyLevel: 7)])
+
+        let action = try XCTUnwrap(hero.action(forKey: "reviveVisibility"))
+        XCTAssertEqual(action.duration, 0.08, accuracy: 0.001)
+        XCTAssertNil(hero.action(forKey: "eventFade"))
+    }
+
+    func testRevivedReplacesDefeatFadeAndRestoresHeroOpacity() throws {
+        let host = try PrototypeSceneHost()
+        let hero = try XCTUnwrap(host.scene.childNode(withName: "hero"))
+        host.scene.handle([.defeat(enemyLevel: 7)])
+        hero.alpha = 0
+
+        host.scene.handle([.revived(enemyLevel: 7)])
+
+        XCTAssertNil(hero.action(forKey: "reviveVisibility"))
+        XCTAssertNil(hero.action(forKey: "eventFade"))
+        XCTAssertEqual(hero.alpha, 1, accuracy: 0.001)
+    }
 }

@@ -231,12 +231,12 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(model.saveStatus, .unsupportedVersion(7))
     }
 
-    func testIntentForwardsExactlyOnce() throws {
+    func testIntentForwardsExactlyOnce() {
         let session = FakeGameSession()
         let model = AppModel(gameSession: session)
 
         model.start()
-        try model.send(.setAutoEquip(false))
+        model.send(.setAutoEquip(false))
 
         XCTAssertEqual(session.intents, [.setAutoEquip(false)])
     }
@@ -286,6 +286,23 @@ final class AppModelTests: XCTestCase {
         )
 
         XCTAssertEqual(outcome, .timedOut)
+    }
+
+    func testTerminationRequestGateStartsOnceAndKeepsWaitingWhilePending() {
+        var gate = TerminationRequestGate()
+
+        let decisions = [gate.request(), gate.request(), gate.request()]
+
+        XCTAssertEqual(decisions, [.startAndWait, .wait, .wait])
+    }
+
+    func testTerminationRequestGateAllowsOneReplyBeforeTerminateNow() {
+        var gate = TerminationRequestGate()
+        XCTAssertEqual(gate.request(), .startAndWait)
+
+        XCTAssertTrue(gate.markReplyIssued())
+        XCTAssertFalse(gate.markReplyIssued())
+        XCTAssertEqual(gate.request(), .terminateNow)
     }
 }
 

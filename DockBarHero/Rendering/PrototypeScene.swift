@@ -70,9 +70,9 @@ final class PrototypeScene: SKScene {
             case .victory:
                 animateBriefFade(nodeNamed: "enemy")
             case .defeat:
-                animateBriefFade(nodeNamed: "hero")
+                animateDefeat()
             case .revived:
-                childNode(withName: "hero")?.run(.fadeIn(withDuration: 0.12))
+                restoreHeroAfterRevive()
             case .loot, .equipped, .autoEquipChanged:
                 break
             }
@@ -180,6 +180,20 @@ final class PrototypeScene: SKScene {
             .fadeOut(withDuration: 0.08),
             .fadeIn(withDuration: 0.18)
         ]), withKey: "eventFade")
+    }
+
+    private func animateDefeat() {
+        guard let hero = childNode(withName: "hero") else { return }
+        hero.removeAction(forKey: "eventFade")
+        hero.removeAction(forKey: "reviveVisibility")
+        hero.run(.fadeOut(withDuration: 0.08), withKey: "reviveVisibility")
+    }
+
+    private func restoreHeroAfterRevive() {
+        guard let hero = childNode(withName: "hero") else { return }
+        hero.removeAction(forKey: "reviveVisibility")
+        hero.removeAction(forKey: "eventFade")
+        hero.alpha = 1
     }
 
     private func showHit(at point: CGPoint?) {
