@@ -75,3 +75,57 @@ Gate C was not dispatched because the controller owns that review gate, per task
 ## Commit
 
 `feat: coordinate autosaves and game session`
+
+## Gate C Repair Cycle 1
+
+### Files
+
+- Updated `DockBarHero/Persistence/SaveCoordinator.swift` with a narrow mutable status-observation protocol while preserving the exact `SaveCoordinating` request/flush surface.
+- Updated `DockBarHero/Game/GameSession.swift` to install status observation before load, reject late callbacks after stop, and replace retained request tasks with an outstanding-submission count plus zero-count waiters.
+- Updated `DockBarHeroTests/GameSessionTests.swift` with production status-path, blocked-submission stop ordering, and 500-request steady-state release coverage.
+- No AppDelegate, AppModel, UI, or project-file changes were made in this repair.
+
+### RED Evidence
+
+The production status-path test first ran with:
+
+```text
+xcodebuild -project DockBarHero.xcodeproj -scheme DockBarHero -destination 'platform=macOS' -derivedDataPath .build/Task8RepairStatusRed test -only-testing:DockBarHeroTests/GameSessionTests
+```
+
+Result: exit 65; 8 tests executed with 4 assertion failures in the new production-path test. Only `.recovered` arrived, proving `.saving`, `.saved`, and `.failed` were not wired from the real coordinator to the session.
+
+The bounded-submission tests then ran before implementation with:
+
+```text
+xcodebuild -project DockBarHero.xcodeproj -scheme DockBarHero -destination 'platform=macOS' -derivedDataPath .build/Task8RepairBoundedRed test -only-testing:DockBarHeroTests/GameSessionTests
+```
+
+Result: exit 65 during compilation because `GameSession` had no `outstandingSaveSubmissionCount`, proving the release/bounded invariant was absent.
+
+### Verification
+
+- Status-path GREEN: 8 GameSession tests passed, 0 failures using `.build/Task8RepairStatusGreen`.
+- Bounded-submission GREEN: 10 GameSession tests passed, 0 failures using `.build/Task8RepairBoundedGreen`.
+- Final SaveCoordinator focused run: 2 tests passed, 0 failures using `.build/Task8RepairSaveCoordinatorFinal`.
+- Final persistence-focused run: 47 tests passed, 0 failures across SaveCoordinator, GameSession, SaveDocument, and SaveStore using `.build/Task8RepairPersistenceFinal`.
+- Final full suite: 139 tests passed, 0 failures using `.build/Task8RepairFullFinal`.
+- `git diff --check` passed before the repair commit.
+
+### Concurrency And Coalescing Decisions
+
+- `SaveStatusObserving` is separate from the unchanged `SaveCoordinating` protocol. `GameSession` detects that capability and installs the MainActor handler before loading, so backup `.recovered` remains ordered before later coordinator save statuses.
+- Status closures carry the startup generation. Stopping invalidates that generation before awaiting work, ignores statuses while stopping, and clears the installed handler after the terminal flush.
+- A submission increments `outstandingSaveSubmissionCount` before creating its unretained task. Completion decrements the count and resumes zero-count waiters, so completed tasks and captured `GameState` snapshots are released instead of accumulating for the session lifetime.
+- `stopAndSave()` disables new requests first, waits until all accepted submissions have returned from `request(_:)`, then snapshots current driver state and performs the final `flush(_:)`.
+- The coordinator's serialized first-in-flight/latest-pending drain, failure recovery, and true flush behavior remain unchanged.
+
+### Risks
+
+- Status observation remains optional for test or alternate coordinators that implement only `SaveCoordinating`; production `SaveCoordinator` implements both protocols.
+- Submission bookkeeping is MainActor-isolated and intentionally exposes only a read-only internal count for the steady-state regression test.
+- Gate C was not dispatched; the controller retains ownership of that gate.
+
+### Repair Commit
+
+`3a5b99f86f076c94259abb15be7abaabfdcc5936` (`fix: bound session save coordination`)
