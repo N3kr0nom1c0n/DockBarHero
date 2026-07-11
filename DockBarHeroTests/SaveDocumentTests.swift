@@ -122,6 +122,43 @@ final class SaveDocumentTests: XCTestCase {
         assertValidation(.inconsistentEncounter, for: state)
     }
 
+    func testActiveHeroDamageCapacityOverflowIsRejectedByEncodeAndDecode() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.encounter.heroDamage = Int.max
+        let codec = SaveCodec()
+
+        XCTAssertThrowsError(try codec.encode(state: state, savedAt: savedAt)) { error in
+            XCTAssertEqual(error as? SaveValidationError, .inconsistentEncounter)
+        }
+        assertValidation(.inconsistentEncounter, for: state)
+    }
+
+    func testActiveHeroDamageCapacityExactBoundaryRoundTrips() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.encounter.heroDamage = Int.max - state.enemy.currentHealth
+
+        let codec = SaveCodec()
+        let decoded = try codec.decode(try codec.encode(state: state, savedAt: savedAt))
+
+        XCTAssertEqual(decoded.state.encounter.heroDamage, state.encounter.heroDamage)
+    }
+
+    func testRuntimeGeneratedRevivingStateRoundTrips() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.hero.currentHealth = 1
+        state.hero.timeUntilNextAttack = try XCTUnwrap(.seconds(1))
+        state.enemy.timeUntilNextAttack = try XCTUnwrap(.seconds(1))
+        var simulation = GameSimulation(state: state)
+
+        _ = try simulation.advance(by: try XCTUnwrap(.seconds(1)))
+
+        XCTAssertEqual(simulation.state.encounter.phase, .reviving)
+        XCTAssertEqual(simulation.state.encounter.heroDamage, 0)
+        let codec = SaveCodec()
+        let decoded = try codec.decode(try codec.encode(state: simulation.state, savedAt: savedAt))
+        XCTAssertEqual(decoded.state, simulation.state)
+    }
+
     func testEnemyLevelMustSupportCurrentAndNextBalanceScaling() throws {
         let balance = BalanceConfiguration.standard
         let lastScalableLevel = try XCTUnwrap((1...2_000).last { balance.enemy(level: $0) != nil })

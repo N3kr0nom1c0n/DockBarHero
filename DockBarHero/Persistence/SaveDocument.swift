@@ -141,9 +141,13 @@ struct SaveCodec: Sendable {
 
         switch state.encounter.phase {
         case .active:
+            let (_, damageCapacityOverflow) = state.encounter.heroDamage.addingReportingOverflow(
+                state.enemy.currentHealth
+            )
             guard state.hero.currentHealth > 0,
                   state.enemy.currentHealth > 0,
-                  state.encounter.reviveRemaining == .zero else {
+                  state.encounter.reviveRemaining == .zero,
+                  !damageCapacityOverflow else {
                 throw SaveValidationError.inconsistentEncounter
             }
         case .reviving:
