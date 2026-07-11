@@ -15,8 +15,10 @@ enum SaveDecodingError: Error, Equatable {
 enum SaveValidationError: Error, Equatable {
     case invalidEnemyLevel
     case invalidHealth(CombatantID)
+    case invalidCombatStats(CombatantID)
     case invalidTimer
     case invalidItem(ItemID)
+    case invalidLootSequence
     case duplicateItemID(ItemID)
     case missingEquipment(ItemID)
     case equipmentSlotMismatch(ItemID)
@@ -69,8 +71,17 @@ struct SaveCodec: Sendable {
 
         try validateHealth(state.hero)
         try validateHealth(state.enemy)
+        try validateCombatStats(state.hero)
+        try validateCombatStats(state.enemy)
 
         guard state.encounter.enemyLevel >= 1 else {
+            throw SaveValidationError.invalidEnemyLevel
+        }
+        guard balance.enemy(level: state.encounter.enemyLevel) != nil else {
+            throw SaveValidationError.invalidEnemyLevel
+        }
+        let (nextEnemyLevel, enemyLevelOverflow) = state.encounter.enemyLevel.addingReportingOverflow(1)
+        guard !enemyLevelOverflow, balance.enemy(level: nextEnemyLevel) != nil else {
             throw SaveValidationError.invalidEnemyLevel
         }
         guard state.hero.attackInterval >= .minimumAttackInterval,
@@ -78,7 +89,6 @@ struct SaveCodec: Sendable {
               state.hero.timeUntilNextAttack >= .zero,
               state.enemy.timeUntilNextAttack >= .zero,
               state.encounter.activeElapsed >= .zero,
-              state.encounter.activeElapsed <= .maximumAdvance,
               state.encounter.reviveRemaining >= .zero,
               state.encounter.reviveRemaining <= .maximumAdvance else {
             throw SaveValidationError.invalidTimer
@@ -110,6 +120,23 @@ struct SaveCodec: Sendable {
             guard matches.count == 1, item.slot == slot else {
                 throw SaveValidationError.equipmentSlotMismatch(itemID)
             }
+            let baseStat = slot == .weapon ? state.hero.baseAttack : state.hero.baseDefense
+            let (_, effectiveStatOverflow) = baseStat.addingReportingOverflow(item.primaryStat)
+            guard !effectiveStatOverflow else {
+                throw SaveValidationError.invalidCombatStats(.hero)
+            }
+        }
+
+        let (nextItemID, itemIDOverflow) = state.lootSequence.addingReportingOverflow(1)
+        guard !itemIDOverflow,
+              !state.inventory.contains(where: {
+                  $0.id.rawValue == nextItemID || $0.creationSequence == nextItemID
+              }) else {
+            throw SaveValidationError.invalidLootSequence
+        }
+
+        guard state.encounter.heroDamage >= 0 else {
+            throw SaveValidationError.inconsistentEncounter
         }
 
         switch state.encounter.phase {
@@ -133,6 +160,12 @@ struct SaveCodec: Sendable {
               combatant.currentHealth >= 0,
               combatant.currentHealth <= combatant.maxHealth else {
             throw SaveValidationError.invalidHealth(combatant.id)
+        }
+    }
+
+    private func validateCombatStats(_ combatant: CombatantState) throws {
+        guard combatant.baseAttack >= 0, combatant.baseDefense >= 0 else {
+            throw SaveValidationError.invalidCombatStats(combatant.id)
         }
     }
 }

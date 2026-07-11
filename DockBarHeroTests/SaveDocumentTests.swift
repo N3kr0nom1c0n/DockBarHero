@@ -30,6 +30,16 @@ final class SaveDocumentTests: XCTestCase {
         XCTAssertEqual(decoded.state.encounter.phase, .reviving)
     }
 
+    func testActiveElapsedAboveTenSecondsRoundTrips() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.encounter.activeElapsed = .nanoseconds(60_000_000_000)
+
+        let codec = SaveCodec()
+        let decoded = try codec.decode(try codec.encode(state: state, savedAt: savedAt))
+
+        XCTAssertEqual(decoded.state.encounter.activeElapsed, state.encounter.activeElapsed)
+    }
+
     func testEncodingUsesISO8601DatesAndSortedDeterministicKeys() throws {
         let codec = SaveCodec()
         let first = try codec.encode(state: .newGame(balance: .standard), savedAt: savedAt)
@@ -81,7 +91,7 @@ final class SaveDocumentTests: XCTestCase {
         assertValidation(.invalidTimer, for: shortInterval)
 
         var elapsed = GameState.newGame(balance: .standard)
-        elapsed.encounter.activeElapsed = .nanoseconds(10_000_000_001)
+        elapsed.encounter.activeElapsed = .nanoseconds(-1)
         assertValidation(.invalidTimer, for: elapsed)
     }
 
@@ -93,6 +103,41 @@ final class SaveDocumentTests: XCTestCase {
         var level = GameState.newGame(balance: .standard)
         level.encounter.enemyLevel = 0
         assertValidation(.invalidEnemyLevel, for: level)
+    }
+
+    func testNegativeCombatBaseStatsAreRejected() {
+        var attack = GameState.newGame(balance: .standard)
+        attack.hero = combatant(attack.hero, baseAttack: -1)
+        assertValidation(.invalidCombatStats(.hero), for: attack)
+
+        var defense = GameState.newGame(balance: .standard)
+        defense.enemy = combatant(defense.enemy, baseDefense: -1)
+        assertValidation(.invalidCombatStats(.enemy), for: defense)
+    }
+
+    func testNegativeEncounterHeroDamageIsRejected() {
+        var state = GameState.newGame(balance: .standard)
+        state.encounter.heroDamage = -1
+
+        assertValidation(.inconsistentEncounter, for: state)
+    }
+
+    func testEnemyLevelMustSupportCurrentAndNextBalanceScaling() throws {
+        let balance = BalanceConfiguration.standard
+        let lastScalableLevel = try XCTUnwrap((1...2_000).last { balance.enemy(level: $0) != nil })
+        XCTAssertNil(balance.enemy(level: lastScalableLevel + 1))
+
+        var nextUnscalable = GameState.newGame(balance: balance)
+        nextUnscalable.encounter.enemyLevel = lastScalableLevel
+        assertValidation(.invalidEnemyLevel, for: nextUnscalable)
+
+        var currentUnscalable = GameState.newGame(balance: balance)
+        currentUnscalable.encounter.enemyLevel = lastScalableLevel + 1
+        assertValidation(.invalidEnemyLevel, for: currentUnscalable)
+
+        var nextLevelOverflow = GameState.newGame(balance: balance)
+        nextLevelOverflow.encounter.enemyLevel = Int.max
+        assertValidation(.invalidEnemyLevel, for: nextLevelOverflow)
     }
 
     func testItemsRequirePositiveUniqueIdentifiersLevelsAndStats() throws {
@@ -124,6 +169,42 @@ final class SaveDocumentTests: XCTestCase {
         wrongSlot.inventory = [armor]
         wrongSlot.equipment.weaponID = armor.id
         assertValidation(.equipmentSlotMismatch(armor.id), for: wrongSlot)
+    }
+
+    func testEquippedPrimaryStatMustNotOverflowEffectiveHeroStat() {
+        var state = GameState.newGame(balance: .standard)
+        state.hero = combatant(state.hero, baseAttack: Int.max)
+        let weapon = Item(
+            id: ItemID(rawValue: 1),
+            level: 1,
+            slot: .weapon,
+            primaryStat: 1,
+            creationSequence: 1
+        )
+        state.inventory = [weapon]
+        state.equipment.weaponID = weapon.id
+
+        assertValidation(.invalidCombatStats(.hero), for: state)
+    }
+
+    func testLootSequenceMustProduceANoncollidingNextItem() {
+        var overflow = GameState.newGame(balance: .standard)
+        overflow.lootSequence = .max
+        assertValidation(.invalidLootSequence, for: overflow)
+
+        var idCollision = GameState.newGame(balance: .standard)
+        idCollision.lootSequence = 4
+        idCollision.inventory = [
+            Item(id: ItemID(rawValue: 5), level: 1, slot: .weapon, primaryStat: 1, creationSequence: 1)
+        ]
+        assertValidation(.invalidLootSequence, for: idCollision)
+
+        var sequenceCollision = GameState.newGame(balance: .standard)
+        sequenceCollision.lootSequence = 4
+        sequenceCollision.inventory = [
+            Item(id: ItemID(rawValue: 1), level: 1, slot: .weapon, primaryStat: 1, creationSequence: 5)
+        ]
+        assertValidation(.invalidLootSequence, for: sequenceCollision)
     }
 
     func testEncounterPhaseMustMatchCombatantHealthAndReviveBounds() throws {
@@ -166,5 +247,21 @@ final class SaveDocumentTests: XCTestCase {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         return try encoder.encode(Fixture(schemaVersion: SaveDocument.currentVersion, savedAt: savedAt, state: state))
+    }
+
+    private func combatant(
+        _ source: CombatantState,
+        baseAttack: Int? = nil,
+        baseDefense: Int? = nil
+    ) -> CombatantState {
+        CombatantState(
+            id: source.id,
+            currentHealth: source.currentHealth,
+            maxHealth: source.maxHealth,
+            baseAttack: baseAttack ?? source.baseAttack,
+            baseDefense: baseDefense ?? source.baseDefense,
+            attackInterval: source.attackInterval,
+            timeUntilNextAttack: source.timeUntilNextAttack
+        )
     }
 }
