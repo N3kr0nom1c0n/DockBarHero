@@ -20,6 +20,7 @@
 		50D611A9B73A82EC3938F28D /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DFB967DB50E4309E608F612 /* AppModel.swift */; };
 		5F742D47E8DC4246E38A43E3 /* GameSimulationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E4509B61BEEFA0FF1C5FE4 /* GameSimulationTests.swift */; };
 		7C8006DEC5C5A9D61C649B8B /* AppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8443E0D34AB8B0707A79331 /* AppModelTests.swift */; };
+		82E7EAAA8217716805FDAC9F /* DamageMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0047DBA6B2CCA397CC178D1B /* DamageMetricsTests.swift */; };
 		8674F689C5F772CB5950B8A1 /* DockBarHeroApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E17FEA9F1C03CFF1875E99D /* DockBarHeroApp.swift */; };
 		91B2505FE7F5AC43E2E34B9E /* BalanceConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C6867E3AC329AA6C53A38E /* BalanceConfiguration.swift */; };
 		99B85F8360961389079F6AAE /* PrototypeScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDD14FF849F64AD2F250E89F /* PrototypeScene.swift */; };
@@ -29,6 +30,7 @@
 		C0435BD6F1CFAEEE8DE56D68 /* OverlayState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8586F52C6908F4FE4E5B9E0A /* OverlayState.swift */; };
 		C6E726271E35F71BDC6681D0 /* FullscreenWindowClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = E043207E2BD7ACD2F4C89799 /* FullscreenWindowClassifier.swift */; };
 		D12F51121C8BCBAB20F16BE5 /* EnvironmentMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47C35A975941EEBB55C9FF53 /* EnvironmentMonitorTests.swift */; };
+		D7A694B5677D9C181B58AF80 /* DamageMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC6ED814FDE7272DED6E5248 /* DamageMetrics.swift */; };
 		DABBB93F85FF86E04127FEBB /* SimulationDurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7262122A992B17AD88488FCD /* SimulationDurationTests.swift */; };
 		DCE10BEFC2693E92CEFFFCC2 /* BalanceConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97A36783977BA1422D08114 /* BalanceConfigurationTests.swift */; };
 		DFFC0FB551A2996C7A691872 /* OverlayPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70160FF019FFD009FA1DFF7F /* OverlayPlacement.swift */; };
@@ -49,6 +51,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0047DBA6B2CCA397CC178D1B /* DamageMetricsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DamageMetricsTests.swift; sourceTree = "<group>"; };
 		07DDCF7DBA016A9D2B399E07 /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
 		0E17FEA9F1C03CFF1875E99D /* DockBarHeroApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockBarHeroApp.swift; sourceTree = "<group>"; };
 		0FBD88BD9A5FB4043963A4AB /* OverlayStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayStateTests.swift; sourceTree = "<group>"; };
@@ -80,6 +83,7 @@
 		E043207E2BD7ACD2F4C89799 /* FullscreenWindowClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenWindowClassifier.swift; sourceTree = "<group>"; };
 		EC12B1C4B82A58431E39CF96 /* GameSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSimulation.swift; sourceTree = "<group>"; };
 		F97A36783977BA1422D08114 /* BalanceConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceConfigurationTests.swift; sourceTree = "<group>"; };
+		FC6ED814FDE7272DED6E5248 /* DamageMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DamageMetrics.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -102,6 +106,7 @@
 			children = (
 				C8443E0D34AB8B0707A79331 /* AppModelTests.swift */,
 				F97A36783977BA1422D08114 /* BalanceConfigurationTests.swift */,
+				0047DBA6B2CCA397CC178D1B /* DamageMetricsTests.swift */,
 				47C35A975941EEBB55C9FF53 /* EnvironmentMonitorTests.swift */,
 				3D23D28184BD8A05F30D6359 /* FullscreenWindowClassifierTests.swift */,
 				36E4509B61BEEFA0FF1C5FE4 /* GameSimulationTests.swift */,
@@ -129,6 +134,7 @@
 			children = (
 				ACAE5AC0485F6080C673233C /* ActionPolicy.swift */,
 				61C6867E3AC329AA6C53A38E /* BalanceConfiguration.swift */,
+				FC6ED814FDE7272DED6E5248 /* DamageMetrics.swift */,
 				7C253FA011076DCBFA498E4B /* GameModels.swift */,
 				EC12B1C4B82A58431E39CF96 /* GameSimulation.swift */,
 				1F7A6E0E3DB63AA1E34C635B /* SimulationDuration.swift */,
@@ -276,6 +282,7 @@
 			files = (
 				7C8006DEC5C5A9D61C649B8B /* AppModelTests.swift in Sources */,
 				DCE10BEFC2693E92CEFFFCC2 /* BalanceConfigurationTests.swift in Sources */,
+				82E7EAAA8217716805FDAC9F /* DamageMetricsTests.swift in Sources */,
 				D12F51121C8BCBAB20F16BE5 /* EnvironmentMonitorTests.swift in Sources */,
 				4C74E7C46D369DE0FE0ECE7C /* FullscreenWindowClassifierTests.swift in Sources */,
 				5F742D47E8DC4246E38A43E3 /* GameSimulationTests.swift in Sources */,
@@ -297,6 +304,7 @@
 				21D79BC28FD1B426B245BDDB /* AppLog.swift in Sources */,
 				50D611A9B73A82EC3938F28D /* AppModel.swift in Sources */,
 				91B2505FE7F5AC43E2E34B9E /* BalanceConfiguration.swift in Sources */,
+				D7A694B5677D9C181B58AF80 /* DamageMetrics.swift in Sources */,
 				8674F689C5F772CB5950B8A1 /* DockBarHeroApp.swift in Sources */,
 				FDAC194AE4CA4639187D16B4 /* EnvironmentMonitor.swift in Sources */,
 				C6E726271E35F71BDC6681D0 /* FullscreenWindowClassifier.swift in Sources */,

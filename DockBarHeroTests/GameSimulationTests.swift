@@ -153,6 +153,40 @@ final class GameSimulationTests: XCTestCase {
         XCTAssertEqual(simulation.state.enemy.currentHealth, simulation.state.enemy.maxHealth)
     }
 
+    func testPresentationDPSStartsAtZeroAndUpdatesAfterHeroAttack() throws {
+        var simulation = GameSimulation()
+
+        XCTAssertEqual(simulation.presentation.rollingDPS, 0)
+        XCTAssertEqual(simulation.presentation.encounterDPS, 0)
+
+        _ = try simulation.advance(by: try duration(seconds: 1))
+
+        XCTAssertEqual(simulation.presentation.rollingDPS, 10, accuracy: 0.001)
+        XCTAssertEqual(simulation.presentation.encounterDPS, 10, accuracy: 0.001)
+    }
+
+    func testPresentationDPSResetsAfterVictory() throws {
+        var simulation = GameSimulation()
+
+        _ = try simulation.advance(by: try duration(seconds: 3))
+
+        XCTAssertEqual(simulation.presentation.rollingDPS, 0)
+        XCTAssertEqual(simulation.presentation.encounterDPS, 0)
+    }
+
+    func testPresentationDPSResetsAfterDefeat() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.hero.currentHealth = 1
+        state.hero.timeUntilNextAttack = try duration(seconds: 1)
+        state.enemy.timeUntilNextAttack = try duration(seconds: 1)
+        var simulation = GameSimulation(state: state)
+
+        _ = try simulation.advance(by: try duration(seconds: 1))
+
+        XCTAssertEqual(simulation.presentation.rollingDPS, 0)
+        XCTAssertEqual(simulation.presentation.encounterDPS, 0)
+    }
+
     func testEquippedWeaponAndArmorAffectDamage() throws {
         var state = GameState.newGame(balance: .standard)
         let weapon = Item(id: ItemID(rawValue: 1), level: 1, slot: .weapon, primaryStat: 5, creationSequence: 1)

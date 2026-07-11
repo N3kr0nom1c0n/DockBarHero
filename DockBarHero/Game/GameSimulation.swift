@@ -10,6 +10,8 @@ struct GameSimulation {
     private(set) var state: GameState
     let balance: BalanceConfiguration
     private let policy: any ActionPolicy
+    private var simulationTime: SimulationDuration = .zero
+    private var damageMetrics = DamageMetrics()
 
     init(balance: BalanceConfiguration = .standard, policy: any ActionPolicy = BasicAttackPolicy()) {
         self.state = .newGame(balance: balance)
@@ -21,6 +23,22 @@ struct GameSimulation {
         self.state = state
         self.balance = balance
         self.policy = policy
+    }
+
+    var presentation: GamePresentation {
+        GamePresentation(
+            state: state,
+            heroAttack: (try? effectiveAttack(for: .hero)) ?? state.hero.baseAttack,
+            heroDefense: (try? effectiveDefense(for: .hero)) ?? state.hero.baseDefense,
+            rollingDPS: damageMetrics.rollingDPS(
+                at: simulationTime,
+                encounterElapsed: state.encounter.activeElapsed
+            ),
+            encounterDPS: DamageMetrics.encounterAverage(
+                totalDamage: state.encounter.heroDamage,
+                elapsed: state.encounter.activeElapsed
+            )
+        )
     }
 
     mutating func advance(by elapsed: SimulationDuration) throws -> [GameEvent] {
@@ -66,6 +84,7 @@ struct GameSimulation {
                 let step = min(remaining, state.encounter.reviveRemaining)
                 if step > .zero {
                     state.encounter.reviveRemaining = try subtracting(step, from: state.encounter.reviveRemaining)
+                    simulationTime = try adding(step, to: simulationTime)
                     remaining = try subtracting(step, from: remaining)
                 }
 
@@ -91,10 +110,13 @@ struct GameSimulation {
         case .basicAttack:
             let damage = try damage(attacker: .hero, defender: .enemy)
             let enemyHealth = try health(afterTaking: damage, from: state.enemy.currentHealth)
-            let heroDamage = try adding(damage, to: state.encounter.heroDamage)
+            let (actualDamage, damageOverflow) = state.enemy.currentHealth.subtractingReportingOverflow(enemyHealth)
+            guard !damageOverflow else { throw SimulationError.arithmeticOverflow }
+            let heroDamage = try adding(actualDamage, to: state.encounter.heroDamage)
             state.enemy.currentHealth = enemyHealth
             state.hero.timeUntilNextAttack = state.hero.attackInterval
             state.encounter.heroDamage = heroDamage
+            damageMetrics.record(damage: actualDamage, at: simulationTime)
             events.append(.attack(attacker: .hero, defender: .enemy, damage: damage))
 
             guard state.enemy.currentHealth == 0 else { return false }
@@ -151,6 +173,7 @@ struct GameSimulation {
         state.hero.timeUntilNextAttack = try subtracting(elapsed, from: state.hero.timeUntilNextAttack)
         state.enemy.timeUntilNextAttack = try subtracting(elapsed, from: state.enemy.timeUntilNextAttack)
         state.encounter.activeElapsed = try adding(elapsed, to: state.encounter.activeElapsed)
+        simulationTime = try adding(elapsed, to: simulationTime)
     }
 
     private mutating func beginNextEncounter() throws {
@@ -170,7 +193,10 @@ struct GameSimulation {
             throw SimulationError.invalidBalance
         }
         state.encounter.phase = .reviving
+        state.encounter.activeElapsed = .zero
+        state.encounter.heroDamage = 0
         state.encounter.reviveRemaining = balance.reviveDelay
+        damageMetrics.reset()
     }
 
     private mutating func finishRevive() throws {
@@ -189,6 +215,7 @@ struct GameSimulation {
         state.encounter.reviveRemaining = reviveRemaining
         state.hero.timeUntilNextAttack = state.hero.attackInterval
         state.enemy.timeUntilNextAttack = state.enemy.attackInterval
+        damageMetrics.reset()
     }
 
     private func validateStateAndBalance() throws {
