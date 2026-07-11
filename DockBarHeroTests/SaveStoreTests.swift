@@ -166,6 +166,128 @@ final class SaveStoreTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: urls.temporary.path))
     }
 
+    func testCorruptPrimaryDoesNotDisplaceValidBackupWhenPrimaryInstallFails() async throws {
+        let urls = SaveURLs(directory: directory)
+        let backupState = GameState.newGame(balance: .standard)
+        let backupData = try SaveCodec().encode(state: backupState, savedAt: savedAt)
+        let corruptPrimaryData = Data("corrupt-primary".utf8)
+        try backupData.write(to: urls.backup)
+        try corruptPrimaryData.write(to: urls.primary)
+
+        let fileSystem = MutationFailingFileSystem(failure: .installPrimary(urls.primary))
+        let store = SaveStore(
+            urls: urls,
+            fileSystem: fileSystem,
+            codec: SaveCodec(),
+            now: { [savedAt] in savedAt }
+        )
+
+        await XCTAssertThrowsErrorAsync(try await store.save(stateWithAutoEquip(false)))
+
+        XCTAssertEqual(try SaveCodec().decode(Data(contentsOf: urls.backup)).state, backupState)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: urls.temporary.path))
+        let quarantinedPrimary = try XCTUnwrap(FileManager.default.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: nil
+        ).first { $0.lastPathComponent.contains("save-v1.json.invalid-") })
+        XCTAssertEqual(try Data(contentsOf: quarantinedPrimary), corruptPrimaryData)
+
+        let recovery = await makeStore().load(newGame: stateWithAutoEquip(false))
+        XCTAssertEqual(recovery, SaveLoadResult(state: backupState, source: .backup))
+    }
+
+    func testPrimaryQuarantineFailurePreservesCorruptPrimaryAndValidBackup() async throws {
+        let urls = SaveURLs(directory: directory)
+        let backupState = GameState.newGame(balance: .standard)
+        let backupData = try SaveCodec().encode(state: backupState, savedAt: savedAt)
+        let corruptPrimaryData = Data("corrupt-primary".utf8)
+        try backupData.write(to: urls.backup)
+        try corruptPrimaryData.write(to: urls.primary)
+        let store = SaveStore(
+            urls: urls,
+            fileSystem: MutationFailingFileSystem(failure: .quarantine(urls.primary)),
+            codec: SaveCodec(),
+            now: { [savedAt] in savedAt }
+        )
+
+        await XCTAssertThrowsErrorAsync(try await store.save(stateWithAutoEquip(false)))
+
+        XCTAssertEqual(try Data(contentsOf: urls.primary), corruptPrimaryData)
+        XCTAssertEqual(try SaveCodec().decode(Data(contentsOf: urls.backup)).state, backupState)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: urls.temporary.path))
+    }
+
+    func testBackupStagingFailurePreservesValidPrimaryAndBackup() async throws {
+        let urls = SaveURLs(directory: directory)
+        let (primaryData, backupData) = try seedDistinctValidPrimaryAndBackup(at: urls)
+        let store = SaveStore(
+            urls: urls,
+            fileSystem: MutationFailingFileSystem(failure: .stageBackup),
+            codec: SaveCodec(),
+            now: { [savedAt] in savedAt }
+        )
+
+        await XCTAssertThrowsErrorAsync(try await store.save(stateWithHeroHealth(98)))
+
+        XCTAssertEqual(try Data(contentsOf: urls.primary), primaryData)
+        XCTAssertEqual(try Data(contentsOf: urls.backup), backupData)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: urls.temporary.path))
+    }
+
+    func testBackupReplacementFailurePreservesValidPrimaryAndBackup() async throws {
+        let urls = SaveURLs(directory: directory)
+        let (primaryData, backupData) = try seedDistinctValidPrimaryAndBackup(at: urls)
+        let store = SaveStore(
+            urls: urls,
+            fileSystem: MutationFailingFileSystem(failure: .replaceBackup(urls.backup)),
+            codec: SaveCodec(),
+            now: { [savedAt] in savedAt }
+        )
+
+        await XCTAssertThrowsErrorAsync(try await store.save(stateWithHeroHealth(98)))
+
+        XCTAssertEqual(try Data(contentsOf: urls.primary), primaryData)
+        XCTAssertEqual(try Data(contentsOf: urls.backup), backupData)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: urls.temporary.path))
+    }
+
+    func testPrimaryReplacementFailureLeavesPriorPrimaryInBothDurableSlots() async throws {
+        let urls = SaveURLs(directory: directory)
+        let (primaryData, _) = try seedDistinctValidPrimaryAndBackup(at: urls)
+        let store = SaveStore(
+            urls: urls,
+            fileSystem: MutationFailingFileSystem(failure: .installPrimary(urls.primary)),
+            codec: SaveCodec(),
+            now: { [savedAt] in savedAt }
+        )
+
+        await XCTAssertThrowsErrorAsync(try await store.save(stateWithHeroHealth(98)))
+
+        XCTAssertEqual(try Data(contentsOf: urls.primary), primaryData)
+        XCTAssertEqual(try Data(contentsOf: urls.backup), primaryData)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: urls.temporary.path))
+    }
+
+    func testUnreadableBackupIsQuarantinedBeforeValidPrimaryReplacesIt() async throws {
+        let urls = SaveURLs(directory: directory)
+        let primaryState = GameState.newGame(balance: .standard)
+        var newState = primaryState
+        newState.autoEquipEnabled = false
+        let unreadableBackup = Data("unreadable-backup".utf8)
+        try SaveCodec().encode(state: primaryState, savedAt: savedAt).write(to: urls.primary)
+        try unreadableBackup.write(to: urls.backup)
+
+        try await makeStore().save(newState)
+
+        XCTAssertEqual(try SaveCodec().decode(Data(contentsOf: urls.primary)).state, newState)
+        XCTAssertEqual(try SaveCodec().decode(Data(contentsOf: urls.backup)).state, primaryState)
+        let quarantinedBackup = try XCTUnwrap(FileManager.default.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: nil
+        ).first { $0.lastPathComponent.contains("save-v1.backup.json.invalid-") })
+        XCTAssertEqual(try Data(contentsOf: quarantinedBackup), unreadableBackup)
+    }
+
     private func makeStore() -> SaveStore {
         SaveStore(
             urls: SaveURLs(directory: directory),
@@ -177,6 +299,88 @@ final class SaveStoreTests: XCTestCase {
         var state = GameState.newGame(balance: .standard)
         state.autoEquipEnabled = enabled
         return state
+    }
+
+    private func stateWithHeroHealth(_ health: Int) -> GameState {
+        var state = GameState.newGame(balance: .standard)
+        state.hero.currentHealth = health
+        return state
+    }
+
+    private func seedDistinctValidPrimaryAndBackup(at urls: SaveURLs) throws -> (primary: Data, backup: Data) {
+        let primary = try SaveCodec().encode(state: stateWithHeroHealth(99), savedAt: savedAt)
+        let backup = try SaveCodec().encode(state: GameState.newGame(balance: .standard), savedAt: savedAt)
+        try primary.write(to: urls.primary)
+        try backup.write(to: urls.backup)
+        return (primary, backup)
+    }
+}
+
+private enum InjectedFileSystemError: Error {
+    case primaryInstall
+}
+
+private enum InjectedFailurePoint: Sendable {
+    case quarantine(URL)
+    case stageBackup
+    case replaceBackup(URL)
+    case installPrimary(URL)
+}
+
+private struct MutationFailingFileSystem: SaveFileSystem {
+    private let failure: InjectedFailurePoint
+
+    init(failure: InjectedFailurePoint) {
+        self.failure = failure
+    }
+
+    func fileExists(at url: URL) -> Bool {
+        FileManager.default.fileExists(atPath: url.path)
+    }
+
+    func createDirectory(at url: URL) throws {
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+    }
+
+    func read(from url: URL) throws -> Data {
+        try Data(contentsOf: url)
+    }
+
+    func write(_ data: Data, to url: URL, options: Data.WritingOptions) throws {
+        if case .stageBackup = failure,
+           url.lastPathComponent.hasPrefix(".save-v1.backup-") {
+            throw InjectedFileSystemError.primaryInstall
+        }
+        try data.write(to: url, options: options)
+    }
+
+    func moveItem(at source: URL, to destination: URL) throws {
+        if case .quarantine(let quarantinedURL) = failure,
+           source.standardizedFileURL == quarantinedURL.standardizedFileURL,
+           destination.lastPathComponent.contains(".invalid-") {
+            throw InjectedFileSystemError.primaryInstall
+        }
+        if case .installPrimary(let primary) = failure,
+           destination.standardizedFileURL == primary.standardizedFileURL {
+            throw InjectedFileSystemError.primaryInstall
+        }
+        try FileManager.default.moveItem(at: source, to: destination)
+    }
+
+    func replaceItem(at destination: URL, with source: URL) throws {
+        if case .replaceBackup(let backup) = failure,
+           destination.standardizedFileURL == backup.standardizedFileURL {
+            throw InjectedFileSystemError.primaryInstall
+        }
+        if case .installPrimary(let primary) = failure,
+           destination.standardizedFileURL == primary.standardizedFileURL {
+            throw InjectedFileSystemError.primaryInstall
+        }
+        _ = try FileManager.default.replaceItemAt(destination, withItemAt: source)
+    }
+
+    func removeItem(at url: URL) throws {
+        try FileManager.default.removeItem(at: url)
     }
 }
 
