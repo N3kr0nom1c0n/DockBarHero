@@ -117,12 +117,15 @@ final class GameSimulationTests: XCTestCase {
 
         let events = try simulation.advance(by: try duration(seconds: 3))
 
+        let item = Item(id: ItemID(rawValue: 1), level: 1, slot: .weapon, primaryStat: 1, creationSequence: 1)
         XCTAssertEqual(events, [
             .attack(attacker: .hero, defender: .enemy, damage: 10),
             .attack(attacker: .enemy, defender: .hero, damage: 3),
             .attack(attacker: .hero, defender: .enemy, damage: 10),
             .attack(attacker: .hero, defender: .enemy, damage: 10),
-            .victory(defeatedLevel: 1)
+            .victory(defeatedLevel: 1),
+            .loot(item),
+            .equipped(slot: .weapon, itemID: item.id)
         ])
         XCTAssertEqual(simulation.state.encounter.enemyLevel, 2)
         XCTAssertEqual(simulation.state.hero.currentHealth, 100)
@@ -347,6 +350,121 @@ final class GameSimulationTests: XCTestCase {
             XCTAssertEqual(error as? SimulationError, .invalidBalance)
         }
         XCTAssertEqual(simulation.state, stateBeforeAdvance)
+    }
+
+    func testVictoryDropsLootBeforeEquippingAndStartsNextEncounter() throws {
+        var simulation = GameSimulation()
+
+        let events = try simulation.advance(by: try duration(seconds: 3))
+
+        guard case let .loot(item) = events[events.count - 2] else {
+            return XCTFail("Expected loot immediately before equipment")
+        }
+        XCTAssertEqual(events, [
+            .attack(attacker: .hero, defender: .enemy, damage: 10),
+            .attack(attacker: .enemy, defender: .hero, damage: 3),
+            .attack(attacker: .hero, defender: .enemy, damage: 10),
+            .attack(attacker: .hero, defender: .enemy, damage: 10),
+            .victory(defeatedLevel: 1),
+            .loot(item),
+            .equipped(slot: .weapon, itemID: item.id)
+        ])
+        XCTAssertEqual(simulation.state.inventory, [item])
+        XCTAssertEqual(simulation.state.equipment.weaponID, item.id)
+        XCTAssertEqual(simulation.state.encounter.enemyLevel, 2)
+    }
+
+    func testAutoEquipTieLeavesExistingItemEquipped() throws {
+        var state = GameState.newGame(balance: .standard)
+        let existing = Item(id: ItemID(rawValue: 99), level: 1, slot: .weapon, primaryStat: 1, creationSequence: 99)
+        state.inventory = [existing]
+        state.equipment.weaponID = existing.id
+        state.hero.timeUntilNextAttack = .zero
+        state.enemy.currentHealth = 1
+        var simulation = GameSimulation(state: state)
+
+        let events = try simulation.advance(by: .zero)
+
+        XCTAssertEqual(events, [
+            .attack(attacker: .hero, defender: .enemy, damage: 11),
+            .victory(defeatedLevel: 1),
+            .loot(Item(id: ItemID(rawValue: 1), level: 1, slot: .weapon, primaryStat: 1, creationSequence: 1))
+        ])
+        XCTAssertEqual(simulation.state.equipment.weaponID, existing.id)
+        XCTAssertEqual(simulation.state.inventory.count, 2)
+    }
+
+    func testDisabledAutoEquipLeavesDropUnequippedAndPreservesExistingItem() throws {
+        var state = GameState.newGame(balance: .standard)
+        let existing = Item(id: ItemID(rawValue: 99), level: 1, slot: .weapon, primaryStat: 0, creationSequence: 99)
+        state.inventory = [existing]
+        state.equipment.weaponID = existing.id
+        state.autoEquipEnabled = false
+        state.hero.timeUntilNextAttack = .zero
+        state.enemy.currentHealth = 1
+        var simulation = GameSimulation(state: state)
+
+        _ = try simulation.advance(by: .zero)
+
+        XCTAssertEqual(simulation.state.equipment.weaponID, existing.id)
+        XCTAssertEqual(simulation.state.inventory.map(\.id), [existing.id, ItemID(rawValue: 1)])
+    }
+
+    func testManualEquipAndAutoEquipPreferencePreserveInventory() throws {
+        var state = GameState.newGame(balance: .standard)
+        let existing = Item(id: ItemID(rawValue: 7), level: 1, slot: .weapon, primaryStat: 1, creationSequence: 7)
+        state.inventory = [existing]
+        state.equipment.weaponID = existing.id
+        var simulation = GameSimulation(state: state)
+
+        XCTAssertEqual(try simulation.apply(.setAutoEquip(false)), [.autoEquipChanged(false)])
+        XCTAssertEqual(try simulation.apply(.setAutoEquip(false)), [])
+        XCTAssertEqual(try simulation.apply(.equip(existing.id)), [.equipped(slot: .weapon, itemID: existing.id)])
+        XCTAssertThrowsError(try simulation.apply(.equip(ItemID(rawValue: 999)))) { error in
+            XCTAssertEqual(error as? GameIntentError, .itemNotFound)
+        }
+
+        XCTAssertEqual(simulation.state.inventory, [existing])
+        XCTAssertEqual(simulation.state.equipment.weaponID, existing.id)
+    }
+
+    func testManualEquipRejectsWrongSlot() throws {
+        var state = GameState.newGame(balance: .standard)
+        let armor = Item(id: ItemID(rawValue: 1), level: 1, slot: .armor, primaryStat: 1, creationSequence: 1)
+        let duplicateWeapon = Item(id: armor.id, level: 1, slot: .weapon, primaryStat: 1, creationSequence: 1)
+        state.inventory = [armor, duplicateWeapon]
+        var simulation = GameSimulation(state: state)
+
+        XCTAssertThrowsError(try simulation.apply(.equip(armor.id))) { error in
+            XCTAssertEqual(error as? GameIntentError, .slotMismatch)
+        }
+        XCTAssertNil(simulation.state.equipment.weaponID)
+        XCTAssertNil(simulation.state.equipment.armorID)
+    }
+
+    func testEnablingAutoEquipDoesNotRetroactivelyScanInventory() throws {
+        var state = GameState.newGame(balance: .standard)
+        let weapon = Item(id: ItemID(rawValue: 1), level: 1, slot: .weapon, primaryStat: 100, creationSequence: 1)
+        state.inventory = [weapon]
+        state.autoEquipEnabled = false
+        var simulation = GameSimulation(state: state)
+
+        XCTAssertEqual(try simulation.apply(.setAutoEquip(true)), [.autoEquipChanged(true)])
+        XCTAssertNil(simulation.state.equipment.weaponID)
+    }
+
+    func testVictoryLootFailureRollsBackEntireCandidate() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.enemy.currentHealth = 1
+        state.hero.timeUntilNextAttack = .zero
+        state.lootSequence = .max
+        var simulation = GameSimulation(state: state)
+        let original = simulation.state
+
+        XCTAssertThrowsError(try simulation.advance(by: .zero)) { error in
+            XCTAssertEqual(error as? SimulationError, .arithmeticOverflow)
+        }
+        XCTAssertEqual(simulation.state, original)
     }
 
     private func duration(milliseconds: Int64) throws -> SimulationDuration {

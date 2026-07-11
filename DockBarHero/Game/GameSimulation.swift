@@ -6,6 +6,11 @@ enum SimulationError: Error, Equatable {
     case arithmeticOverflow
 }
 
+enum GameIntentError: Error, Equatable, Sendable {
+    case itemNotFound
+    case slotMismatch
+}
+
 struct GameSimulation {
     private(set) var state: GameState
     let balance: BalanceConfiguration
@@ -50,6 +55,34 @@ struct GameSimulation {
         let events = try candidate.advanceCandidate(by: elapsed)
         self = candidate
         return events
+    }
+
+    mutating func apply(_ intent: GameIntent) throws -> [GameEvent] {
+        var candidate = self
+        let events = try candidate.applyCandidate(intent)
+        self = candidate
+        return events
+    }
+
+    private mutating func applyCandidate(_ intent: GameIntent) throws -> [GameEvent] {
+        switch intent {
+        case let .setAutoEquip(enabled):
+            guard state.autoEquipEnabled != enabled else { return [] }
+            state.autoEquipEnabled = enabled
+            return [.autoEquipChanged(enabled)]
+
+        case let .equip(itemID):
+            let matchingItems = state.inventory.filter { $0.id == itemID }
+            guard matchingItems.count == 1, let item = matchingItems.first else {
+                if matchingItems.count > 1 { throw GameIntentError.slotMismatch }
+                throw GameIntentError.itemNotFound
+            }
+            guard item.level >= 1, item.primaryStat >= 0 else {
+                throw GameIntentError.slotMismatch
+            }
+            state.equipment[item.slot] = item.id
+            return [.equipped(slot: item.slot, itemID: item.id)]
+        }
     }
 
     private mutating func advanceCandidate(by elapsed: SimulationDuration) throws -> [GameEvent] {
@@ -122,9 +155,22 @@ struct GameSimulation {
             guard state.enemy.currentHealth == 0 else { return false }
             let defeatedLevel = state.encounter.enemyLevel
             events.append(.victory(defeatedLevel: defeatedLevel))
+            var loot = LootSystem(balance: balance)
+            let item = try loot.drop(defeatedLevel: defeatedLevel, state: &state)
+            events.append(.loot(item))
+            if state.autoEquipEnabled,
+               isStrictUpgrade(item, over: try equippedItem(in: item.slot)) {
+                state.equipment[item.slot] = item.id
+                events.append(.equipped(slot: item.slot, itemID: item.id))
+            }
             try beginNextEncounter()
             return true
         }
+    }
+
+    private func isStrictUpgrade(_ item: Item, over equipped: Item?) -> Bool {
+        guard let equipped else { return true }
+        return item.primaryStat > equipped.primaryStat
     }
 
     private mutating func resolveEnemyAction(into events: inout [GameEvent]) throws {

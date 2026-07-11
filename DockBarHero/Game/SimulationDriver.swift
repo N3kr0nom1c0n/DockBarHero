@@ -8,6 +8,7 @@ protocol SimulationDriving: AnyObject {
     func start()
     func stop()
     func replaceState(_ state: GameState)
+    func send(_ intent: GameIntent) throws
 }
 
 @MainActor
@@ -92,6 +93,14 @@ final class SimulationDriver: SimulationDriving {
         let timestamp = now()
         lastTick = timestamp
         lastPublish = timestamp
+        onPresentation?(simulation.presentation)
+    }
+
+    func send(_ intent: GameIntent) throws {
+        let events = try simulation.apply(intent)
+        if !events.isEmpty {
+            onEvents?(events)
+        }
         onPresentation?(simulation.presentation)
     }
 }

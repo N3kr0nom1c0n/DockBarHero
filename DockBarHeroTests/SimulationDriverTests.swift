@@ -116,6 +116,43 @@ final class SimulationDriverTests: XCTestCase {
 
         XCTAssertEqual(presentationCount, 1)
     }
+
+    func testSendPublishesIntentEventsAndPresentationImmediately() throws {
+        let clock = TestMonotonicClock(now: 10_000_000_000)
+        let driver = SimulationDriver(now: { clock.now })
+        var presentations: [GamePresentation] = []
+        var eventBatches: [[GameEvent]] = []
+        driver.onPresentation = { presentations.append($0) }
+        driver.onEvents = { eventBatches.append($0) }
+        driver.start(startLoop: false)
+
+        try driver.send(.setAutoEquip(false))
+
+        XCTAssertEqual(eventBatches, [[.autoEquipChanged(false)]])
+        XCTAssertEqual(presentations.count, 2)
+        XCTAssertFalse(driver.currentState.autoEquipEnabled)
+        XCTAssertFalse(presentations.last!.state.autoEquipEnabled)
+    }
+
+    func testSendEquipForwardsToSimulationAndPublishesImmediately() throws {
+        let clock = TestMonotonicClock(now: 10_000_000_000)
+        var state = GameState.newGame(balance: .standard)
+        let item = Item(id: ItemID(rawValue: 1), level: 1, slot: .weapon, primaryStat: 5, creationSequence: 1)
+        state.inventory = [item]
+        let driver = SimulationDriver(simulation: GameSimulation(state: state), now: { clock.now })
+        var eventBatches: [[GameEvent]] = []
+        var presentations: [GamePresentation] = []
+        driver.onEvents = { eventBatches.append($0) }
+        driver.onPresentation = { presentations.append($0) }
+        driver.start(startLoop: false)
+
+        try driver.send(.equip(item.id))
+
+        XCTAssertEqual(eventBatches, [[.equipped(slot: .weapon, itemID: item.id)]])
+        XCTAssertEqual(presentations.count, 2)
+        XCTAssertEqual(driver.currentState.equipment.weaponID, item.id)
+        XCTAssertEqual(presentations.last!.state.equipment.weaponID, item.id)
+    }
 }
 
 @MainActor
