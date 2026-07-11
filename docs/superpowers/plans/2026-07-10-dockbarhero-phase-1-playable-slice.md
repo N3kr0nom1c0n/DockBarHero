@@ -636,7 +636,7 @@ git commit -m "feat: drive combat from monotonic time"
 **Interfaces:**
 
 - Consumes: item, inventory, equipment, balance, victory, and driver contracts.
-- Produces: `LootSystem.drop(defeatedLevel:state:)` and `GameSimulation.apply(_:)`.
+- Produces: `LootSystem.drop(defeatedLevel:state:) throws -> Item` and `GameSimulation.apply(_:)`.
 - Extends: `SimulationDriving.send(_:)` for management-window intents.
 
 - [ ] **Step 1: Write failing loot and equipment tests**
@@ -646,12 +646,12 @@ Cover guaranteed drops, weapon/armor alternation, deterministic IDs/stat values,
 Use this deterministic sequence assertion:
 
 ```swift
-func testDropsAlternateSlotsAndUseStableSequenceIDs() {
+func testDropsAlternateSlotsAndUseStableSequenceIDs() throws {
     var state = GameState.newGame(balance: .standard)
     var loot = LootSystem(balance: .standard)
 
-    let first = loot.drop(defeatedLevel: 1, state: &state)
-    let second = loot.drop(defeatedLevel: 2, state: &state)
+    let first = try loot.drop(defeatedLevel: 1, state: &state)
+    let second = try loot.drop(defeatedLevel: 2, state: &state)
 
     XCTAssertEqual(first.id, ItemID(rawValue: 1))
     XCTAssertEqual(first.slot, .weapon)
@@ -671,7 +671,7 @@ Expected: FAIL because loot generation and intent application are absent.
 
 - [ ] **Step 3: Implement loot and equipment rules**
 
-`LootSystem.drop` must use current `state.lootSequence` before incrementing it, choose `.weapon` for even zero-based sequence and `.armor` for odd, assign `ItemID(rawValue: sequence + 1)`, request `balance.itemPrimaryStat(level:slot:)`, append the item once, and return it. A `nil` primary-stat result is `SimulationError.invalidBalance`; do not force unwrap it.
+Implement `LootSystem.drop(defeatedLevel:state:) throws -> Item`. It must use current `state.lootSequence` before incrementing it, choose `.weapon` for even zero-based sequence and `.armor` for odd, assign `ItemID(rawValue: sequence + 1)`, request `balance.itemPrimaryStat(level:slot:)`, append the item once, and return it. A `nil` primary-stat result throws `SimulationError.invalidBalance`; do not force unwrap it. Victory integration calls this method with `try`, allowing the simulation's candidate-copy boundary to roll back the encounter when generation fails.
 
 Add `GameIntentError: Error, Equatable` with `.itemNotFound` and `.slotMismatch`. Implement:
 
