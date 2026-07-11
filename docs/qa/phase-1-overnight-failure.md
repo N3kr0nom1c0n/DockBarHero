@@ -81,3 +81,21 @@ Durable local evidence is stored in the ignored worktree ledger and reports:
 ## Safest Next Action
 
 Revise the simulation-time representation before resuming Task 2. The next design pass should choose one explicit deterministic time domain and supported range, then define chunk-invariance and event-density behavior within that domain. Patching additional `Double` or `Decimal` boundary cases onto the current loop is not recommended.
+
+## Resolution
+
+**Resolved:** 2026-07-11
+
+The owner authorized a fresh recovery run. Task 2 now uses a canonical signed `Int64` nanosecond duration type with a 1 ms minimum attack interval and 10 s maximum accepted advance. Gameplay timing contains no floating-point or `Decimal` state and needs no per-call event budget.
+
+The recovery also added checked combat arithmetic, candidate-copy rollback, safe optional balance scaling, phase-specific state validation, explicit scalar duration encoding, restored equipment regression coverage, and reconciled downstream plans with the throwing optional APIs.
+
+Recovery commits:
+
+- `286f452` - deterministic time recovery plan.
+- `0dc6147` - fixed-point combat timing migration.
+- `8abfe05` - checked arithmetic and state/balance validation.
+- `e0ee9bb` - phase-specific combat-state validation and plan reconciliation.
+- `d333402` - corrected throwing loot-generation contract.
+
+The final Terra review passed with no remaining findings. Task 2 is unblocked. Tasks 3-10 remain unstarted, and the feature branch remains local and unmerged.
