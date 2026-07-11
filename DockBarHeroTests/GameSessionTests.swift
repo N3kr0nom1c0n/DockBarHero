@@ -22,6 +22,27 @@ final class GameSessionTests: XCTestCase {
         XCTAssertEqual(driver.actions, ["replace", "start"])
     }
 
+    func testProductionDriverPublishesLoadedStateInitialPresentationDuringStartup() async {
+        let loaded = state(autoEquip: false)
+        let store = SessionStoreFake(result: SaveLoadResult(state: loaded, source: .primary))
+        let driver = SimulationDriver(now: { 1_000 })
+        let coordinator = SessionSaveCoordinatorFake()
+        let session = GameSession(
+            driver: driver,
+            store: store,
+            coordinator: coordinator,
+            newGame: state(autoEquip: true)
+        )
+        var presentations: [GamePresentation] = []
+        session.onPresentation = { presentations.append($0) }
+
+        session.start()
+        await waitUntil { driver.currentState == loaded }
+
+        XCTAssertEqual(presentations, [GameSimulation(state: loaded).presentation])
+        await session.stopAndSave()
+    }
+
     func testBackupLoadPublishesRecoveredStatusAndDoesNotAdvanceLoadedState() async {
         let loaded = state(autoEquip: false)
         let store = SessionStoreFake(result: SaveLoadResult(state: loaded, source: .backup))
@@ -36,6 +57,45 @@ final class GameSessionTests: XCTestCase {
 
         XCTAssertEqual(driver.currentState, loaded)
         XCTAssertEqual(statuses.values, [SaveStatus.recovered])
+    }
+
+    func testUnsupportedVersionStatusPrecedesBackupRecoveryStatus() async {
+        let loaded = state(autoEquip: false)
+        let store = SessionStoreFake(result: SaveLoadResult(
+            state: loaded,
+            source: .backup,
+            issue: .unsupportedVersion(99)
+        ))
+        let driver = SessionDriverFake()
+        let coordinator = SessionSaveCoordinatorFake()
+        let session = makeSession(store: store, driver: driver, coordinator: coordinator)
+        let statuses = GameStatusRecorder()
+        session.onSaveStatus = { statuses.values.append($0) }
+
+        session.start()
+        await waitUntil { driver.startCount == 1 }
+
+        XCTAssertEqual(driver.currentState, loaded)
+        XCTAssertEqual(statuses.values, [.unsupportedVersion(99), .recovered])
+    }
+
+    func testUnsupportedVersionStatusPublishesWhenLoadStartsNewGame() async {
+        let newGame = state(autoEquip: true)
+        let store = SessionStoreFake(result: SaveLoadResult(
+            state: newGame,
+            source: .newGame,
+            issue: .unsupportedVersion(99)
+        ))
+        let driver = SessionDriverFake()
+        let coordinator = SessionSaveCoordinatorFake()
+        let session = makeSession(store: store, driver: driver, coordinator: coordinator)
+        let statuses = GameStatusRecorder()
+        session.onSaveStatus = { statuses.values.append($0) }
+
+        session.start()
+        await waitUntil { driver.startCount == 1 }
+
+        XCTAssertEqual(statuses.values, [.unsupportedVersion(99)])
     }
 
     func testProductionCoordinatorStatusesReachSessionAndStopClearsObservation() async {

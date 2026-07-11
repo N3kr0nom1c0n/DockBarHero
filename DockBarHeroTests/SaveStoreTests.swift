@@ -87,6 +87,7 @@ final class SaveStoreTests: XCTestCase {
         let result = await store.load(newGame: stateWithAutoEquip(true))
 
         XCTAssertEqual(result, SaveLoadResult(state: first, source: .backup))
+        XCTAssertNil(result.issue)
         let quarantined = try FileManager.default.contentsOfDirectory(
             at: directory,
             includingPropertiesForKeys: nil
@@ -127,11 +128,32 @@ final class SaveStoreTests: XCTestCase {
 
         let result = await store.load(newGame: stateWithAutoEquip(false))
 
-        XCTAssertEqual(result, SaveLoadResult(state: backupState, source: .backup))
+        XCTAssertEqual(result.state, backupState)
+        XCTAssertEqual(result.source, .backup)
+        XCTAssertEqual(result.issue, .unsupportedVersion(99))
         let quarantined = try XCTUnwrap(try FileManager.default.contentsOfDirectory(
             at: directory,
             includingPropertiesForKeys: nil
         ).first { $0.lastPathComponent.contains(".invalid-") })
+        XCTAssertEqual(try Data(contentsOf: quarantined), futureData)
+    }
+
+    func testUnsupportedFuturePrimaryWithoutUsableBackupStartsNewGameWithIssue() async throws {
+        let store = makeStore()
+        let urls = SaveURLs(directory: directory)
+        let futureData = Data(#"{"schemaVersion":99,"savedAt":"2026-07-10T00:00:00Z","state":{}}"#.utf8)
+        try futureData.write(to: urls.primary)
+        let newGame = stateWithAutoEquip(false)
+
+        let result = await store.load(newGame: newGame)
+
+        XCTAssertEqual(result.state, newGame)
+        XCTAssertEqual(result.source, .newGame)
+        XCTAssertEqual(result.issue, .unsupportedVersion(99))
+        let quarantined = try XCTUnwrap(try FileManager.default.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: nil
+        ).first { $0.lastPathComponent.contains("save-v1.json.invalid-") })
         XCTAssertEqual(try Data(contentsOf: quarantined), futureData)
     }
 

@@ -26,9 +26,24 @@ enum SaveLoadSource: Equatable, Sendable {
     case newGame
 }
 
+enum SaveLoadIssue: Equatable, Sendable {
+    case unsupportedVersion(Int)
+}
+
 struct SaveLoadResult: Equatable, Sendable {
     let state: GameState
     let source: SaveLoadSource
+    let issue: SaveLoadIssue?
+
+    init(
+        state: GameState,
+        source: SaveLoadSource,
+        issue: SaveLoadIssue? = nil
+    ) {
+        self.state = state
+        self.source = source
+        self.issue = issue
+    }
 }
 
 protocol SaveStoring: Sendable {
@@ -109,13 +124,18 @@ actor SaveStore: SaveStoring {
     }
 
     func load(newGame: GameState) async -> SaveLoadResult {
+        var issue: SaveLoadIssue?
+
         for (url, source) in [(urls.primary, SaveLoadSource.primary), (urls.backup, .backup)] {
             guard fileSystem.fileExists(at: url) else { continue }
 
             do {
                 let document = try codec.decode(fileSystem.read(from: url))
-                return SaveLoadResult(state: document.state, source: source)
+                return SaveLoadResult(state: document.state, source: source, issue: issue)
             } catch {
+                if case let SaveDecodingError.unsupportedVersion(version) = error {
+                    issue = issue ?? .unsupportedVersion(version)
+                }
                 do {
                     try quarantine(url)
                 } catch {
@@ -124,7 +144,7 @@ actor SaveStore: SaveStoring {
             }
         }
 
-        return SaveLoadResult(state: newGame, source: .newGame)
+        return SaveLoadResult(state: newGame, source: .newGame, issue: issue)
     }
 
     func save(_ state: GameState) async throws {

@@ -5,6 +5,7 @@ enum SaveStatus: Equatable, Sendable {
     case saving
     case saved(Date)
     case recovered
+    case unsupportedVersion(Int)
     case failed(String)
 }
 

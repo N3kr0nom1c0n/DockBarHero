@@ -129,11 +129,14 @@ final class GameSession: GameSessionControlling {
             self?.receive(events, generation: startGeneration)
         }
         driver.replaceState(result.state)
+        if case let .unsupportedVersion(version) = result.issue {
+            receive(.unsupportedVersion(version), generation: startGeneration)
+        }
         if result.source == .backup {
             receive(.recovered, generation: startGeneration)
         }
-        driver.start()
         isRunning = true
+        driver.start()
         startupTask = nil
         autosaveTask = Task { @MainActor [weak self] in
             await self?.runAutosave(generation: startGeneration)
