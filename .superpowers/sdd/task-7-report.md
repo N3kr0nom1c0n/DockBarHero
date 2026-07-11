@@ -41,3 +41,33 @@ It failed during test-target compilation with `cannot find type 'SaveStore' in s
 ## Final Commit
 
 `feat: add atomic save recovery`
+
+## Repair Cycle 1
+
+### Finding And Red Evidence
+
+The durability finding against `4f6f41c` was reproduced with a deterministic filesystem failure while saving valid new state over a corrupt primary and valid backup. The first behavioral red run executed 11 focused tests and failed because the backup had been replaced with corrupt primary bytes and no primary diagnostic file existed. A second red test showed that an unreadable existing backup was replaced without diagnostic preservation.
+
+Foundation's `FileManager.replaceItemAt` is non-overridable, so the repair adds a narrow actor-isolated `SaveFileSystem` seam while preserving the production `SaveStore` initializer and exact `SaveStoring` contract.
+
+### Durability Decisions
+
+- New state is encoded and validated before the pending write, as before.
+- Existing primary bytes are read once and decoded through `SaveCodec`; only those exact validated bytes may be staged for backup.
+- A corrupt or unreadable primary is quarantined before primary installation. If quarantine fails, the save aborts, pending is cleaned, and primary/backup remain untouched.
+- An unreadable backup is quarantined before validated primary bytes replace it. If quarantine fails, the save aborts without deleting the backup.
+- Staging and backup-replacement failures occur while the valid primary remains in place. A backup replacement uses the single-path atomic Foundation replacement operation.
+- Primary replacement occurs only after the backup contains validated prior-primary bytes. If replacement fails, the prior primary remains valid in both durable slots.
+- A corrupt-primary quarantine followed by primary-install failure leaves the original valid backup loadable and preserves the corrupt primary under its diagnostic name.
+- There is no claim of cross-file transaction atomicity. The ordering guarantees that every mutation either preserves an existing valid durable save or installs bytes already validated by `SaveCodec`.
+
+### Repair Verification
+
+- Focused `SaveStoreTests`: 16 tests passed, 0 failures.
+- Full `DockBarHero` scheme: 127 tests passed, 0 failures.
+- Pending cleanup and byte preservation were asserted for validation, quarantine, staging, backup replacement, and both primary-install paths.
+- `git diff --check`: clean.
+
+### Repair Commit
+
+`5e7d4f605bf8b4e6747c33e034dad13b6c3f73a2 fix: preserve valid saves during recovery`
