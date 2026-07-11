@@ -93,3 +93,64 @@ b03f629e8cf9e50132032ee39c99ae04d5bc8c179f975de7eba2488528d16600  DockBarHeroTes
 ```
 
 The final commit hash is recorded by `git rev-parse HEAD` after the required commit.
+
+## Repair Cycle 1
+
+### Findings Addressed
+
+- Replaced the delegate's `terminationTask`/`didReplyToTermination` guard with a pure `TerminationRequestGate` state machine. Its first request starts the one save race and returns `.terminateLater`; pending requests return `.terminateLater` without starting work; only the replied state returns `.terminateNow`.
+- The delegate now retains the existing five-second `stopAndSave()` race, logs completion or timeout without save contents, issues one AppKit reply, and marks the gate replied only after that reply call.
+- Defeat now runs one keyed fade-out-only hero action. There is no automatic fade-in during the reviving phase. `.revived` cancels the defeat action and synchronously restores hero opacity; victory retains its brief enemy fade-out/fade-in action.
+
+### RED Evidence
+
+The termination-gate test was added before production code and run with:
+
+```text
+xcodebuild test -project DockBarHero.xcodeproj -scheme DockBarHero -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath .build/Task9Repair1GateRed CODE_SIGNING_ALLOWED=NO -only-testing:DockBarHeroTests/AppModelTests
+```
+
+Result: test-target compilation failed because `TerminationRequestGate` was not in scope. This was the intended missing-contract failure.
+
+After the gate was green, the deterministic scene regressions were added and run with:
+
+```text
+xcodebuild test -project DockBarHero.xcodeproj -scheme DockBarHero -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath .build/Task9Repair1SceneRed CODE_SIGNING_ALLOWED=NO -only-testing:DockBarHeroTests/PrototypeSceneHostTests
+```
+
+Result: 7 tests executed with 3 failures. The defeat-only `reviveVisibility` action was absent, the old fade-out/fade-in `eventFade` remained through revive, and hero alpha remained `0` instead of restoring to `1`.
+
+### Focused And Full Verification
+
+- Gate GREEN: 21 AppModel tests passed, 0 failures using `.build/Task9Repair1GateGreen`.
+- Scene GREEN: 7 PrototypeSceneHost tests passed, 0 failures using `.build/Task9Repair1SceneGreen`.
+- Requested focused run: 41 tests passed, 0 failures across AppModel, PrototypeSceneHost, and GameSession using `.build/Task9Repair1Focused`.
+- Full suite: 156 tests passed, 0 failures using `.build/Task9Repair1Full`.
+- Clean arm64 Debug build: clean succeeded and build succeeded using `.build/Task9Repair1CleanBuild`.
+- `git diff --check` passed before the code/test commit.
+
+The existing non-fatal App Intents/linkd, test-host accessibility, and occasional canceled XPC-session diagnostics remained outside the tested behavior and did not affect outcomes.
+
+### Lifecycle And Rendering Decisions
+
+- The pure gate is the delegate's sole termination request state. It makes repeated-pending behavior testable without constructing or mutating the shared `NSApplication` test host.
+- Delegate-level reply interception was not added because `applicationShouldTerminate` requires concrete `NSApplication`; replacing or swizzling the shared test host would broaden risk. The pure gate tests prove one start decision, repeated waits, one reply transition, and post-reply termination.
+- Defeat and victory use distinct action keys and durations. Tests inspect node/action state directly and simulate completed defeat opacity before revival, avoiding timing-sensitive sleeps.
+- AppModel, overlay placement/fullscreen/input guards, GameSession startup and persistence wiring, and the termination timeout helper were not changed.
+
+### Repair Hashes
+
+Code/test commit:
+
+```text
+e070c70a7894dddb037e65455c600f52c4e75296  fix: harden termination and revive visuals
+```
+
+SHA-256 implementation hashes at that commit:
+
+```text
+aee6628cda558dace0e6d854b9918ed0537a47cf5c761db5949cb955776fac00  DockBarHero/App/AppDelegate.swift
+efcf93f694adbf2ca85c184180db839bb748992695efdf7305b60f21af665c1f  DockBarHero/Rendering/PrototypeScene.swift
+e80c373cdfb58945c4921b304594b54a0c79131f0f2ec5a1e7a31aae8f188894  DockBarHeroTests/AppModelTests.swift
+305369ce037c48425fe7f16c31eab7840b3e2cc6072aa1844349fea10687833a  DockBarHeroTests/PrototypeSceneHostTests.swift
+```
