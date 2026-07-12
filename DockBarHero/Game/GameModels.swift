@@ -1,5 +1,17 @@
 import Foundation
 
+enum HeroClassID: String, Codable, CaseIterable, Equatable, Sendable {
+    case tank
+    case dps
+    case healer
+}
+
+enum EnemyTierID: String, Codable, CaseIterable, Equatable, Sendable {
+    case normal
+    case elite
+    case boss
+}
+
 enum CombatantID: String, Codable, Equatable, Sendable { case hero, enemy }
 enum EquipmentSlot: String, Codable, CaseIterable, Equatable, Sendable { case weapon, armor }
 
