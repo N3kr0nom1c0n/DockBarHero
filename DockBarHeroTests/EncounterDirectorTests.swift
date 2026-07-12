@@ -2,9 +2,69 @@ import XCTest
 @testable import DockBarHero
 
 final class EncounterDirectorTests: XCTestCase {
+    func testFarmingVictoryRepeatsSelectionWithoutLoweringFrontier() throws {
+        let state = try fixture(frontier: 50, selected: 24, mode: .farming)
+
+        let result = try EncounterDirector().completeVictory(in: state, balance: .standard)
+
+        XCTAssertEqual(result.campaign.highestUnlockedLevel, 50)
+        XCTAssertEqual(result.campaign.selectedLevel, 24)
+        XCTAssertEqual(result.encounter.enemyLevel, 24)
+    }
+
+    func testQueuedChoiceOverridesThirdDefeatFallback() throws {
+        var state = try fixture(frontier: 174, selected: 174, mode: .push)
+        state.campaign.consecutiveDefeats = 2
+        state = try EncounterDirector().queue(level: 100, in: state)
+
+        XCTAssertEqual(state.campaign.selectedLevel, 174)
+        state = try EncounterDirector().beginDefeat(in: state, balance: .standard)
+        state = try EncounterDirector().finishRevive(in: state, balance: .standard)
+
+        XCTAssertEqual(state.campaign.selectedLevel, 100)
+        XCTAssertEqual(state.campaign.mode, .farming)
+        XCTAssertEqual(state.campaign.consecutiveDefeats, 0)
+    }
+
+    func testApprovedFallbacks() throws {
+        XCTAssertEqual(try EncounterDirector().fallback(afterFailing: 25), 24)
+        XCTAssertEqual(try EncounterDirector().fallback(afterFailing: 50), 24)
+        XCTAssertEqual(try EncounterDirector().fallback(afterFailing: 75), 49)
+        XCTAssertEqual(try EncounterDirector().fallback(afterFailing: 174), 149)
+    }
+
+    func testThirdFrontierDefeatRetreatsWithoutLoweringFrontier() throws {
+        var state = try fixture(frontier: 174, selected: 174, mode: .push)
+        state.campaign.consecutiveDefeats = 2
+
+        state = try EncounterDirector().beginDefeat(in: state, balance: .standard)
+        state = try EncounterDirector().finishRevive(in: state, balance: .standard)
+
+        XCTAssertEqual(state.campaign.highestUnlockedLevel, 174)
+        XCTAssertEqual(state.campaign.selectedLevel, 149)
+        XCTAssertEqual(state.campaign.mode, .farming)
+        XCTAssertEqual(state.campaign.consecutiveDefeats, 0)
+        XCTAssertEqual(state.encounter.enemyLevel, 149)
+        XCTAssertEqual(state.encounter.tier, .normal)
+    }
+
+
+    func testQueueLeavesActiveEncounterUntouched() throws {
+        let state = try fixture(frontier: 10, selected: 10, mode: .push)
+
+        let result = try EncounterDirector().queue(level: 5, in: state)
+
+        XCTAssertEqual(result.campaign.selectedLevel, 10)
+        XCTAssertEqual(result.campaign.queuedLevel, 5)
+        XCTAssertEqual(result.enemy, state.enemy)
+        XCTAssertEqual(result.encounter, state.encounter)
+    }
+
     func testBeginNextEncounterBuildsScheduledElite() throws {
         var state = GameState.newGame(balance: .standard)
         state.encounter.enemyLevel = 4
+        state.campaign.highestUnlockedLevel = 4
+        state.campaign.selectedLevel = 4
 
         let result = try EncounterDirector().beginNextEncounter(in: state, balance: .standard)
 
@@ -74,6 +134,8 @@ final class EncounterDirectorTests: XCTestCase {
     func testBeginNextEncounterRejectsEnemyLevelOverflow() {
         var state = GameState.newGame(balance: .standard)
         state.encounter.enemyLevel = .max
+        state.campaign.highestUnlockedLevel = .max
+        state.campaign.selectedLevel = .max
         let original = state
 
         XCTAssertThrowsError(try EncounterDirector().beginNextEncounter(in: state, balance: .standard)) { error in
@@ -99,5 +161,35 @@ final class EncounterDirectorTests: XCTestCase {
         XCTAssertThrowsError(try EncounterDirector().beginRevive(in: state, balance: invalidBalance)) { error in
             XCTAssertEqual(error as? SimulationError, .invalidBalance)
         }
+    }
+
+    private func fixture(
+        frontier: Int,
+        selected: Int,
+        mode: CampaignMode
+    ) throws -> GameState {
+        var state = try GameState.newGame(
+            classID: .dps,
+            balance: .standard,
+            progression: .standard
+        )
+        let tier = try XCTUnwrap(EncounterSchedule.standard.tier(for: selected))
+        state.campaign = CampaignState(
+            highestUnlockedLevel: frontier,
+            selectedLevel: selected,
+            queuedLevel: nil,
+            mode: mode,
+            consecutiveDefeats: 0
+        )
+        state.encounter.enemyLevel = selected
+        state.encounter.tier = tier
+        state.enemy = try XCTUnwrap(
+            BalanceConfiguration.standard.enemy(
+                level: selected,
+                tier: tier,
+                progression: .standard
+            )
+        )
+        return state
     }
 }
