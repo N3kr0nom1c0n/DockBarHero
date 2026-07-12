@@ -6,11 +6,11 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 
 ## Current Milestone
 
-- Goal: complete the Foundation Upgrade on `feature/foundation-upgrade` without changing accepted Phase 1 behavior.
-- Current checkpoint: Foundation Tasks 1-6 and the milestone gate are complete. Full evidence: 208 tests passed, clean arm64 build, valid context, clean diff, and proportional live QA.
-- Execution mode: inline parent implementation and focused QA; no further subagents unless the user changes the token budget decision.
-- Remaining: commit Foundation acceptance evidence, push the feature branch when requested, then plan Heroes and Classes against these accepted interfaces.
-- Acceptance: clean worktree; required tests and arm64 build pass after the focus hold is cleared; live verification succeeds; no blocking findings; push without merge or force.
+- Goal: design the schema-v2 Progression Safety, Heroes, and Classes milestone on the accepted Foundation branch.
+- Current checkpoint: Foundation is accepted and pushed at `fc0ace0`; progression design decisions are approved and the written spec awaits owner review.
+- Execution mode: inline parent design work; research dispatch is closed after exceeding the token guard.
+- Remaining: owner review of the written spec, then a separate implementation plan. No production implementation is authorized yet.
+- Acceptance: approved written spec and roadmap alignment before implementation planning begins.
 
 ## Architecture
 
@@ -27,6 +27,7 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 - docs/superpowers/plans/2026-07-10-dockbarhero-phase-1-playable-slice.md: authoritative task plan.
 - docs/superpowers/specs/2026-07-10-dockbarhero-phase-1-playable-slice-design.md: approved design.
 - docs/superpowers/specs/2026-07-12-dockbarhero-steam-ready-roadmap-design.md: approved code-first roadmap through Steam-ready release.
+- docs/superpowers/specs/2026-07-12-dockbarhero-progression-safety-design.md: approved progression recovery, classes, party, tiers, rewards, and schema-v2 design.
 - docs/superpowers/plans/2026-07-12-dockbarhero-foundation-upgrade.md: next executable milestone plan.
 - .superpowers/sdd/progress.md: detailed task and gate ledger.
 - .superpowers/sdd/task-9-report.md: latest Task 9 evidence.
@@ -48,17 +49,17 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 
 ## Active Work
 
-- Parent orchestrator: review-budget stop after Tasks 1-2; no further subagent dispatch until owner selects the lower-cost mode.
+- Parent orchestrator: written progression spec and roadmap synchronization only; no gameplay edits.
 - Focus safety: testing and live verification are cleared.
-- Subagent routing: Spark for bounded reads or mechanical edits, Luna for implementation, Terra for required review or QA, Sol only for final deep review.
-- Foundation branch is local-only and must not be merged, rebased, or force-pushed.
+- Subagent routing: closed for this design after research runs materially exceeded the budget.
+- Foundation branch is pushed but must not be merged, rebased, or force-pushed during design review.
 
 ## Last Verified State
 
-- Date: 2026-07-11.
-- Worktree: /Users/n3kr0/Projects/TBH/.worktrees/foundation-upgrade at `4da81dd` before Foundation code.
-- Baseline: 163 tests passed with zero failures after XcodeGen regeneration on 2026-07-12.
-- Phase 1: approved by evidence-only Sol review and pushed through `4da81dd`.
+- Date: 2026-07-12.
+- Worktree: /Users/n3kr0/Projects/TBH/.worktrees/foundation-upgrade on `feature/foundation-upgrade` at pushed SHA `fc0ace0` before progression-design documentation.
+- Foundation gate: 208 tests passed with zero failures and a clean Apple Silicon build.
+- Phase 1 and Foundation acceptance evidence are committed and pushed without merge or force.
 
 ## Decisions and Risks
 
@@ -71,3 +72,5 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 - Automated evidence must not be converted into manual visual evidence.
 - Provisional graphics use pixel sprites; production art polish is deferred behind code systems.
 - The release target is Apple Silicon and Steam-ready without tradable-item economy.
+- Progression Safety is the first gate inside the schema-v2 Heroes and Classes milestone; schema v2 starts fresh because there are no released v1 player saves.
+- The frontier and farming selection remain separate; three defeats retreat one full Boss segment and never auto-return to the frontier.

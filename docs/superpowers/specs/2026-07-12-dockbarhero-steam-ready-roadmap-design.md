@@ -108,9 +108,9 @@ No remote balance configuration or live content download is included.
 
 ### 5.5 Persistence
 
-The current Phase 1 save remains schema v1. Foundation work introduces the migration registry and locks a golden v1 fixture. The Heroes and Classes milestone introduces one coherent local-MVP schema v2, once `PartyState` and class identity exist, with a pure migration from v1. Internal tasks do not create artificial public schema versions for every code change.
+The current Phase 1 save remains an unreleased schema v1. Foundation work introduces the migration registry and locks a golden v1 fixture. The Progression Safety, Heroes and Classes milestone introduces one coherent local-MVP schema v2 once `PartyState` and class identity exist. Because no player saves have shipped, schema v2 starts fresh instead of adding a one-use v1 gameplay migration; historical v1 bytes remain preserved diagnostically. Internal tasks do not create artificial public schema versions for every code change.
 
-The save envelope contains schema metadata, save identity, monotonic snapshot sequence, content version, and game state. Migration:
+The save envelope contains schema metadata, save identity, monotonic snapshot sequence, content version, and game state. Every future released-schema migration:
 
 - decodes and validates the historical document;
 - transforms it without wall-clock or locale dependence;
@@ -144,27 +144,30 @@ Audio, launch at login, crash reporting, telemetry, and Steam are optional servi
 - Introduce management navigation.
 - Add `SpriteCatalog`, sprite sequences, and placeholder fallback.
 
-### 6.3 Heroes And Classes
+### 6.3 Progression Safety, Heroes And Classes
 
+- Introduce schema v2 as one coherent milestone with a Progression Safety gate before broader class behavior.
 - Add Tank, DPS, and Healer content definitions.
 - Add first-run class choice and a one-slot `PartyState`.
-- Add the local-MVP v2 save envelope and migrate the v1 hero into the selected/default one-slot party.
+- Start fresh from the unreleased v1 development schema; preserve old bytes diagnostically without implementing player-data migration.
+- Add hero XP, class-dependent levels, gold earning, selectable farming, queued frontier return, and automatic retreat after repeated defeats.
+- Add deterministic Normal, Elite, and Boss scheduling with data-driven health, damage, XP, loot, and gold ratios.
 - Preserve automatic basic attacks.
+- Unlock slot two after Boss 25 and slot three after Boss 100; seed each new hero at the current highest hero level.
 - Add one manual active ability per class and deterministic targeting/cooldowns.
 - Route manual casts through domain intents from management controls and interactive-only rail icons.
-- Add party and ability management presentation.
+- Add party and ability management presentation; introduce Abilities, Skills, and Shop empty-state routes, then populate Abilities in the Class Actions gate.
 
 ### 6.4 Campaign And Party Unlocks
 
-- Add data-driven areas, normal encounters, elites, and bosses.
-- Add boss retry and campaign transition rules.
-- Unlock slot two after the first area boss and present the remaining-class choice.
-- Unlock slot three after the second area boss with the final class.
+- Replace the provisional periodic encounter schedule with authored data-driven areas and enemy identities.
+- Add richer boss retry and campaign transition rules without weakening farming or frontier separation.
+- Preserve the Boss 25 and Boss 100 party unlock requirements as content data.
 - Keep requirements data-driven for later tuning.
 
-### 6.5 Progression And Economy
+### 6.5 Upgrades And Economy
 
-- Add hero XP, levels, encounter-boundary level application, currency, and upgrade costs.
+- Add gold spending, permanent stat upgrades, skills, unlock purchases, and Shop behavior.
 - Add bounded recent activity and reward history.
 - Add progression unlocks, including the later ability auto-cast unlock.
 - Keep prestige and respec deferred until pacing evidence requires them.
