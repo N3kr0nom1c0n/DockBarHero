@@ -7,8 +7,8 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 ## Current Milestone
 
 - Goal: finish the Phase 1 playable slice on feature/phase-1-playable-slice.
-- Current checkpoint: Terra integration findings are repaired and the complete repair gate is green.
-- Remaining: Sol final review, QA evidence closeout, and feature-branch push.
+- Current checkpoint: automated and static gates are green; Sol returned BLOCK only for missing live observations.
+- Remaining: complete the unchecked live QA checklist, obtain a Sol APPROVE verdict, and push the feature branch.
 - Acceptance: clean worktree; required tests and arm64 build pass after the focus hold is cleared; live verification succeeds; no blocking findings; push without merge or force.
 
 ## Architecture
@@ -45,7 +45,7 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 
 ## Active Work
 
-- Parent orchestrator: Task 10 final review and push gates.
+- Parent orchestrator: Task 10 live QA unblock.
 - Focus safety: testing and live verification are cleared.
 - Subagent routing: Spark for bounded reads or mechanical edits, Luna for implementation, Terra for required review or QA, Sol only for final deep review.
 - Feature branch is local-only and must not be merged; final approved work may be pushed without force.
@@ -64,5 +64,6 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 - Save recovery preserves unreadable bytes and no workflow may force-push or merge.
 - Known nonblocking limitation: ISO-8601 save timestamps truncate fractional seconds.
 - Terra repair covers quit-during-load persistence, unsupported-version status precedence, and sortable inventory creation order.
-- Manual visual observations, Sol review, and push remain pending.
+- Sol found no blocking static correctness issue but blocked push pending live gameplay, DPS, relaunch, and Phase 0 observations.
+- Computer Use is unavailable in the current task because `node_repl` is not exposed; do not substitute automated evidence for the unchecked observations.
 - Automated evidence must not be converted into manual visual evidence.
