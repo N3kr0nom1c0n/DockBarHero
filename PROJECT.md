@@ -2,23 +2,22 @@
 
 ## Purpose
 
-DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 adds deterministic idle combat, DPS, loot and equipment, durable saves, and a management window without weakening the Phase 0 overlay, fullscreen, focus, placement, or input behavior.
+DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, deterministic combat and progression, durable local runs, and a management window that preserves the accepted overlay, fullscreen, focus, placement, and input behavior.
 
 ## Current Milestone
 
-- Goal: plan the schema-v2 Progression Safety gate on the accepted Foundation branch.
-- Current checkpoint: the progression design is approved; the first-gate implementation plan is written and awaits execution-mode confirmation.
-- Execution mode: inline parent planning; research dispatch is closed after exceeding the token guard.
-- Remaining: execute the Progression Safety plan, then separately plan Heroes and Party and define the three class abilities. No production implementation has started.
-- Acceptance: the internal first gate passes its focused/full tests, Apple Silicon build, live QA, and review without being merged or shipped alone.
+- Goal: accept the internal schema-v2 Progression Safety gate on the Foundation branch.
+- Current checkpoint: implementation and automated gate are complete; incremental Terra review repaired the one-hero decode invariant.
+- Remaining: Terra integration review, Sol final review, and manual interaction QA; then separately plan Heroes and Party and the three class abilities.
+- Acceptance hold: do not merge, push, release, or call schema v2 complete until the later Heroes and Party and Class Actions gates pass.
 
 ## Architecture
 
-- GameSimulation: deterministic fixed-point combat, encounter transitions, loot, equipment, and presentation snapshots.
+- GameSimulation: deterministic fixed-point combat, tiered rewards, XP/levels, farming, retreat, loot, equipment, and presentation snapshots.
 - SimulationDriver: MainActor monotonic advancement and throttled presentation/event delivery.
-- GameSession: load/start lifecycle, autosave triggers, bounded request submission, status propagation, and final flush.
-- SaveCodec, SaveStore, SaveCoordinator: schema validation, atomic primary/backup recovery, quarantine, and coalescing.
-- AppModel: app-wide coordinator for gameplay presentation plus existing overlay state.
+- GameSession: explicit class-selection/active lifecycle, autosave triggers, safe run replacement, status propagation, and final flush.
+- SaveCodec, SaveStore, SaveCoordinator: schema-v2 validation, v2-only atomic recovery/replacement, quarantine, and coalescing.
+- AppModel: run presentation, management navigation, gameplay snapshots, and existing overlay state.
 - PrototypeScene: snapshot-only SpriteKit rendering and event-only visual reactions.
 - AppDelegate: production dependency construction and bounded termination save.
 
@@ -30,6 +29,7 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 - docs/superpowers/specs/2026-07-12-dockbarhero-progression-safety-design.md: approved progression recovery, classes, party, tiers, rewards, and schema-v2 design.
 - docs/superpowers/plans/2026-07-12-dockbarhero-foundation-upgrade.md: next executable milestone plan.
 - docs/superpowers/plans/2026-07-12-dockbarhero-progression-safety.md: executable first-gate plan for XP, tiers, gold, farming, retreat, schema v2, reset, and management empty states.
+- docs/qa/review-packets/progression-safety.md: current automated evidence, manual QA list, and integration hold.
 - .superpowers/sdd/progress.md: detailed task and gate ledger.
 - .superpowers/sdd/task-9-report.md: latest Task 9 evidence.
 - DockBarHero/Game/: simulation, driver, session, loot, and metrics.
@@ -50,28 +50,28 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 
 ## Active Work
 
-- Parent orchestrator: progression implementation planning only; no gameplay edits.
-- Focus safety: testing and live verification are cleared.
-- Subagent routing: closed for this design after research runs materially exceeded the budget.
-- Foundation branch is pushed but must not be merged, rebased, or force-pushed during design review.
+- Parent orchestrator: finish integration/final review and manual QA for Progression Safety.
+- Next design work: separate Heroes and Party plan, then define and plan Tank, DPS, and Healer actions.
+- Branch remains an internal checkpoint and must not be merged, pushed, rebased, or force-pushed yet.
 
 ## Last Verified State
 
 - Date: 2026-07-12.
-- Worktree: /Users/n3kr0/Projects/TBH/.worktrees/foundation-upgrade on `feature/foundation-upgrade` at pushed SHA `fc0ace0` before progression-design documentation.
-- Foundation gate: 208 tests passed with zero failures and a clean Apple Silicon build.
-- Phase 1 and Foundation acceptance evidence are committed and pushed without merge or force.
+- Worktree: /Users/n3kr0/Projects/TBH/.worktrees/foundation-upgrade on `feature/foundation-upgrade`.
+- Progression gate: 249 tests passed with zero failures on 2026-07-12.
+- Clean unsigned Apple Silicon Debug build succeeded; `./script/build_and_run.sh --verify` launched DockBarHero.
+- Manual interaction QA and final reviews remain pending; automated evidence is not treated as manual evidence.
 
 ## Decisions and Risks
 
 - Gameplay time is signed Int64 nanoseconds; floating point is presentation-only.
-- Save recovery preserves unreadable bytes and no workflow may force-push or merge.
+- Save recovery preserves unreadable bytes; schema v2 uses only v2 paths and starts fresh because no player saves were released.
 - Known nonblocking limitation: ISO-8601 save timestamps truncate fractional seconds.
 - Terra repair covers quit-during-load persistence, unsupported-version status precedence, and sortable inventory creation order.
 - Foundation changes must preserve all accepted Phase 1 gameplay and Mac behavior.
-- Subagent usage for Tasks 1-2 was materially over budget (91,213 + 128,469 implementation tokens; 69,017 review tokens), so the routing skill's mandatory dispatch stop is active.
+- Implementation stayed inline; only approved Terra and Sol review checkpoints are allowed.
 - Automated evidence must not be converted into manual visual evidence.
 - Provisional graphics use pixel sprites; production art polish is deferred behind code systems.
 - The release target is Apple Silicon and Steam-ready without tradable-item economy.
-- Progression Safety is the first gate inside the schema-v2 Heroes and Classes milestone; schema v2 starts fresh because there are no released v1 player saves.
+- Progression Safety is the first gate inside the schema-v2 Heroes and Classes milestone and is not independently release-eligible.
 - The frontier and farming selection remain separate; three defeats retreat one full Boss segment and never auto-return to the frontier.
