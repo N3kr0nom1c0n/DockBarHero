@@ -47,3 +47,11 @@ Result: 45 selected tests passed with 0 failures.
 ## Concerns
 
 None identified within the focused scope. The generated project includes the two new production files and two new test files.
+
+## Terra finding and parent repair
+
+- Terra found one Important regression: `beginRevive` reset hero/enemy attack countdowns even though accepted Phase 1 behavior preserved both until revive completion.
+- RED: `EncounterDirectorTests.testBeginReviveResetsEncounterMetricsAndUsesBalanceDelay` failed with actual full intervals versus expected 111/222 nanoseconds.
+- Repair: `beginRevive` now resets only encounter metrics and revive delay; it preserves both attack countdowns.
+- GREEN: 36 `EncounterDirectorTests` and `GameSimulationTests` passed with 0 failures.
+- No re-review agent was dispatched because Task 1 Luna, Task 2 Luna, and the bounded Terra review consumed 91,213, 128,469, and 69,017 tokens respectively, triggering the routing skill's review-budget stop rule.
