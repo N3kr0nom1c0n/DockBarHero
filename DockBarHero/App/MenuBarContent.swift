@@ -4,8 +4,13 @@ import SwiftUI
 struct MenuBarContent: View {
     @ObservedObject var model: AppModel
     let send: (OverlayAction) -> Void
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
+        Button("Open Management Window") {
+            openWindow(id: "management")
+            NSApplication.shared.activate()
+        }
         Button(model.state.manualVisibility == .shown ? "Hide Rail" : "Show Rail") {
             send(.setManualVisibility(model.state.manualVisibility == .shown ? .hidden : .shown))
         }

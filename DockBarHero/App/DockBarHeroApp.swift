@@ -9,5 +9,10 @@ struct DockBarHeroApp: App {
             MenuBarContent(model: appDelegate.model, send: appDelegate.send)
         }
         .menuBarExtraStyle(.menu)
+
+        Window("DockBarHero", id: "management") {
+            ManagementView(model: appDelegate.model)
+        }
+        .defaultSize(width: 860, height: 620)
     }
 }
