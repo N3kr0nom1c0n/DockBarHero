@@ -5,6 +5,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var state = OverlayState()
     @Published private(set) var game = GameSimulation().presentation
     @Published private(set) var saveStatus: SaveStatus = .notLoaded
+    @Published private(set) var managementRoute: ManagementRoute = .overview
 
     private var window: OverlayWindowControlling?
     private var scene: SceneControlling?
@@ -117,6 +118,11 @@ final class AppModel: ObservableObject {
         } catch {
             AppLog.gameplay.error("Gameplay intent failed: \(String(describing: error), privacy: .public)")
         }
+    }
+
+    func selectManagementRoute(_ route: ManagementRoute) {
+        guard managementRoute != route else { return }
+        managementRoute = route
     }
 
     private func startGameplayIfNeeded() {

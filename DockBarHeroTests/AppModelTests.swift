@@ -284,6 +284,21 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(session.intents, [.setAutoEquip(false)])
     }
 
+    func testManagementRouteDefaultsToOverviewAndSelectionDoesNotRestartGameplay() {
+        let session = FakeGameSession()
+        let model = AppModel(gameSession: session)
+        model.start()
+
+        XCTAssertEqual(model.managementRoute, .overview)
+
+        model.selectManagementRoute(.inventory)
+        model.selectManagementRoute(.inventory)
+        model.selectManagementRoute(.settings)
+
+        XCTAssertEqual(model.managementRoute, .settings)
+        XCTAssertEqual(session.startCount, 1)
+    }
+
     func testStopAndSaveStopsOverlayAndAwaitsGameAndSettingsSessions() async {
         let dependencies = TestDependencies()
         let session = FakeGameSession()
