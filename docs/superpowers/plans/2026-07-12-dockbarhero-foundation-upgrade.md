@@ -200,7 +200,7 @@ private func equippedItem(in slot: EquipmentSlot, state: GameState) throws -> It
 }
 ```
 
-Every addition/subtraction must use reporting-overflow APIs and throw `.arithmeticOverflow` for runtime calculation overflow.
+Every addition/subtraction uses reporting-overflow APIs. Preserve Phase 1 admission semantics: an effective-stat overflow caused by equipped state throws `.invalidState`; arithmetic overflow while resolving damage or health throws `.arithmeticOverflow`.
 
 - [ ] **Step 4: Integrate without changing simulation behavior**
 

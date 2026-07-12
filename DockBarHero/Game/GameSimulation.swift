@@ -15,6 +15,7 @@ struct GameSimulation {
     private(set) var state: GameState
     let balance: BalanceConfiguration
     private let policy: any ActionPolicy
+    private let combatResolver: CombatResolver
     private var simulationTime: SimulationDuration = .zero
     private var damageMetrics = DamageMetrics()
 
@@ -22,19 +23,21 @@ struct GameSimulation {
         self.state = .newGame(balance: balance)
         self.balance = balance
         self.policy = policy
+        self.combatResolver = CombatResolver()
     }
 
     init(state: GameState, balance: BalanceConfiguration = .standard, policy: any ActionPolicy = BasicAttackPolicy()) {
         self.state = state
         self.balance = balance
         self.policy = policy
+        self.combatResolver = CombatResolver()
     }
 
     var presentation: GamePresentation {
         GamePresentation(
             state: state,
-            heroAttack: (try? effectiveAttack(for: .hero)) ?? state.hero.baseAttack,
-            heroDefense: (try? effectiveDefense(for: .hero)) ?? state.hero.baseDefense,
+            heroAttack: (try? combatResolver.effectiveAttack(for: .hero, in: state)) ?? state.hero.baseAttack,
+            heroDefense: (try? combatResolver.effectiveDefense(for: .hero, in: state)) ?? state.hero.baseDefense,
             rollingDPS: damageMetrics.rollingDPS(
                 at: simulationTime,
                 encounterElapsed: state.encounter.activeElapsed
@@ -141,8 +144,8 @@ struct GameSimulation {
     private mutating func resolveHeroAction(into events: inout [GameEvent]) throws -> Bool {
         switch policy.action(for: .hero, in: state) {
         case .basicAttack:
-            let damage = try damage(attacker: .hero, defender: .enemy)
-            let enemyHealth = try health(afterTaking: damage, from: state.enemy.currentHealth)
+            let damage = try combatResolver.damage(attacker: .hero, defender: .enemy, in: state)
+            let enemyHealth = try combatResolver.health(afterTaking: damage, from: state.enemy.currentHealth)
             let (actualDamage, damageOverflow) = state.enemy.currentHealth.subtractingReportingOverflow(enemyHealth)
             guard !damageOverflow else { throw SimulationError.arithmeticOverflow }
             let heroDamage = try adding(actualDamage, to: state.encounter.heroDamage)
@@ -158,8 +161,7 @@ struct GameSimulation {
             var loot = LootSystem(balance: balance)
             let item = try loot.drop(defeatedLevel: defeatedLevel, state: &state)
             events.append(.loot(item))
-            if state.autoEquipEnabled,
-               isStrictUpgrade(item, over: try equippedItem(in: item.slot)) {
+            if state.autoEquipEnabled, try combatResolver.isStrictUpgrade(item, in: state) {
                 state.equipment[item.slot] = item.id
                 events.append(.equipped(slot: item.slot, itemID: item.id))
             }
@@ -168,16 +170,11 @@ struct GameSimulation {
         }
     }
 
-    private func isStrictUpgrade(_ item: Item, over equipped: Item?) -> Bool {
-        guard let equipped else { return true }
-        return item.primaryStat > equipped.primaryStat
-    }
-
     private mutating func resolveEnemyAction(into events: inout [GameEvent]) throws {
         switch policy.action(for: .enemy, in: state) {
         case .basicAttack:
-            let damage = try damage(attacker: .enemy, defender: .hero)
-            let heroHealth = try health(afterTaking: damage, from: state.hero.currentHealth)
+            let damage = try combatResolver.damage(attacker: .enemy, defender: .hero, in: state)
+            let heroHealth = try combatResolver.health(afterTaking: damage, from: state.hero.currentHealth)
             state.hero.currentHealth = heroHealth
             state.enemy.timeUntilNextAttack = state.enemy.attackInterval
             events.append(.attack(attacker: .enemy, defender: .hero, damage: damage))
@@ -187,32 +184,6 @@ struct GameSimulation {
             events.append(.defeat(enemyLevel: enemyLevel))
             try beginRevive()
         }
-    }
-
-    private func damage(attacker: CombatantID, defender: CombatantID) throws -> Int {
-        let attack = try effectiveAttack(for: attacker)
-        let defense = try effectiveDefense(for: defender)
-        let (difference, overflow) = attack.subtractingReportingOverflow(defense)
-        guard !overflow else { throw SimulationError.arithmeticOverflow }
-        return max(1, difference)
-    }
-
-    private func effectiveAttack(for combatant: CombatantID) throws -> Int {
-        let baseAttack = combatant == .hero ? state.hero.baseAttack : state.enemy.baseAttack
-        guard combatant == .hero,
-              let weapon = try equippedItem(in: .weapon) else {
-            return baseAttack
-        }
-        return try adding(weapon.primaryStat, to: baseAttack)
-    }
-
-    private func effectiveDefense(for combatant: CombatantID) throws -> Int {
-        let baseDefense = combatant == .hero ? state.hero.baseDefense : state.enemy.baseDefense
-        guard combatant == .hero,
-              let armor = try equippedItem(in: .armor) else {
-            return baseDefense
-        }
-        return try adding(armor.primaryStat, to: baseDefense)
     }
 
     private mutating func consumeActiveTime(_ elapsed: SimulationDuration) throws {
@@ -289,8 +260,8 @@ struct GameSimulation {
             }
         }
 
-        _ = try equippedItem(in: .weapon)
-        _ = try equippedItem(in: .armor)
+        _ = try combatResolver.effectiveAttack(for: .hero, in: state)
+        _ = try combatResolver.effectiveDefense(for: .hero, in: state)
         try validateEnemyScaling()
         try validateTimerState()
     }
@@ -329,23 +300,6 @@ struct GameSimulation {
         guard !overflow, balance.enemy(level: nextLevel) != nil else {
             throw SimulationError.invalidBalance
         }
-    }
-
-    private func equippedItem(in slot: EquipmentSlot) throws -> Item? {
-        guard let itemID = state.equipment[slot] else { return nil }
-        let items = state.inventory.filter { $0.id == itemID }
-        guard items.count == 1,
-              let item = items.first,
-              item.slot == slot,
-              item.level >= 1,
-              item.primaryStat >= 0 else {
-            throw SimulationError.invalidState
-        }
-
-        let baseStat = slot == .weapon ? state.hero.baseAttack : state.hero.baseDefense
-        let (_, overflow) = baseStat.addingReportingOverflow(item.primaryStat)
-        guard !overflow else { throw SimulationError.invalidState }
-        return item
     }
 
     private func validateTimerState() throws {
@@ -387,9 +341,4 @@ struct GameSimulation {
         return result
     }
 
-    private func health(afterTaking damage: Int, from currentHealth: Int) throws -> Int {
-        let (remaining, overflow) = currentHealth.subtractingReportingOverflow(damage)
-        guard !overflow else { throw SimulationError.arithmeticOverflow }
-        return max(0, remaining)
-    }
 }
