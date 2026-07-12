@@ -153,6 +153,37 @@ final class SimulationDriverTests: XCTestCase {
         XCTAssertEqual(driver.currentState.equipment.weaponID, item.id)
         XCTAssertEqual(presentations.last!.state.equipment.weaponID, item.id)
     }
+
+    func testSendLevelSelectionQueuesWithoutInterruptingActiveFight() throws {
+        let clock = TestMonotonicClock(now: 10_000_000_000)
+        var state = GameState.newGame(balance: .standard)
+        state.campaign.highestUnlockedLevel = 10
+        state.campaign.selectedLevel = 10
+        state.encounter.enemyLevel = 10
+        state.encounter.tier = .elite
+        state.enemy = try XCTUnwrap(
+            BalanceConfiguration.standard.enemy(
+                level: 10,
+                tier: .elite,
+                progression: .standard
+            )
+        )
+        let originalEnemy = state.enemy
+        let driver = SimulationDriver(
+            simulation: GameSimulation(state: state),
+            now: { clock.now }
+        )
+        var eventBatches: [[GameEvent]] = []
+        driver.onEvents = { eventBatches.append($0) }
+        driver.start(startLoop: false)
+
+        try driver.send(.selectLevel(5))
+
+        XCTAssertEqual(eventBatches, [[.destinationQueued(5)]])
+        XCTAssertEqual(driver.currentState.campaign.queuedLevel, 5)
+        XCTAssertEqual(driver.currentState.campaign.selectedLevel, 10)
+        XCTAssertEqual(driver.currentState.enemy, originalEnemy)
+    }
 }
 
 @MainActor

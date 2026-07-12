@@ -224,6 +224,9 @@ final class GameSimulationTests: XCTestCase {
     func testEnemyLevelMaximumVictoryRejectsBeforeMutation() {
         var state = GameState.newGame(balance: .standard)
         state.encounter.enemyLevel = .max
+        state.campaign.highestUnlockedLevel = .max
+        state.campaign.selectedLevel = .max
+        state.encounter.tier = .normal
         state.enemy.currentHealth = 1
         state.hero.timeUntilNextAttack = .zero
         var simulation = GameSimulation(state: state)

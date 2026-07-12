@@ -134,6 +134,8 @@ struct GameState: Codable, Equatable, Sendable {
 enum GameIntent: Equatable, Sendable {
     case setAutoEquip(Bool)
     case equip(ItemID)
+    case selectLevel(Int)
+    case returnToFrontier
 }
 
 enum GameEvent: Equatable, Sendable {
@@ -147,6 +149,9 @@ enum GameEvent: Equatable, Sendable {
     case goldGained(amount: Int64)
     case equipped(slot: EquipmentSlot, itemID: ItemID)
     case autoEquipChanged(Bool)
+    case destinationQueued(Int)
+    case farmingStarted(Int)
+    case returnedToFrontier(Int)
 }
 
 struct GamePresentation: Equatable, Sendable {

@@ -95,6 +95,14 @@ struct GameSimulation {
             }
             state.equipment[item.slot] = item.id
             return [.equipped(slot: item.slot, itemID: item.id)]
+
+        case let .selectLevel(level):
+            state = try encounterDirector.queue(level: level, in: state)
+            return [.destinationQueued(level)]
+
+        case .returnToFrontier:
+            state = try encounterDirector.queueFrontier(in: state)
+            return [.destinationQueued(state.campaign.highestUnlockedLevel)]
         }
     }
 
@@ -136,9 +144,11 @@ struct GameSimulation {
 
                 guard state.encounter.reviveRemaining == .zero else { return events }
                 let enemyLevel = state.encounter.enemyLevel
+                let priorCampaign = state.campaign
                 state = try encounterDirector.finishRevive(in: state, balance: balance)
                 damageMetrics.reset()
                 events.append(.revived(enemyLevel: enemyLevel))
+                appendCampaignTransition(from: priorCampaign, into: &events)
             }
 
             if remaining == .zero {
@@ -176,7 +186,9 @@ struct GameSimulation {
             )
             state = reward.state
             events.append(contentsOf: reward.events)
-            state = try encounterDirector.beginNextEncounter(in: state, balance: balance)
+            let priorCampaign = state.campaign
+            state = try encounterDirector.completeVictory(in: state, balance: balance)
+            appendCampaignTransition(from: priorCampaign, into: &events)
             damageMetrics.reset()
             return true
         }
@@ -194,7 +206,7 @@ struct GameSimulation {
             guard state.hero.currentHealth == 0 else { return }
             let enemyLevel = state.encounter.enemyLevel
             events.append(.defeat(enemyLevel: enemyLevel))
-            state = try encounterDirector.beginRevive(in: state, balance: balance)
+            state = try encounterDirector.beginDefeat(in: state, balance: balance)
             damageMetrics.reset()
         }
     }
@@ -209,6 +221,17 @@ struct GameSimulation {
     private func validateStateAndBalance() throws {
         try validateBalance()
         guard state.party.heroes.count == 1 else {
+            throw SimulationError.invalidState
+        }
+        guard state.campaign.highestUnlockedLevel >= 1,
+              state.campaign.selectedLevel >= 1,
+              state.campaign.selectedLevel <= state.campaign.highestUnlockedLevel,
+              state.campaign.consecutiveDefeats >= 0,
+              state.encounter.enemyLevel == state.campaign.selectedLevel,
+              EncounterSchedule.standard.tier(for: state.encounter.enemyLevel) == state.encounter.tier,
+              state.campaign.queuedLevel.map({
+                  $0 >= 1 && $0 <= state.campaign.highestUnlockedLevel
+              }) ?? true else {
             throw SimulationError.invalidState
         }
         try validateCombatant(state.hero, expectedID: .hero)
@@ -319,6 +342,22 @@ struct GameSimulation {
         let (result, overflow) = value.addingReportingOverflow(amount)
         guard !overflow else { throw SimulationError.arithmeticOverflow }
         return result
+    }
+
+    private func appendCampaignTransition(
+        from prior: CampaignState,
+        into events: inout [GameEvent]
+    ) {
+        let isAutomaticRetreat = prior.consecutiveDefeats >= 3 && state.campaign.mode == .farming
+        guard prior.queuedLevel != nil || isAutomaticRetreat else { return }
+        guard state.campaign.selectedLevel != prior.selectedLevel ||
+                state.campaign.mode != prior.mode else { return }
+        switch state.campaign.mode {
+        case .farming:
+            events.append(.farmingStarted(state.campaign.selectedLevel))
+        case .push:
+            events.append(.returnedToFrontier(state.campaign.selectedLevel))
+        }
     }
 
 }

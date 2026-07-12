@@ -3,7 +3,7 @@ import XCTest
 
 final class RewardResolverTests: XCTestCase {
     func testOneVictoryCanGrantMultipleLevels() throws {
-        var state = try GameState.newGame(
+        var state = GameState.newGame(
             classID: .dps,
             balance: .standard,
             progression: .standard
@@ -43,7 +43,7 @@ final class RewardResolverTests: XCTestCase {
     }
 
     func testEliteVictoryAwardsLevelGoldAndOneItem() throws {
-        var state = try GameState.newGame(
+        var state = GameState.newGame(
             classID: .dps,
             balance: .standard,
             progression: .standard
