@@ -7,8 +7,8 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 ## Current Milestone
 
 - Goal: finish the Phase 1 playable slice on feature/phase-1-playable-slice.
-- Current checkpoint: Task 10 management UI is implemented and automated Gate D verification is green.
-- Remaining: Terra integration review, any bounded repair, Sol final review, QA evidence closeout, and feature-branch push.
+- Current checkpoint: Terra integration findings are repaired and the complete repair gate is green.
+- Remaining: Sol final review, QA evidence closeout, and feature-branch push.
 - Acceptance: clean worktree; required tests and arm64 build pass after the focus hold is cleared; live verification succeeds; no blocking findings; push without merge or force.
 
 ## Architecture
@@ -45,7 +45,7 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 
 ## Active Work
 
-- Parent orchestrator: Task 10 integration and final review gates.
+- Parent orchestrator: Task 10 final review and push gates.
 - Focus safety: testing and live verification are cleared.
 - Subagent routing: Spark for bounded reads or mechanical edits, Luna for implementation, Terra for required review or QA, Sol only for final deep review.
 - Feature branch is local-only and must not be merged; final approved work may be pushed without force.
@@ -53,9 +53,9 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 ## Last Verified State
 
 - Date: 2026-07-11.
-- Worktree: /Users/n3kr0/Projects/TBH/.worktrees/phase-1-playable-slice at pre-review Task 10 state.
-- Gate D: 34 focused tests and 162 full tests passed with zero failures; clean arm64 build and `build_and_run.sh --verify` succeeded.
-- Live lifecycle: PID 16696 launched, accepted a normal Cocoa termination request, exited, and wrote a 2,333-byte primary save.
+- Worktree: /Users/n3kr0/Projects/TBH/.worktrees/phase-1-playable-slice at pre-commit Terra repair state.
+- Repair gate: 20 directly affected tests and 163 full tests passed with zero failures; clean arm64 build and `build_and_run.sh --verify` succeeded.
+- Live lifecycle: repair PID 23896 launched, accepted a normal Cocoa termination request, exited, and wrote a 2,483-byte primary save.
 - Tasks 1-8 passed Gates A-C. Task 9 final static Terra review is clean.
 
 ## Decisions and Risks
@@ -63,5 +63,6 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 - Gameplay time is signed Int64 nanoseconds; floating point is presentation-only.
 - Save recovery preserves unreadable bytes and no workflow may force-push or merge.
 - Known nonblocking limitation: ISO-8601 save timestamps truncate fractional seconds.
-- Task 10 artifacts are not yet committed; manual visual observations, reviews, and push remain pending.
+- Terra repair covers quit-during-load persistence, unsupported-version status precedence, and sortable inventory creation order.
+- Manual visual observations, Sol review, and push remain pending.
 - Automated evidence must not be converted into manual visual evidence.
