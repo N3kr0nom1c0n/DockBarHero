@@ -2,6 +2,19 @@ import XCTest
 @testable import DockBarHero
 
 final class BalanceConfigurationTests: XCTestCase {
+    func testEliteEnemyHealthUsesTierRatioWithCeiling() throws {
+        let enemy = try XCTUnwrap(
+            BalanceConfiguration.standard.enemy(
+                level: 5,
+                tier: .elite,
+                progression: .standard
+            )
+        )
+
+        XCTAssertEqual(enemy.maxHealth, 54)
+        XCTAssertEqual(enemy.baseAttack, 4)
+    }
+
     func testPartyStateRejectsDecodedEmptyHeroArray() throws {
         let data = Data(#"{"heroes":[]}"#.utf8)
 

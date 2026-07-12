@@ -2,6 +2,34 @@ import XCTest
 @testable import DockBarHero
 
 final class CombatResolverTests: XCTestCase {
+    func testBossDamageMultiplierAppliesAfterDefense() throws {
+        var state = try GameState.newGame(
+            classID: .tank,
+            balance: .standard,
+            progression: .standard
+        )
+        state.enemy = CombatantState(
+            id: .enemy,
+            currentHealth: 30,
+            maxHealth: 30,
+            baseAttack: 12,
+            baseDefense: 0,
+            attackInterval: .nanoseconds(1_500_000_000),
+            timeUntilNextAttack: .nanoseconds(1_500_000_000)
+        )
+        let armor = Item(
+            id: ItemID(rawValue: 1),
+            level: 1,
+            slot: .armor,
+            primaryStat: 6,
+            creationSequence: 1
+        )
+        state.inventory = [armor]
+        state.party.heroes[0].equipment.armorID = armor.id
+
+        XCTAssertEqual(try CombatResolver().enemyDamage(in: state, tier: .boss), 9)
+    }
+
     func testDPSLevelGrowthScalesEquippedAttack() throws {
         var state = try GameState.newGame(
             classID: .dps,

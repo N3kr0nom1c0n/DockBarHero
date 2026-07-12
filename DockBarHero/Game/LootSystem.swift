@@ -6,6 +6,14 @@ struct LootSystem {
     }
 
     mutating func drop(defeatedLevel: Int, state: inout GameState) throws -> Item {
+        try drop(defeatedLevel: defeatedLevel, tier: .normal, state: &state)
+    }
+
+    mutating func drop(
+        defeatedLevel: Int,
+        tier: EnemyTierID,
+        state: inout GameState
+    ) throws -> Item {
         let sequence = state.lootSequence
         let (rawID, idOverflow) = sequence.addingReportingOverflow(1)
         guard !idOverflow else { throw SimulationError.arithmeticOverflow }
@@ -17,8 +25,22 @@ struct LootSystem {
         }
 
         let slot: EquipmentSlot = sequence.isMultiple(of: 2) ? .weapon : .armor
-        guard let primaryStat = balance.itemPrimaryStat(level: defeatedLevel, slot: slot) else {
+        guard let baselineStat = balance.itemPrimaryStat(level: defeatedLevel, slot: slot) else {
             throw SimulationError.invalidBalance
+        }
+        let primaryStat: Int
+        do {
+            let scaled = try ProgressionConfiguration.standard.applying(
+                ProgressionConfiguration.standard.tierDefinition(for: tier).itemStatRatio,
+                to: Int64(baselineStat),
+                rounding: .up
+            )
+            guard scaled <= Int64(Int.max) else { throw SimulationError.arithmeticOverflow }
+            primaryStat = Int(scaled)
+        } catch let error as SimulationError {
+            throw error
+        } catch {
+            throw SimulationError.arithmeticOverflow
         }
 
         let item = Item(

@@ -40,11 +40,34 @@ struct CombatResolver: Sendable {
     }
 
     func damage(attacker: CombatantID, defender: CombatantID, in state: GameState) throws -> Int {
+        if attacker == .enemy, defender == .hero {
+            return try enemyDamage(in: state, tier: state.encounter.tier)
+        }
         let attack = try effectiveAttack(for: attacker, in: state)
         let defense = try effectiveDefense(for: defender, in: state)
         let (difference, overflow) = attack.subtractingReportingOverflow(defense)
         guard !overflow else { throw SimulationError.arithmeticOverflow }
         return max(1, difference)
+    }
+
+    func enemyDamage(in state: GameState, tier: EnemyTierID) throws -> Int {
+        let defense = try effectiveDefense(forHeroAt: 0, in: state)
+        let (difference, overflow) = state.enemy.baseAttack.subtractingReportingOverflow(defense)
+        guard !overflow else { throw SimulationError.arithmeticOverflow }
+        let baseline = max(1, difference)
+        do {
+            let scaled = try ProgressionConfiguration.standard.applying(
+                ProgressionConfiguration.standard.tierDefinition(for: tier).damageRatio,
+                to: Int64(baseline),
+                rounding: .up
+            )
+            guard scaled <= Int64(Int.max) else { throw SimulationError.arithmeticOverflow }
+            return Int(scaled)
+        } catch let error as SimulationError {
+            throw error
+        } catch {
+            throw SimulationError.arithmeticOverflow
+        }
     }
 
     func health(afterTaking damage: Int, from currentHealth: Int) throws -> Int {

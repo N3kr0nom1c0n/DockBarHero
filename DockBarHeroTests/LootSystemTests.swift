@@ -2,6 +2,15 @@ import XCTest
 @testable import DockBarHero
 
 final class LootSystemTests: XCTestCase {
+    func testBossItemMultiplierUsesCheckedCeiling() throws {
+        var state = GameState.newGame(balance: .standard)
+        var loot = LootSystem(balance: .standard)
+
+        let item = try loot.drop(defeatedLevel: 1, tier: .boss, state: &state)
+
+        XCTAssertEqual(item.primaryStat, 2)
+    }
+
     func testDropsAlternateSlotsAndUseStableSequenceIDs() throws {
         var state = GameState.newGame(balance: .standard)
         var loot = LootSystem(balance: .standard)

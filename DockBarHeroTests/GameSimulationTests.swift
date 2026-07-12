@@ -135,6 +135,8 @@ final class GameSimulationTests: XCTestCase {
             .attack(attacker: .hero, defender: .enemy, damage: 10),
             .attack(attacker: .hero, defender: .enemy, damage: 10),
             .victory(defeatedLevel: 1),
+            .xpGained(classID: .dps, amount: 25),
+            .goldGained(amount: 24),
             .loot(item),
             .equipped(slot: .weapon, itemID: item.id)
         ])
@@ -377,6 +379,8 @@ final class GameSimulationTests: XCTestCase {
             .attack(attacker: .hero, defender: .enemy, damage: 10),
             .attack(attacker: .hero, defender: .enemy, damage: 10),
             .victory(defeatedLevel: 1),
+            .xpGained(classID: .dps, amount: 25),
+            .goldGained(amount: 24),
             .loot(item),
             .equipped(slot: .weapon, itemID: item.id)
         ])
@@ -399,6 +403,8 @@ final class GameSimulationTests: XCTestCase {
         XCTAssertEqual(events, [
             .attack(attacker: .hero, defender: .enemy, damage: 11),
             .victory(defeatedLevel: 1),
+            .xpGained(classID: .dps, amount: 25),
+            .goldGained(amount: 24),
             .loot(Item(id: ItemID(rawValue: 1), level: 1, slot: .weapon, primaryStat: 1, creationSequence: 1))
         ])
         XCTAssertEqual(simulation.state.equipment.weaponID, existing.id)

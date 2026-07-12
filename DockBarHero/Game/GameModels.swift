@@ -103,6 +103,7 @@ enum EncounterPhase: String, Codable, Equatable, Sendable { case active, revivin
 
 struct EncounterState: Codable, Equatable, Sendable {
     var enemyLevel: Int
+    var tier: EnemyTierID
     var phase: EncounterPhase
     var activeElapsed: SimulationDuration
     var heroDamage: Int
@@ -141,6 +142,9 @@ enum GameEvent: Equatable, Sendable {
     case defeat(enemyLevel: Int)
     case revived(enemyLevel: Int)
     case loot(Item)
+    case xpGained(classID: HeroClassID, amount: Int64)
+    case heroLeveled(classID: HeroClassID, level: Int)
+    case goldGained(amount: Int64)
     case equipped(slot: EquipmentSlot, itemID: ItemID)
     case autoEquipChanged(Bool)
 }

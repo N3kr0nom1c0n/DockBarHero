@@ -34,6 +34,23 @@ struct BalanceConfiguration: Codable, Equatable, Sendable {
         return makeEnemy(health: enemyHealth, attack: enemyAttack)
     }
 
+    func enemy(
+        level: Int,
+        tier: EnemyTierID,
+        progression: ProgressionConfiguration
+    ) -> CombatantState? {
+        guard let baseline = enemy(level: level) else { return nil }
+        let ratio = progression.tierDefinition(for: tier).healthRatio
+        guard let scaledHealth = try? progression.applying(
+            ratio,
+            to: Int64(baseline.maxHealth),
+            rounding: .up
+        ), scaledHealth > 0, scaledHealth <= Int64(Int.max) else {
+            return nil
+        }
+        return makeEnemy(health: Int(scaledHealth), attack: baseline.baseAttack)
+    }
+
     func itemPrimaryStat(level: Int, slot: EquipmentSlot) -> Int? {
         guard level >= 1 else { return nil }
         switch slot {
@@ -135,6 +152,7 @@ extension GameState {
             enemy: balance.initialEnemy,
             encounter: EncounterState(
                 enemyLevel: 1,
+                tier: .normal,
                 phase: .active,
                 activeElapsed: .zero,
                 heroDamage: 0,

@@ -3,11 +3,17 @@ struct EncounterDirector: Sendable {
         var result = state
         let (enemyLevel, overflow) = result.encounter.enemyLevel.addingReportingOverflow(1)
         guard !overflow else { throw SimulationError.arithmeticOverflow }
-        guard let enemy = balance.enemy(level: enemyLevel) else {
+        guard let tier = EncounterSchedule.standard.tier(for: enemyLevel),
+              let enemy = balance.enemy(
+                level: enemyLevel,
+                tier: tier,
+                progression: .standard
+              ) else {
             throw SimulationError.invalidBalance
         }
 
         result.encounter.enemyLevel = enemyLevel
+        result.encounter.tier = tier
         result.hero.currentHealth = result.hero.maxHealth
         result.enemy = enemy
         resetEncounter(in: &result, phase: .active, reviveRemaining: .zero)
@@ -28,7 +34,11 @@ struct EncounterDirector: Sendable {
     }
 
     func finishRevive(in state: GameState, balance: BalanceConfiguration) throws -> GameState {
-        guard let enemy = balance.enemy(level: state.encounter.enemyLevel) else {
+        guard let enemy = balance.enemy(
+            level: state.encounter.enemyLevel,
+            tier: state.encounter.tier,
+            progression: .standard
+        ) else {
             throw SimulationError.invalidBalance
         }
 

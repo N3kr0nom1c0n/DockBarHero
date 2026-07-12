@@ -267,11 +267,17 @@ struct GameSimulation {
     }
 
     private func validateEnemyScaling() throws {
-        guard balance.enemy(level: state.encounter.enemyLevel) != nil else {
+        guard balance.enemy(
+            level: state.encounter.enemyLevel,
+            tier: state.encounter.tier,
+            progression: .standard
+        ) != nil else {
             throw SimulationError.invalidBalance
         }
         let (nextLevel, overflow) = state.encounter.enemyLevel.addingReportingOverflow(1)
-        guard !overflow, balance.enemy(level: nextLevel) != nil else {
+        guard !overflow,
+              let nextTier = EncounterSchedule.standard.tier(for: nextLevel),
+              balance.enemy(level: nextLevel, tier: nextTier, progression: .standard) != nil else {
             throw SimulationError.invalidBalance
         }
     }

@@ -168,7 +168,7 @@ final class GameSession: GameSessionControlling {
 
     private func shouldSave(for event: GameEvent) -> Bool {
         switch event {
-        case .victory, .loot, .equipped, .autoEquipChanged:
+        case .victory, .loot, .xpGained, .heroLeveled, .goldGained, .equipped, .autoEquipChanged:
             return true
         case .attack, .defeat, .revived:
             return false

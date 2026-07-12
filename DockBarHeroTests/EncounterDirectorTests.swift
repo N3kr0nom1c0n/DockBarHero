@@ -2,6 +2,17 @@ import XCTest
 @testable import DockBarHero
 
 final class EncounterDirectorTests: XCTestCase {
+    func testBeginNextEncounterBuildsScheduledElite() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.encounter.enemyLevel = 4
+
+        let result = try EncounterDirector().beginNextEncounter(in: state, balance: .standard)
+
+        XCTAssertEqual(result.encounter.enemyLevel, 5)
+        XCTAssertEqual(result.encounter.tier, .elite)
+        XCTAssertEqual(result.enemy.maxHealth, 54)
+    }
+
     func testBeginNextEncounterCreatesNextLevelAndResetsHeroAndTimers() throws {
         var state = GameState.newGame(balance: .standard)
         state.hero.currentHealth = 1
