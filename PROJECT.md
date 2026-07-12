@@ -7,8 +7,8 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 ## Current Milestone
 
 - Goal: complete the Foundation Upgrade on `feature/foundation-upgrade` without changing accepted Phase 1 behavior.
-- Current checkpoint: Task 1 combat resolver committed at `333dd7e`; 42 focused tests pass and paired Terra review follows Task 2.
-- Remaining: encounter/reward extraction, migration registry, settings persistence, management navigation, pixel sprites, and bounded milestone QA.
+- Current checkpoint: Tasks 1-2 resolver extraction is implemented through `c01066e`; Terra's one Important revive-countdown finding is repaired and 36 affected tests pass.
+- Remaining: choose a lower-cost execution/review mode before Task 3, then migration registry, settings persistence, management navigation, pixel sprites, and milestone QA.
 - Acceptance: clean worktree; required tests and arm64 build pass after the focus hold is cleared; live verification succeeds; no blocking findings; push without merge or force.
 
 ## Architecture
@@ -47,7 +47,7 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 
 ## Active Work
 
-- Parent orchestrator: Foundation plan Task 2, encounter and victory reward boundaries.
+- Parent orchestrator: review-budget stop after Tasks 1-2; no further subagent dispatch until owner selects the lower-cost mode.
 - Focus safety: testing and live verification are cleared.
 - Subagent routing: Spark for bounded reads or mechanical edits, Luna for implementation, Terra for required review or QA, Sol only for final deep review.
 - Foundation branch is local-only and must not be merged, rebased, or force-pushed.
@@ -66,6 +66,7 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 - Known nonblocking limitation: ISO-8601 save timestamps truncate fractional seconds.
 - Terra repair covers quit-during-load persistence, unsupported-version status precedence, and sortable inventory creation order.
 - Foundation changes must preserve all accepted Phase 1 gameplay and Mac behavior.
+- Subagent usage for Tasks 1-2 was materially over budget (91,213 + 128,469 implementation tokens; 69,017 review tokens), so the routing skill's mandatory dispatch stop is active.
 - Automated evidence must not be converted into manual visual evidence.
 - Provisional graphics use pixel sprites; production art polish is deferred behind code systems.
 - The release target is Apple Silicon and Steam-ready without tradable-item economy.
