@@ -2,6 +2,17 @@ import XCTest
 @testable import DockBarHero
 
 final class GameSimulationTests: XCTestCase {
+    func testEmptyInMemoryPartyIsRejectedBeforeCompatibilityAccess() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.party.heroes = []
+        var simulation = GameSimulation(state: state)
+
+        XCTAssertEqual(simulation.presentation.heroAttack, 0)
+        XCTAssertThrowsError(try simulation.advance(by: .zero)) { error in
+            XCTAssertEqual(error as? SimulationError, .invalidState)
+        }
+    }
+
     func testIndependentAttackSchedulesAdvanceChronologically() throws {
         var simulation = GameSimulation()
 

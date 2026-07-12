@@ -40,10 +40,11 @@ struct GameSimulation {
     }
 
     var presentation: GamePresentation {
-        GamePresentation(
+        let fallbackHero = state.party.heroes.first?.combat
+        return GamePresentation(
             state: state,
-            heroAttack: (try? combatResolver.effectiveAttack(for: .hero, in: state)) ?? state.hero.baseAttack,
-            heroDefense: (try? combatResolver.effectiveDefense(for: .hero, in: state)) ?? state.hero.baseDefense,
+            heroAttack: (try? combatResolver.effectiveAttack(for: .hero, in: state)) ?? fallbackHero?.baseAttack ?? 0,
+            heroDefense: (try? combatResolver.effectiveDefense(for: .hero, in: state)) ?? fallbackHero?.baseDefense ?? 0,
             rollingDPS: damageMetrics.rollingDPS(
                 at: simulationTime,
                 encounterElapsed: state.encounter.activeElapsed
@@ -81,6 +82,9 @@ struct GameSimulation {
             return [.autoEquipChanged(enabled)]
 
         case let .equip(itemID):
+            guard state.party.heroes.count == 1 else {
+                throw GameIntentError.slotMismatch
+            }
             let matchingItems = state.inventory.filter { $0.id == itemID }
             guard matchingItems.count == 1, let item = matchingItems.first else {
                 if matchingItems.count > 1 { throw GameIntentError.slotMismatch }
@@ -204,6 +208,9 @@ struct GameSimulation {
 
     private func validateStateAndBalance() throws {
         try validateBalance()
+        guard state.party.heroes.count == 1 else {
+            throw SimulationError.invalidState
+        }
         try validateCombatant(state.hero, expectedID: .hero)
         try validateCombatant(state.enemy, expectedID: .enemy)
 

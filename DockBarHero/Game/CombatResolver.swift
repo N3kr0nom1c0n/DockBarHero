@@ -54,6 +54,9 @@ struct CombatResolver: Sendable {
     }
 
     func isStrictUpgrade(_ item: Item, in state: GameState) throws -> Bool {
+        guard state.party.heroes.count == 1 else {
+            throw SimulationError.invalidState
+        }
         guard let equipped = try equippedItem(in: item.slot, state: state) else { return true }
         return item.primaryStat > equipped.primaryStat
     }

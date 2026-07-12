@@ -2,6 +2,12 @@ import XCTest
 @testable import DockBarHero
 
 final class BalanceConfigurationTests: XCTestCase {
+    func testPartyStateRejectsDecodedEmptyHeroArray() throws {
+        let data = Data(#"{"heroes":[]}"#.utf8)
+
+        XCTAssertThrowsError(try JSONDecoder().decode(PartyState.self, from: data))
+    }
+
     func testExplicitTankNewGameUsesSchemaV2ProgressionState() throws {
         let state = try GameState.newGame(
             classID: .tank,

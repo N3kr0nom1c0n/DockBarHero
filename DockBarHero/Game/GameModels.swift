@@ -49,6 +49,27 @@ struct HeroState: Codable, Equatable, Sendable {
 
 struct PartyState: Codable, Equatable, Sendable {
     var heroes: [HeroState]
+
+    init(heroes: [HeroState]) {
+        self.heroes = heroes
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let heroes = try container.decode([HeroState].self, forKey: .heroes)
+        guard !heroes.isEmpty else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .heroes,
+                in: container,
+                debugDescription: "A party must contain at least one hero."
+            )
+        }
+        self.heroes = heroes
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case heroes
+    }
 }
 
 enum CampaignMode: String, Codable, Equatable, Sendable {
