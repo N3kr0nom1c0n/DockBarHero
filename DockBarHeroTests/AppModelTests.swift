@@ -61,6 +61,49 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(dependencies.scene.interactionEnabled, [false, false])
     }
 
+    func testLoadedPreferencesResolveBeforeOverlayCanBecomeVisible() {
+        let dependencies = TestDependencies()
+        let settings = FakeSettingsController(
+            initial: AppSettings(
+                schemaVersion: 1,
+                manualVisibility: .hidden,
+                animationMode: .paused,
+                inputMode: .passive
+            )
+        )
+        let model = dependencies.makeModel(settingsController: settings)
+
+        model.start()
+        dependencies.monitor.onVisibilityChange?(.normalSpace)
+        XCTAssertFalse(dependencies.window.visibility.contains(true))
+
+        settings.resolve()
+
+        XCTAssertEqual(model.state.manualVisibility, .hidden)
+        XCTAssertEqual(model.state.animationMode, .paused)
+        XCTAssertFalse(dependencies.window.visibility.contains(true))
+    }
+
+    func testUserOverlayActionsSubmitLatestSettingsButEnvironmentDoesNot() {
+        let dependencies = TestDependencies()
+        let settings = FakeSettingsController(initial: .defaults)
+        let model = dependencies.makeModel(settingsController: settings)
+        model.start()
+        settings.resolve()
+
+        model.send(.setManualVisibility(.hidden))
+        model.send(.setAnimationMode(.paused))
+        model.send(.setInputMode(.interactive))
+        let submittedBeforeEnvironment = settings.updates
+        model.send(.setEnvironmentVisibility(.fullscreen))
+
+        XCTAssertEqual(submittedBeforeEnvironment.count, 3)
+        XCTAssertEqual(submittedBeforeEnvironment.last?.manualVisibility, .hidden)
+        XCTAssertEqual(submittedBeforeEnvironment.last?.animationMode, .paused)
+        XCTAssertEqual(submittedBeforeEnvironment.last?.inputMode, .interactive)
+        XCTAssertEqual(settings.updates, submittedBeforeEnvironment)
+    }
+
     func testActionsBeforeEnvironmentResolutionApplyAfterNormalSpaceCallback() {
         let dependencies = TestDependencies()
         let model = dependencies.makeModel()
@@ -241,25 +284,44 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(session.intents, [.setAutoEquip(false)])
     }
 
-    func testStopAndSaveStopsOverlayAndAwaitsGameSession() async {
+    func testStopAndSaveStopsOverlayAndAwaitsGameAndSettingsSessions() async {
         let dependencies = TestDependencies()
         let session = FakeGameSession()
-        let model = dependencies.makeModel(gameSession: session)
+        let settings = FakeSettingsController(initial: .defaults, blocksStop: true)
+        let model = dependencies.makeModel(gameSession: session, settingsController: settings)
         model.start()
 
         let stopTask = Task { @MainActor in
             await model.stopAndSave()
         }
-        await Task.yield()
+        await waitUntil { session.stopCount == 1 && settings.stopCount == 1 }
 
         XCTAssertEqual(dependencies.monitor.stopCount, 1)
         XCTAssertEqual(session.stopCount, 1)
+        XCTAssertEqual(settings.stopCount, 1)
         XCTAssertFalse(session.stopCompleted)
+        XCTAssertFalse(settings.stopCompleted)
 
         session.completeStop()
+        await Task.yield()
+        XCTAssertFalse(settings.stopCompleted)
+        settings.completeStop()
         await stopTask.value
 
         XCTAssertTrue(session.stopCompleted)
+        XCTAssertTrue(settings.stopCompleted)
+    }
+
+    private func waitUntil(
+        _ predicate: @escaping @MainActor () -> Bool,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) async {
+        for _ in 0..<1_000 {
+            if predicate() { return }
+            await Task.yield()
+        }
+        XCTFail("condition not met", file: file, line: line)
     }
 
     func testTerminationHelperReturnsWhenSaveCompletes() async {
@@ -313,18 +375,56 @@ private final class TestDependencies {
     let screen = FakeScreen()
     let monitor = FakeMonitor()
 
-    func makeModel(gameSession: GameSessionControlling? = nil) -> AppModel {
+    func makeModel(
+        gameSession: GameSessionControlling? = nil,
+        settingsController: SettingsControlling? = nil
+    ) -> AppModel {
         AppModel(
             window: window,
             scene: scene,
             screen: screen,
             monitor: monitor,
-            gameSession: gameSession
+            gameSession: gameSession,
+            settingsController: settingsController
         )
     }
 
     func connect(_ model: AppModel) {
         model.connect(window: window, scene: scene, screen: screen, monitor: monitor)
+    }
+}
+
+@MainActor
+private final class FakeSettingsController: SettingsControlling {
+    var onSettings: ((AppSettings) -> Void)?
+    let initial: AppSettings
+    let blocksStop: Bool
+    var startCount = 0
+    var updates: [AppSettings] = []
+    var stopCount = 0
+    var stopCompleted = false
+    private var stopContinuation: CheckedContinuation<Void, Never>?
+
+    init(initial: AppSettings, blocksStop: Bool = false) {
+        self.initial = initial
+        self.blocksStop = blocksStop
+    }
+
+    func start() { startCount += 1 }
+    func resolve() { onSettings?(initial) }
+    func update(_ settings: AppSettings) { updates.append(settings) }
+
+    func stopAndSave() async {
+        stopCount += 1
+        if blocksStop {
+            await withCheckedContinuation { stopContinuation = $0 }
+        }
+        stopCompleted = true
+    }
+
+    func completeStop() {
+        stopContinuation?.resume()
+        stopContinuation = nil
     }
 }
 

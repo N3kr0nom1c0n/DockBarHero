@@ -1,21 +1,21 @@
 import Foundation
 
-enum ManualVisibility: Equatable {
+enum ManualVisibility: String, Codable, Equatable, Sendable {
     case shown
     case hidden
 }
 
-enum EnvironmentVisibility: Equatable {
+enum EnvironmentVisibility: Equatable, Sendable {
     case normalSpace
     case fullscreen
 }
 
-enum AnimationMode: Equatable {
+enum AnimationMode: String, Codable, Equatable, Sendable {
     case running
     case paused
 }
 
-enum InputMode: Equatable {
+enum InputMode: String, Codable, Equatable, Sendable {
     case passive
     case interactive
 }

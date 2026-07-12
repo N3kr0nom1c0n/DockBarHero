@@ -44,7 +44,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let coordinator = SaveCoordinator(store: store)
         let driver = SimulationDriver()
         let session = GameSession(driver: driver, store: store, coordinator: coordinator)
-        model = AppModel(gameSession: session)
+        let settingsSession = SettingsSession(store: SettingsStore())
+        model = AppModel(gameSession: session, settingsController: settingsSession)
         super.init()
     }
 
