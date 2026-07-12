@@ -7,8 +7,8 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 ## Current Milestone
 
 - Goal: finish the Phase 1 playable slice on feature/phase-1-playable-slice.
-- Current checkpoint: automated, static, and live Phase 1 gates are green; evidence-only Sol review returned APPROVE.
-- Remaining: commit/push closeout evidence, then create `feature/foundation-upgrade`.
+- Current checkpoint: Phase 1 is approved and pushed at `2349f2f`; final documentation evidence is being recorded.
+- Remaining: create `feature/foundation-upgrade` from the final pushed Phase 1 head and begin resolver extraction.
 - Acceptance: clean worktree; required tests and arm64 build pass after the focus hold is cleared; live verification succeeds; no blocking findings; push without merge or force.
 
 ## Architecture
@@ -47,7 +47,7 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 
 ## Active Work
 
-- Parent orchestrator: Foundation plan Task 0, approved Phase 1 push.
+- Parent orchestrator: Foundation plan Task 0 closeout, then isolated Foundation worktree creation.
 - Focus safety: testing and live verification are cleared.
 - Subagent routing: Spark for bounded reads or mechanical edits, Luna for implementation, Terra for required review or QA, Sol only for final deep review.
 - Feature branch is local-only and must not be merged; final approved work may be pushed without force.
