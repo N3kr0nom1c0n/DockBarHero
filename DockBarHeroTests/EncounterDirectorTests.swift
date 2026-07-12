@@ -26,6 +26,8 @@ final class EncounterDirectorTests: XCTestCase {
     func testBeginReviveResetsEncounterMetricsAndUsesBalanceDelay() throws {
         var state = GameState.newGame(balance: .standard)
         state.hero.currentHealth = 0
+        state.hero.timeUntilNextAttack = .nanoseconds(111)
+        state.enemy.timeUntilNextAttack = .nanoseconds(222)
         state.encounter.activeElapsed = .nanoseconds(4)
         state.encounter.heroDamage = 12
 
@@ -35,6 +37,8 @@ final class EncounterDirectorTests: XCTestCase {
         XCTAssertEqual(result.encounter.activeElapsed, .zero)
         XCTAssertEqual(result.encounter.heroDamage, 0)
         XCTAssertEqual(result.encounter.reviveRemaining, BalanceConfiguration.standard.reviveDelay)
+        XCTAssertEqual(result.hero.timeUntilNextAttack, .nanoseconds(111))
+        XCTAssertEqual(result.enemy.timeUntilNextAttack, .nanoseconds(222))
     }
 
     func testFinishReviveRestoresSameEnemyAndTimers() throws {

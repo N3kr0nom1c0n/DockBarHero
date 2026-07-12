@@ -20,7 +20,10 @@ struct EncounterDirector: Sendable {
         }
 
         var result = state
-        resetEncounter(in: &result, phase: .reviving, reviveRemaining: balance.reviveDelay)
+        result.encounter.phase = .reviving
+        result.encounter.activeElapsed = .zero
+        result.encounter.heroDamage = 0
+        result.encounter.reviveRemaining = balance.reviveDelay
         return result
     }
 
