@@ -7,9 +7,9 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 ## Current Milestone
 
 - Goal: complete the Foundation Upgrade on `feature/foundation-upgrade` without changing accepted Phase 1 behavior.
-- Current checkpoint: Tasks 1-6 are complete, including deterministic provisional pixel sprites with stable SpriteKit node identity. The sprite/scene/model gate passes 36 focused tests.
+- Current checkpoint: Foundation Tasks 1-6 and the milestone gate are complete. Full evidence: 208 tests passed, clean arm64 build, valid context, clean diff, and proportional live QA.
 - Execution mode: inline parent implementation and focused QA; no further subagents unless the user changes the token budget decision.
-- Remaining: Foundation milestone automated gate, proportional live QA, and review evidence.
+- Remaining: commit Foundation acceptance evidence, push the feature branch when requested, then plan Heroes and Classes against these accepted interfaces.
 - Acceptance: clean worktree; required tests and arm64 build pass after the focus hold is cleared; live verification succeeds; no blocking findings; push without merge or force.
 
 ## Architecture
