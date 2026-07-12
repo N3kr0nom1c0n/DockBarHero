@@ -6,11 +6,11 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 
 ## Current Milestone
 
-- Goal: design the schema-v2 Progression Safety, Heroes, and Classes milestone on the accepted Foundation branch.
-- Current checkpoint: Foundation is accepted and pushed at `fc0ace0`; progression design decisions are approved and the written spec awaits owner review.
-- Execution mode: inline parent design work; research dispatch is closed after exceeding the token guard.
-- Remaining: owner review of the written spec, then a separate implementation plan. No production implementation is authorized yet.
-- Acceptance: approved written spec and roadmap alignment before implementation planning begins.
+- Goal: plan the schema-v2 Progression Safety gate on the accepted Foundation branch.
+- Current checkpoint: the progression design is approved; the first-gate implementation plan is written and awaits execution-mode confirmation.
+- Execution mode: inline parent planning; research dispatch is closed after exceeding the token guard.
+- Remaining: execute the Progression Safety plan, then separately plan Heroes and Party and define the three class abilities. No production implementation has started.
+- Acceptance: the internal first gate passes its focused/full tests, Apple Silicon build, live QA, and review without being merged or shipped alone.
 
 ## Architecture
 
@@ -29,6 +29,7 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 - docs/superpowers/specs/2026-07-12-dockbarhero-steam-ready-roadmap-design.md: approved code-first roadmap through Steam-ready release.
 - docs/superpowers/specs/2026-07-12-dockbarhero-progression-safety-design.md: approved progression recovery, classes, party, tiers, rewards, and schema-v2 design.
 - docs/superpowers/plans/2026-07-12-dockbarhero-foundation-upgrade.md: next executable milestone plan.
+- docs/superpowers/plans/2026-07-12-dockbarhero-progression-safety.md: executable first-gate plan for XP, tiers, gold, farming, retreat, schema v2, reset, and management empty states.
 - .superpowers/sdd/progress.md: detailed task and gate ledger.
 - .superpowers/sdd/task-9-report.md: latest Task 9 evidence.
 - DockBarHero/Game/: simulation, driver, session, loot, and metrics.
@@ -49,7 +50,7 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 
 ## Active Work
 
-- Parent orchestrator: written progression spec and roadmap synchronization only; no gameplay edits.
+- Parent orchestrator: progression implementation planning only; no gameplay edits.
 - Focus safety: testing and live verification are cleared.
 - Subagent routing: closed for this design after research runs materially exceeded the budget.
 - Foundation branch is pushed but must not be merged, rebased, or force-pushed during design review.
