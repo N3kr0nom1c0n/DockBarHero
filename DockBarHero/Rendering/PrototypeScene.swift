@@ -37,8 +37,10 @@ final class PrototypeScene: SKScene {
         addHealthBar(prefix: "hero", color: .systemGreen)
         addHealthBar(prefix: "enemy", color: .systemRed)
 
+        let heroLevel = label(name: "heroLevel", fontSize: 12)
         let enemyLevel = label(name: "enemyLevel", fontSize: 12)
         let rollingDPS = label(name: "rollingDPS", fontSize: 12)
+        addChild(heroLevel)
         addChild(enemyLevel)
         addChild(rollingDPS)
         updateLayout()
@@ -59,16 +61,30 @@ final class PrototypeScene: SKScene {
     }
 
     func render(_ presentation: GamePresentation) {
+        setCombatHidden(false)
         let hero = presentation.state.hero
         let enemy = presentation.state.enemy
         setHealthFraction(for: "heroHealthFill", current: hero.currentHealth, maximum: hero.maxHealth)
         setHealthFraction(for: "enemyHealthFill", current: enemy.currentHealth, maximum: enemy.maxHealth)
-        (childNode(withName: "enemyLevel") as? SKLabelNode)?.text = "Lv. \(presentation.state.encounter.enemyLevel)"
+        (childNode(withName: "heroLevel") as? SKLabelNode)?.text = ManagementFormat.heroLevel(
+            presentation.state.party.heroes[0].level
+        )
+        let tier = presentation.state.encounter.tier.rawValue.capitalized
+        (childNode(withName: "enemyLevel") as? SKLabelNode)?.text = "\(tier) · \(ManagementFormat.enemyLevel(presentation.state.encounter.enemyLevel))"
         (childNode(withName: "rollingDPS") as? SKLabelNode)?.text = String(
             format: "%.1f DPS",
             locale: Locale(identifier: "en_US_POSIX"),
             presentation.rollingDPS
         )
+    }
+
+    func render(_ run: RunPresentation) {
+        switch run {
+        case .classSelection:
+            setCombatHidden(true)
+        case let .active(presentation):
+            render(presentation)
+        }
     }
 
     func handle(_ events: [GameEvent]) {
@@ -109,6 +125,7 @@ final class PrototypeScene: SKScene {
         childNode(withName: "enemy")?.position = CGPoint(x: enemyX, y: 32)
         positionHealthBar(prefix: "hero", x: heroX, y: 59)
         positionHealthBar(prefix: "enemy", x: enemyX, y: 59)
+        (childNode(withName: "heroLevel") as? SKLabelNode)?.position = CGPoint(x: heroX, y: 70)
         (childNode(withName: "enemyLevel") as? SKLabelNode)?.position = CGPoint(x: enemyX, y: 70)
         (childNode(withName: "rollingDPS") as? SKLabelNode)?.position = CGPoint(x: size.width / 2, y: 70)
     }
@@ -184,6 +201,14 @@ final class PrototypeScene: SKScene {
         node.fontColor = .white
         node.horizontalAlignmentMode = .center
         return node
+    }
+
+    private func setCombatHidden(_ isHidden: Bool) {
+        [
+            "hero", "enemy", "heroHealthBackground", "heroHealthFill",
+            "enemyHealthBackground", "enemyHealthFill", "heroLevel",
+            "enemyLevel", "rollingDPS"
+        ].forEach { childNode(withName: $0)?.isHidden = isHidden }
     }
 
     private func setHealthFraction(for name: String, current: Int, maximum: Int) {

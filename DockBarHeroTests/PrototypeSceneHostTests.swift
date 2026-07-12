@@ -5,6 +5,45 @@ import XCTest
 
 @MainActor
 final class PrototypeSceneHostTests: XCTestCase {
+    func testRailUsesExplicitHeroEnemyAndTierLabels() throws {
+        let host = try PrototypeSceneHost()
+        var state = GameState.newGame(balance: .standard)
+        state.party.heroes[0].level = 12
+        state.campaign.highestUnlockedLevel = 25
+        state.campaign.selectedLevel = 25
+        state.encounter.enemyLevel = 25
+        state.encounter.tier = .boss
+        state.enemy = try XCTUnwrap(
+            BalanceConfiguration.standard.enemy(
+                level: 25,
+                tier: .boss,
+                progression: .standard
+            )
+        )
+
+        host.render(.active(GameSimulation(state: state).presentation))
+
+        XCTAssertEqual(
+            (host.scene.childNode(withName: "//heroLevel") as? SKLabelNode)?.text,
+            "Hero Lv. 12"
+        )
+        XCTAssertEqual(
+            (host.scene.childNode(withName: "//enemyLevel") as? SKLabelNode)?.text,
+            "Boss · Enemy Lv. 25"
+        )
+    }
+
+    func testClassSelectionHidesCombatPresentation() throws {
+        let host = try PrototypeSceneHost()
+
+        host.render(.classSelection)
+
+        XCTAssertTrue(host.scene.childNode(withName: "//hero")?.isHidden == true)
+        XCTAssertTrue(host.scene.childNode(withName: "//enemy")?.isHidden == true)
+        XCTAssertTrue(host.scene.childNode(withName: "//heroLevel")?.isHidden == true)
+        XCTAssertTrue(host.scene.childNode(withName: "//rollingDPS")?.isHidden == true)
+    }
+
     func testHostConfiguresTransparentThirtyFPSScene() throws {
         let host = try PrototypeSceneHost()
 
@@ -54,7 +93,7 @@ final class PrototypeSceneHostTests: XCTestCase {
         let heroHealthFill = try XCTUnwrap(host.scene.childNode(withName: "//heroHealthFill"))
         let enemyHealthFill = try XCTUnwrap(host.scene.childNode(withName: "//enemyHealthFill"))
 
-        XCTAssertEqual(enemyLevel.text, "Lv. 7")
+        XCTAssertEqual(enemyLevel.text, "Normal · Enemy Lv. 7")
         XCTAssertEqual(rollingDPS.text, "12.3 DPS")
         XCTAssertEqual(heroHealthFill.xScale, 0.75, accuracy: 0.001)
         XCTAssertEqual(enemyHealthFill.xScale, 0.4, accuracy: 0.001)

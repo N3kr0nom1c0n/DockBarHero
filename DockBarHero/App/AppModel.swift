@@ -55,8 +55,8 @@ final class AppModel: ObservableObject {
         self.scene = scene
         self.screen = screen
         self.monitor = monitor
-        if gameplayStarted, case .active = runPresentation {
-            scene.render(game)
+        if gameplayStarted {
+            scene.render(runPresentation)
         }
     }
 
@@ -186,7 +186,10 @@ final class AppModel: ObservableObject {
 
     private func receive(_ run: RunPresentation) {
         runPresentation = run
-        if case let .active(presentation) = run {
+        switch run {
+        case .classSelection:
+            scene?.render(run)
+        case let .active(presentation):
             receive(presentation)
         }
     }

@@ -10,7 +10,15 @@ protocol SceneControlling: AnyObject {
     func setAnimating(_ isAnimating: Bool)
     func setInteractive(_ isInteractive: Bool)
     func render(_ presentation: GamePresentation)
+    func render(_ run: RunPresentation)
     func handle(_ events: [GameEvent])
+}
+
+extension SceneControlling {
+    func render(_ run: RunPresentation) {
+        guard case let .active(presentation) = run else { return }
+        render(presentation)
+    }
 }
 
 @MainActor
@@ -44,6 +52,10 @@ final class PrototypeSceneHost: SceneControlling {
 
     func render(_ presentation: GamePresentation) {
         scene.render(presentation)
+    }
+
+    func render(_ run: RunPresentation) {
+        scene.render(run)
     }
 
     func handle(_ events: [GameEvent]) {
