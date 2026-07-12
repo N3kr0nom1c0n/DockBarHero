@@ -7,8 +7,8 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 ## Current Milestone
 
 - Goal: finish the Phase 1 playable slice on feature/phase-1-playable-slice.
-- Current checkpoint: Task 9 is accepted after a clean static Terra re-review; compact context is committed at 1f50dec.
-- Remaining: implement Task 10 management UI, then pause for owner clearance before Gate D, Terra integration review, Sol final review, QA evidence, and feature-branch push.
+- Current checkpoint: Task 10 management UI is implemented and automated Gate D verification is green.
+- Remaining: Terra integration review, any bounded repair, Sol final review, QA evidence closeout, and feature-branch push.
 - Acceptance: clean worktree; required tests and arm64 build pass after the focus hold is cleared; live verification succeeds; no blocking findings; push without merge or force.
 
 ## Architecture
@@ -41,26 +41,27 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 - Clean build: xcodebuild clean build with CODE_SIGNING_ALLOWED=NO.
 - Live verify: ./script/build_and_run.sh --verify
 - Context check: python3 /Users/n3kr0/.codex/skills/maintaining-project-context/scripts/context_guard.py check --root .
-- Focus hold: do not run generate, test, build, or live commands until the owner explicitly clears screen-focus-sensitive testing.
+- Verification hold: cleared by the owner on 2026-07-11.
 
 ## Active Work
 
-- Parent orchestrator: Task 10 code and test authoring only; execution remains blocked by the focus hold.
-- Focus safety: static reads, reviews, and edits only. Do not launch DockBarHero, an XCTest host, Xcode UI, build_and_run.sh, UI automation, screenshots, or any command that may activate a window.
+- Parent orchestrator: Task 10 integration and final review gates.
+- Focus safety: testing and live verification are cleared.
 - Subagent routing: Spark for bounded reads or mechanical edits, Luna for implementation, Terra for required review or QA, Sol only for final deep review.
 - Feature branch is local-only and must not be merged; final approved work may be pushed without force.
 
 ## Last Verified State
 
 - Date: 2026-07-11.
-- Worktree: /Users/n3kr0/Projects/TBH/.worktrees/phase-1-playable-slice, Task 9 reviewed code at 40027d1 and compact context commit at 1f50dec.
-- Task 9 repair evidence in .superpowers/sdd/task-9-report.md: 41 focused tests, 156 full tests, and clean arm64 build passed before the pause.
-- Tasks 1-8 passed Gates A-C. Task 9 final static Terra review is clean; runtime evidence remains the pre-pause 41 focused, 156 full, and clean arm64 build.
+- Worktree: /Users/n3kr0/Projects/TBH/.worktrees/phase-1-playable-slice at pre-review Task 10 state.
+- Gate D: 34 focused tests and 162 full tests passed with zero failures; clean arm64 build and `build_and_run.sh --verify` succeeded.
+- Live lifecycle: PID 16696 launched, accepted a normal Cocoa termination request, exited, and wrote a 2,333-byte primary save.
+- Tasks 1-8 passed Gates A-C. Task 9 final static Terra review is clean.
 
 ## Decisions and Risks
 
 - Gameplay time is signed Int64 nanoseconds; floating point is presentation-only.
 - Save recovery preserves unreadable bytes and no workflow may force-push or merge.
 - Known nonblocking limitation: ISO-8601 save timestamps truncate fractional seconds.
-- Task 10 artifacts are absent: ManagementView.swift and docs/qa/phase-1-checklist.md.
-- Testing is intentionally blocked by the owner's focus-sensitive game session; stop before any potentially foregrounding command.
+- Task 10 artifacts are not yet committed; manual visual observations, reviews, and push remain pending.
+- Automated evidence must not be converted into manual visual evidence.
