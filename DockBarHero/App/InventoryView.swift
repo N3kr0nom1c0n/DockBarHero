@@ -35,7 +35,7 @@ struct InventoryView: View {
 
             Table(rows, selection: $selection, sortOrder: $sortOrder) {
                 TableColumn("Slot", value: \.slotName)
-                TableColumn("Level", value: \.level) { Text("\($0.level)") }
+                TableColumn("Level", value: \.level) { Text(ManagementFormat.itemLevel($0.level)) }
                 TableColumn("Stat", value: \.primaryStat) { Text("\($0.primaryStat)") }
                 TableColumn("Created", value: \.creationSequence) { Text("\($0.creationSequence)") }
                 TableColumn("Equipped", value: \.equippedLabel)

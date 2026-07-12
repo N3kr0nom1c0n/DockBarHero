@@ -6,10 +6,19 @@ enum ManagementIntent {
     static func equip(_ selection: ItemID?) -> GameIntent? {
         selection.map(GameIntent.equip)
     }
+
+    static func selectLevel(_ level: Int) -> GameIntent { .selectLevel(level) }
+    static var returnToFrontier: GameIntent { .returnToFrontier }
 }
 
 enum ManagementFormat {
     static func dps(_ value: Double) -> String { String(format: "%.1f", value) }
+    static func heroLevel(_ level: Int) -> String { "Hero Lv. \(level)" }
+    static func enemyLevel(_ level: Int) -> String { "Enemy Lv. \(level)" }
+    static func itemLevel(_ level: Int) -> String { "Item Lv. \(level)" }
+    static func isNewGameConfirmationValid(_ value: String) -> Bool {
+        value == "GAME OVER MAN!"
+    }
 
     static func saveStatus(_ status: SaveStatus) -> String {
         switch status {

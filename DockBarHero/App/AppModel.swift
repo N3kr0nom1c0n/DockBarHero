@@ -4,6 +4,7 @@ import Combine
 final class AppModel: ObservableObject {
     @Published private(set) var state = OverlayState()
     @Published private(set) var game = GameSimulation().presentation
+    @Published private(set) var runPresentation: RunPresentation = .classSelection
     @Published private(set) var saveStatus: SaveStatus = .notLoaded
     @Published private(set) var managementRoute: ManagementRoute = .overview
 
@@ -54,7 +55,7 @@ final class AppModel: ObservableObject {
         self.scene = scene
         self.screen = screen
         self.monitor = monitor
-        if gameplayStarted {
+        if gameplayStarted, case .active = runPresentation {
             scene.render(game)
         }
     }
@@ -120,6 +121,14 @@ final class AppModel: ObservableObject {
         }
     }
 
+    func chooseStartingClass(_ classID: HeroClassID) async throws {
+        try await gameSession?.chooseStartingClass(classID)
+    }
+
+    func startNewGame() async throws {
+        try await gameSession?.startNewGame()
+    }
+
     func selectManagementRoute(_ route: ManagementRoute) {
         guard managementRoute != route else { return }
         managementRoute = route
@@ -130,6 +139,9 @@ final class AppModel: ObservableObject {
         gameplayStarted = true
         gameSession.onPresentation = { [weak self] presentation in
             self?.receive(presentation)
+        }
+        gameSession.onRunState = { [weak self] run in
+            self?.receive(run)
         }
         gameSession.onEvents = { [weak self] events in
             self?.receive(events)
@@ -168,7 +180,15 @@ final class AppModel: ObservableObject {
 
     private func receive(_ presentation: GamePresentation) {
         game = presentation
+        runPresentation = .active(presentation)
         scene?.render(presentation)
+    }
+
+    private func receive(_ run: RunPresentation) {
+        runPresentation = run
+        if case let .active(presentation) = run {
+            receive(presentation)
+        }
     }
 
     private func receive(_ events: [GameEvent]) {

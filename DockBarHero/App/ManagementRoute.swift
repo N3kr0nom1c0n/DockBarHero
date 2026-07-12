@@ -3,6 +3,9 @@ import Foundation
 enum ManagementRoute: String, CaseIterable, Hashable, Identifiable, Sendable {
     case overview
     case inventory
+    case abilities
+    case skills
+    case shop
     case settings
 
     var id: String { rawValue }
@@ -11,6 +14,9 @@ enum ManagementRoute: String, CaseIterable, Hashable, Identifiable, Sendable {
         switch self {
         case .overview: "Overview"
         case .inventory: "Inventory"
+        case .abilities: "Abilities"
+        case .skills: "Skills"
+        case .shop: "Shop"
         case .settings: "Settings"
         }
     }
@@ -19,6 +25,9 @@ enum ManagementRoute: String, CaseIterable, Hashable, Identifiable, Sendable {
         switch self {
         case .overview: "gauge.with.dots.needle.67percent"
         case .inventory: "shippingbox"
+        case .abilities: "bolt.circle"
+        case .skills: "point.3.connected.trianglepath.dotted"
+        case .shop: "storefront"
         case .settings: "gearshape"
         }
     }

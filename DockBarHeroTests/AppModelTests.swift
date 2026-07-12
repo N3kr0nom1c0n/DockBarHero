@@ -5,6 +5,20 @@ import XCTest
 
 @MainActor
 final class AppModelTests: XCTestCase {
+    func testRunLifecyclePresentationAndActionsAreForwarded() async throws {
+        let session = FakeGameSession()
+        let model = AppModel(gameSession: session)
+        model.start()
+
+        session.emit(RunPresentation.classSelection)
+        try await model.chooseStartingClass(.healer)
+        try await model.startNewGame()
+
+        XCTAssertEqual(model.runPresentation, .classSelection)
+        XCTAssertEqual(session.classChoices, [.healer])
+        XCTAssertEqual(session.newGameCount, 1)
+    }
+
     func testStartPlacesButKeepsRailHiddenAndPausedUntilEnvironmentResolves() {
         let dependencies = TestDependencies()
         let model = dependencies.makeModel()
@@ -497,18 +511,29 @@ private final class FakeMonitor: EnvironmentMonitoring {
 @MainActor
 private final class FakeGameSession: GameSessionControlling {
     var onPresentation: ((GamePresentation) -> Void)?
+    var onRunState: ((RunPresentation) -> Void)?
     var onEvents: (([GameEvent]) -> Void)?
     var onSaveStatus: ((SaveStatus) -> Void)?
     var startCount = 0
     var intents: [GameIntent] = []
     var stopCount = 0
     var stopCompleted = false
+    var classChoices: [HeroClassID] = []
+    var newGameCount = 0
     private var stopContinuation: CheckedContinuation<Void, Never>?
 
     func start() { startCount += 1 }
 
     func send(_ intent: GameIntent) throws {
         intents.append(intent)
+    }
+
+    func chooseStartingClass(_ classID: HeroClassID) async throws {
+        classChoices.append(classID)
+    }
+
+    func startNewGame() async throws {
+        newGameCount += 1
     }
 
     func stopAndSave() async {
@@ -521,6 +546,10 @@ private final class FakeGameSession: GameSessionControlling {
 
     func emit(_ presentation: GamePresentation) {
         onPresentation?(presentation)
+    }
+
+    func emit(_ run: RunPresentation) {
+        onRunState?(run)
     }
 
     func emit(_ events: [GameEvent]) {

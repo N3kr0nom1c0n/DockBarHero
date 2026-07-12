@@ -8,6 +8,7 @@ struct OverviewView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                progressionSection
                 combatSection
                 dpsSection
                 equipmentSection
@@ -18,6 +19,43 @@ struct OverviewView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .navigationTitle("Overview")
+    }
+
+    private var progressionSection: some View {
+        let state = presentation.state
+        let hero = state.party.heroes[0]
+        let requiredXP = (try? ProgressionConfiguration.standard.xpRequired(for: hero.level)) ?? 0
+        return VStack(alignment: .leading, spacing: 10) {
+            Text("Progression").font(.title2.weight(.semibold))
+            HStack(spacing: 24) {
+                labeledValue("Hero", ManagementFormat.heroLevel(hero.level))
+                labeledValue("XP", "\(hero.currentXP)/\(requiredXP)")
+                labeledValue("Enemy", "\(state.encounter.tier.rawValue.capitalized) · \(ManagementFormat.enemyLevel(state.encounter.enemyLevel))")
+                labeledValue("Gold", "\(state.economy.gold)")
+            }
+            HStack(spacing: 16) {
+                Text("Frontier: \(state.campaign.highestUnlockedLevel)")
+                Text("Selected: \(state.campaign.selectedLevel)")
+                Text("Mode: \(state.campaign.mode.rawValue.capitalized)")
+                if let queued = state.campaign.queuedLevel {
+                    Text("Queued: \(queued)").foregroundStyle(.secondary)
+                }
+            }
+            HStack {
+                Menu("Farm Cleared Level") {
+                    ForEach(1..<state.campaign.highestUnlockedLevel, id: \.self) { level in
+                        Button(ManagementFormat.enemyLevel(level)) {
+                            model.send(ManagementIntent.selectLevel(level))
+                        }
+                    }
+                }
+                .disabled(state.campaign.highestUnlockedLevel <= 1)
+                Button("Return to Frontier") {
+                    model.send(ManagementIntent.returnToFrontier)
+                }
+                .disabled(state.campaign.mode == .push && state.campaign.queuedLevel == nil)
+            }
+        }
     }
 
     private var combatSection: some View {
@@ -40,7 +78,7 @@ struct OverviewView: View {
                         ("Attack", "\(presentation.state.enemy.baseAttack)"),
                         ("Defense", "\(presentation.state.enemy.baseDefense)"),
                         ("Interval", ManagementFormat.interval(presentation.state.enemy.attackInterval)),
-                        ("Enemy level", "\(presentation.state.encounter.enemyLevel)"),
+                        ("Level", ManagementFormat.enemyLevel(presentation.state.encounter.enemyLevel)),
                     ]
                 )
             }
@@ -88,12 +126,19 @@ struct OverviewView: View {
         }
     }
 
+    private func labeledValue(_ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title).font(.caption).foregroundStyle(.secondary)
+            Text(value).font(.title3.monospacedDigit())
+        }
+    }
+
     private func equipmentRow(for slot: EquipmentSlot) -> some View {
         let item = presentation.state.inventory.first { $0.id == presentation.state.equipment[slot] }
         return HStack {
             Text(slot.rawValue.capitalized).frame(width: 80, alignment: .leading)
             if let item {
-                Text("Lv. \(item.level)  +\(item.primaryStat)")
+                Text("\(ManagementFormat.itemLevel(item.level))  +\(item.primaryStat)")
             } else {
                 Text("None").foregroundStyle(.secondary)
             }

@@ -4,6 +4,15 @@ struct ManagementRootView: View {
     @ObservedObject var model: AppModel
 
     var body: some View {
+        switch model.runPresentation {
+        case .classSelection:
+            ClassSelectionView(model: model)
+        case .active:
+            managementView
+        }
+    }
+
+    private var managementView: some View {
         NavigationSplitView {
             List(ManagementRoute.allCases, selection: routeBinding) { route in
                 Label(route.title, systemImage: route.systemImage)
@@ -16,6 +25,22 @@ struct ManagementRootView: View {
                 OverviewView(model: model)
             case .inventory:
                 InventoryView(model: model)
+            case .abilities:
+                DeferredFeatureView(
+                    title: "Abilities",
+                    message: "Class Actions arrive in a later milestone."
+                )
+            case .skills:
+                DeferredFeatureView(
+                    title: "Skills",
+                    message: "Upgrades and Economy are not active yet."
+                )
+            case .shop:
+                DeferredFeatureView(
+                    title: "Shop",
+                    message: "Purchases are inactive.",
+                    gold: model.game.state.economy.gold
+                )
             case .settings:
                 SettingsView(model: model)
             }

@@ -46,6 +46,7 @@
 		78CC9D1FFD4DD6B01B6DC529 /* SaveStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57A9EA78A8A709B76D4D2E9F /* SaveStore.swift */; };
 		7A1210EF826C3FCA176A0265 /* ManagementNavigationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0407F7EE6505467BBACD3540 /* ManagementNavigationTests.swift */; };
 		7C8006DEC5C5A9D61C649B8B /* AppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8443E0D34AB8B0707A79331 /* AppModelTests.swift */; };
+		7EA69C9E879356121B98FD2A /* DeferredFeatureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAF751D9037251AB30034F99 /* DeferredFeatureView.swift */; };
 		82E7EAAA8217716805FDAC9F /* DamageMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0047DBA6B2CCA397CC178D1B /* DamageMetricsTests.swift */; };
 		8674F689C5F772CB5950B8A1 /* DockBarHeroApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E17FEA9F1C03CFF1875E99D /* DockBarHeroApp.swift */; };
 		8D5F1A9C4F5DC0743CD1D534 /* EncounterScheduleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E77E891B1F9FE294748A196 /* EncounterScheduleTests.swift */; };
@@ -77,6 +78,7 @@
 		DFFC0FB551A2996C7A691872 /* OverlayPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70160FF019FFD009FA1DFF7F /* OverlayPlacement.swift */; };
 		E0F406C8C78C69FA07260E71 /* AppKitScreenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50E5986E66736133E5E7924 /* AppKitScreenProvider.swift */; };
 		E27A1FA17198466ECF6F5A3C /* GameSimulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC12B1C4B82A58431E39CF96 /* GameSimulation.swift */; };
+		E41CD49F4FCF1D1C97BA1272 /* ClassSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AA8D918588D2009FC89BACE /* ClassSelectionView.swift */; };
 		E631EFADE9270DBED7CF818D /* ProgressionConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C614BC4DA34D639B48B1D67 /* ProgressionConfigurationTests.swift */; };
 		E6A843FD10A019EE85795CB2 /* PrototypeSceneHostTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80C47315F197A2C91F065E76 /* PrototypeSceneHostTests.swift */; };
 		FCB6F0934214BE0DB5368C09 /* SpriteCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F8651220111092B641291FE /* SpriteCatalogTests.swift */; };
@@ -119,6 +121,7 @@
 		46EC0A023F1BDE7B989940D1 /* RewardResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardResolver.swift; sourceTree = "<group>"; };
 		4701E932AD87DBAB46323F9A /* SaveCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveCoordinatorTests.swift; sourceTree = "<group>"; };
 		47C35A975941EEBB55C9FF53 /* EnvironmentMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentMonitorTests.swift; sourceTree = "<group>"; };
+		4AA8D918588D2009FC89BACE /* ClassSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassSelectionView.swift; sourceTree = "<group>"; };
 		4C614BC4DA34D639B48B1D67 /* ProgressionConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionConfigurationTests.swift; sourceTree = "<group>"; };
 		4DFB967DB50E4309E608F612 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		5430494B15B5CF80A136872A /* OverlayPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPanel.swift; sourceTree = "<group>"; };
@@ -145,6 +148,7 @@
 		ACAE5AC0485F6080C673233C /* ActionPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionPolicy.swift; sourceTree = "<group>"; };
 		B41781EC2DFD16E39F990371 /* SaveDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveDocumentTests.swift; sourceTree = "<group>"; };
 		B8306A34DA2F75CFA6E21A0B /* PrototypeSceneHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeSceneHost.swift; sourceTree = "<group>"; };
+		BAF751D9037251AB30034F99 /* DeferredFeatureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeferredFeatureView.swift; sourceTree = "<group>"; };
 		BEB06A577225C8CFC2CC8287 /* SimulationDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationDriver.swift; sourceTree = "<group>"; };
 		C11309CD62DDBF6F14591880 /* OverlayWindowControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowControllerTests.swift; sourceTree = "<group>"; };
 		C358270A44F43A95C3131E0C /* InventoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryView.swift; sourceTree = "<group>"; };
@@ -301,6 +305,8 @@
 			children = (
 				6DE51EFDEE69BE8B40D600A8 /* AppDelegate.swift */,
 				4DFB967DB50E4309E608F612 /* AppModel.swift */,
+				4AA8D918588D2009FC89BACE /* ClassSelectionView.swift */,
+				BAF751D9037251AB30034F99 /* DeferredFeatureView.swift */,
 				0E17FEA9F1C03CFF1875E99D /* DockBarHeroApp.swift */,
 				C358270A44F43A95C3131E0C /* InventoryView.swift */,
 				F0DC1D5CB56FCA8F90F01260 /* ManagementRootView.swift */,
@@ -478,8 +484,10 @@
 				9320F70620705E5BC5DCA006 /* AppSettings.swift in Sources */,
 				91B2505FE7F5AC43E2E34B9E /* BalanceConfiguration.swift in Sources */,
 				B6FA9FD54E51510B7F9FAEA3 /* BuiltinPixelSprites.swift in Sources */,
+				E41CD49F4FCF1D1C97BA1272 /* ClassSelectionView.swift in Sources */,
 				124A28A03BF458D41236DC97 /* CombatResolver.swift in Sources */,
 				D7A694B5677D9C181B58AF80 /* DamageMetrics.swift in Sources */,
+				7EA69C9E879356121B98FD2A /* DeferredFeatureView.swift in Sources */,
 				8674F689C5F772CB5950B8A1 /* DockBarHeroApp.swift in Sources */,
 				4CCFDC1FE8F1137185519C86 /* EncounterDirector.swift in Sources */,
 				6CAB3CCC1B8160B05C74318F /* EncounterSchedule.swift in Sources */,

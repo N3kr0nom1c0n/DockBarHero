@@ -2,6 +2,22 @@ import XCTest
 @testable import DockBarHero
 
 final class ManagementViewTests: XCTestCase {
+    func testLevelLabelsAreExplicit() {
+        XCTAssertEqual(ManagementFormat.heroLevel(12), "Hero Lv. 12")
+        XCTAssertEqual(ManagementFormat.enemyLevel(34), "Enemy Lv. 34")
+        XCTAssertEqual(ManagementFormat.itemLevel(56), "Item Lv. 56")
+    }
+
+    func testCampaignIntentFactories() {
+        XCTAssertEqual(ManagementIntent.selectLevel(24), .selectLevel(24))
+        XCTAssertEqual(ManagementIntent.returnToFrontier, .returnToFrontier)
+    }
+
+    func testResetPhraseIsExact() {
+        XCTAssertTrue(ManagementFormat.isNewGameConfirmationValid("GAME OVER MAN!"))
+        XCTAssertFalse(ManagementFormat.isNewGameConfirmationValid("Game Over Man!"))
+    }
+
     func testInventoryRowsAreNewestFirstWithIDTieBreak() {
         let items = [
             Item(id: ItemID(rawValue: 2), level: 3, slot: .armor, primaryStat: 7, creationSequence: 4),

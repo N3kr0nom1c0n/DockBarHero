@@ -2,6 +2,9 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var model: AppModel
+    @State private var confirmation = ""
+    @State private var isResetting = false
+    @State private var resetError: String?
 
     var body: some View {
         Form {
@@ -17,6 +20,32 @@ struct SettingsView: View {
                 get: { model.state.inputMode == .interactive },
                 set: { model.send(.setInputMode($0 ? .interactive : .passive)) }
             ))
+            Section("Danger Zone") {
+                Text("Start New Game replaces heroes, XP, gold, frontier, inventory, equipment, and unlocks.")
+                    .foregroundStyle(.secondary)
+                Text("Type GAME OVER MAN! to confirm.")
+                    .font(.caption)
+                TextField("GAME OVER MAN!", text: $confirmation)
+                Button("Start New Game", role: .destructive) {
+                    isResetting = true
+                    resetError = nil
+                    Task { @MainActor in
+                        do {
+                            try await model.startNewGame()
+                        } catch {
+                            resetError = String(describing: error)
+                            isResetting = false
+                        }
+                    }
+                }
+                .disabled(
+                    isResetting ||
+                    !ManagementFormat.isNewGameConfirmationValid(confirmation)
+                )
+                if let resetError {
+                    Text(resetError).foregroundStyle(.red)
+                }
+            }
         }
         .formStyle(.grouped)
         .navigationTitle("Settings")
