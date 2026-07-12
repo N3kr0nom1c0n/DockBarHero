@@ -6,9 +6,9 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 
 ## Current Milestone
 
-- Goal: finish the Phase 1 playable slice on feature/phase-1-playable-slice.
-- Current checkpoint: Phase 1 is approved and pushed at `2349f2f`; final documentation evidence is being recorded.
-- Remaining: create `feature/foundation-upgrade` from the final pushed Phase 1 head and begin resolver extraction.
+- Goal: complete the Foundation Upgrade on `feature/foundation-upgrade` without changing accepted Phase 1 behavior.
+- Current checkpoint: isolated worktree created from pushed Phase 1 head `4da81dd`; 163-test baseline passes.
+- Remaining: resolver extraction, migration registry, settings persistence, management navigation, pixel sprites, and bounded milestone QA.
 - Acceptance: clean worktree; required tests and arm64 build pass after the focus hold is cleared; live verification succeeds; no blocking findings; push without merge or force.
 
 ## Architecture
@@ -47,18 +47,17 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 
 ## Active Work
 
-- Parent orchestrator: Foundation plan Task 0 closeout, then isolated Foundation worktree creation.
+- Parent orchestrator: Foundation plan Task 1, pure combat resolver extraction.
 - Focus safety: testing and live verification are cleared.
 - Subagent routing: Spark for bounded reads or mechanical edits, Luna for implementation, Terra for required review or QA, Sol only for final deep review.
-- Feature branch is local-only and must not be merged; final approved work may be pushed without force.
+- Foundation branch is local-only and must not be merged, rebased, or force-pushed.
 
 ## Last Verified State
 
 - Date: 2026-07-11.
-- Worktree: /Users/n3kr0/Projects/TBH/.worktrees/phase-1-playable-slice at pre-commit Terra repair state.
-- Repair gate: 20 directly affected tests and 163 full tests passed with zero failures; clean arm64 build and `build_and_run.sh --verify` succeeded.
-- Live lifecycle: repair PID 23896 launched, accepted a normal Cocoa termination request, exited, and wrote a 2,483-byte primary save.
-- Tasks 1-8 passed Gates A-C. Task 9 final static Terra review is clean.
+- Worktree: /Users/n3kr0/Projects/TBH/.worktrees/foundation-upgrade at `4da81dd` before Foundation code.
+- Baseline: 163 tests passed with zero failures after XcodeGen regeneration on 2026-07-12.
+- Phase 1: approved by evidence-only Sol review and pushed through `4da81dd`.
 
 ## Decisions and Risks
 
@@ -66,7 +65,7 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 - Save recovery preserves unreadable bytes and no workflow may force-push or merge.
 - Known nonblocking limitation: ISO-8601 save timestamps truncate fractional seconds.
 - Terra repair covers quit-during-load persistence, unsupported-version status precedence, and sortable inventory creation order.
-- Sol found no blocking static correctness issue; its requested live gameplay, DPS, relaunch, and Phase 0 observations are now directly confirmed.
+- Foundation changes must preserve all accepted Phase 1 gameplay and Mac behavior.
 - Automated evidence must not be converted into manual visual evidence.
 - Provisional graphics use pixel sprites; production art polish is deferred behind code systems.
 - The release target is Apple Silicon and Steam-ready without tradable-item economy.
