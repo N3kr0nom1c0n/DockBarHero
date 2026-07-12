@@ -1,18 +1,42 @@
 struct CombatResolver: Sendable {
     func effectiveAttack(for combatant: CombatantID, in state: GameState) throws -> Int {
-        let baseAttack = combatant == .hero ? state.hero.baseAttack : state.enemy.baseAttack
-        guard combatant == .hero, let weapon = try equippedItem(in: .weapon, state: state) else {
-            return baseAttack
+        guard combatant == .hero else {
+            return state.enemy.baseAttack
         }
-        return try addingEffectiveStat(weapon.primaryStat, to: baseAttack)
+        return try effectiveAttack(forHeroAt: 0, in: state)
     }
 
     func effectiveDefense(for combatant: CombatantID, in state: GameState) throws -> Int {
-        let baseDefense = combatant == .hero ? state.hero.baseDefense : state.enemy.baseDefense
-        guard combatant == .hero, let armor = try equippedItem(in: .armor, state: state) else {
-            return baseDefense
+        guard combatant == .hero else {
+            return state.enemy.baseDefense
         }
-        return try addingEffectiveStat(armor.primaryStat, to: baseDefense)
+        return try effectiveDefense(forHeroAt: 0, in: state)
+    }
+
+    func effectiveAttack(forHeroAt index: Int, in state: GameState) throws -> Int {
+        let hero = try validatedHero(at: index, in: state)
+        let weapon = try equippedItem(in: .weapon, state: state)
+        let rawAttack = try addingEffectiveStat(weapon?.primaryStat ?? 0, to: hero.combat.baseAttack)
+        return try scaledStat(
+            raw: rawAttack,
+            level: hero.level,
+            growthBasisPoints: ProgressionConfiguration.standard
+                .classDefinition(for: hero.classID)
+                .attackGrowthBasisPoints
+        )
+    }
+
+    func effectiveDefense(forHeroAt index: Int, in state: GameState) throws -> Int {
+        let hero = try validatedHero(at: index, in: state)
+        let armor = try equippedItem(in: .armor, state: state)
+        let rawDefense = try addingEffectiveStat(armor?.primaryStat ?? 0, to: hero.combat.baseDefense)
+        return try scaledStat(
+            raw: rawDefense,
+            level: hero.level,
+            growthBasisPoints: ProgressionConfiguration.standard
+                .classDefinition(for: hero.classID)
+                .defenseGrowthBasisPoints
+        )
     }
 
     func damage(attacker: CombatantID, defender: CombatantID, in state: GameState) throws -> Int {
@@ -45,6 +69,31 @@ struct CombatResolver: Sendable {
             throw SimulationError.invalidState
         }
         return item
+    }
+
+    private func validatedHero(at index: Int, in state: GameState) throws -> HeroState {
+        guard state.party.heroes.count == 1,
+              state.party.heroes.indices.contains(index),
+              index == 0 else {
+            throw SimulationError.invalidState
+        }
+        let hero = state.party.heroes[index]
+        guard hero.level >= 1, hero.currentXP >= 0 else {
+            throw SimulationError.invalidState
+        }
+        return hero
+    }
+
+    private func scaledStat(raw: Int, level: Int, growthBasisPoints: Int64) throws -> Int {
+        do {
+            return try ProgressionConfiguration.standard.scaledStat(
+                raw: raw,
+                level: level,
+                growthBasisPoints: growthBasisPoints
+            )
+        } catch {
+            throw SimulationError.invalidState
+        }
     }
 
     private func addingEffectiveStat(_ amount: Int, to value: Int) throws -> Int {

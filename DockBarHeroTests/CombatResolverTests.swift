@@ -2,6 +2,29 @@ import XCTest
 @testable import DockBarHero
 
 final class CombatResolverTests: XCTestCase {
+    func testDPSLevelGrowthScalesEquippedAttack() throws {
+        var state = try GameState.newGame(
+            classID: .dps,
+            balance: .standard,
+            progression: .standard
+        )
+        state.party.heroes[0].level = 10
+        let weapon = Item(
+            id: ItemID(rawValue: 1),
+            level: 1,
+            slot: .weapon,
+            primaryStat: 88,
+            creationSequence: 1
+        )
+        state.inventory = [weapon]
+        state.party.heroes[0].equipment.weaponID = weapon.id
+
+        XCTAssertEqual(
+            try CombatResolver().effectiveAttack(forHeroAt: 0, in: state),
+            111
+        )
+    }
+
     func testDamageUsesBaseStatsAndMinimumOne() throws {
         let state = GameState.newGame(balance: .standard)
         let resolver = CombatResolver()

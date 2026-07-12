@@ -39,6 +39,35 @@ struct EquipmentState: Codable, Equatable, Sendable {
     }
 }
 
+struct HeroState: Codable, Equatable, Sendable {
+    let classID: HeroClassID
+    var level: Int
+    var currentXP: Int64
+    var combat: CombatantState
+    var equipment: EquipmentState
+}
+
+struct PartyState: Codable, Equatable, Sendable {
+    var heroes: [HeroState]
+}
+
+enum CampaignMode: String, Codable, Equatable, Sendable {
+    case push
+    case farming
+}
+
+struct CampaignState: Codable, Equatable, Sendable {
+    var highestUnlockedLevel: Int
+    var selectedLevel: Int
+    var queuedLevel: Int?
+    var mode: CampaignMode
+    var consecutiveDefeats: Int
+}
+
+struct EconomyState: Codable, Equatable, Sendable {
+    var gold: Int64
+}
+
 struct CombatantState: Codable, Equatable, Sendable {
     let id: CombatantID
     var currentHealth: Int
@@ -60,13 +89,24 @@ struct EncounterState: Codable, Equatable, Sendable {
 }
 
 struct GameState: Codable, Equatable, Sendable {
-    var hero: CombatantState
+    var party: PartyState
     var enemy: CombatantState
     var encounter: EncounterState
+    var campaign: CampaignState
+    var economy: EconomyState
     var inventory: [Item]
-    var equipment: EquipmentState
     var autoEquipEnabled: Bool
     var lootSequence: UInt64
+
+    var hero: CombatantState {
+        get { party.heroes[0].combat }
+        set { party.heroes[0].combat = newValue }
+    }
+
+    var equipment: EquipmentState {
+        get { party.heroes[0].equipment }
+        set { party.heroes[0].equipment = newValue }
+    }
 }
 
 enum GameIntent: Equatable, Sendable {

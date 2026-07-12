@@ -21,8 +21,8 @@ final class EncounterScheduleTests: XCTestCase {
 
     func testApprovedTierDefinitions() throws {
         let config = ProgressionConfiguration.standard
-        let elite = try XCTUnwrap(config.tierDefinition(for: .elite))
-        let boss = try XCTUnwrap(config.tierDefinition(for: .boss))
+        let elite = config.tierDefinition(for: .elite)
+        let boss = config.tierDefinition(for: .boss)
 
         XCTAssertEqual(elite.healthRatio, Ratio(numerator: 7, denominator: 5))
         XCTAssertEqual(elite.xpRatio, Ratio(numerator: 7, denominator: 4))

@@ -93,7 +93,8 @@ struct BalanceConfiguration: Codable, Equatable, Sendable {
 
 extension GameState {
     static func newGame(balance: BalanceConfiguration) -> GameState {
-        let hero = CombatantState(
+        var state = newGame(classID: .dps, balance: balance, progression: .standard)
+        state.hero = CombatantState(
             id: .hero,
             currentHealth: balance.heroMaxHealth,
             maxHealth: balance.heroMaxHealth,
@@ -102,9 +103,35 @@ extension GameState {
             attackInterval: balance.heroAttackInterval,
             timeUntilNextAttack: balance.heroAttackInterval
         )
+        return state
+    }
+
+    static func newGame(
+        classID: HeroClassID,
+        balance: BalanceConfiguration,
+        progression: ProgressionConfiguration
+    ) -> GameState {
+        let definition = progression.classDefinition(for: classID)
+        let hero = CombatantState(
+            id: .hero,
+            currentHealth: definition.baseHealth,
+            maxHealth: definition.baseHealth,
+            baseAttack: definition.baseAttack,
+            baseDefense: definition.baseDefense,
+            attackInterval: balance.heroAttackInterval,
+            timeUntilNextAttack: balance.heroAttackInterval
+        )
 
         return GameState(
-            hero: hero,
+            party: PartyState(heroes: [
+                HeroState(
+                    classID: classID,
+                    level: 1,
+                    currentXP: 0,
+                    combat: hero,
+                    equipment: EquipmentState(weaponID: nil, armorID: nil)
+                )
+            ]),
             enemy: balance.initialEnemy,
             encounter: EncounterState(
                 enemyLevel: 1,
@@ -113,8 +140,15 @@ extension GameState {
                 heroDamage: 0,
                 reviveRemaining: .zero
             ),
+            campaign: CampaignState(
+                highestUnlockedLevel: 1,
+                selectedLevel: 1,
+                queuedLevel: nil,
+                mode: .push,
+                consecutiveDefeats: 0
+            ),
+            economy: EconomyState(gold: 0),
             inventory: [],
-            equipment: EquipmentState(weaponID: nil, armorID: nil),
             autoEquipEnabled: true,
             lootSequence: 0
         )

@@ -2,6 +2,26 @@ import XCTest
 @testable import DockBarHero
 
 final class BalanceConfigurationTests: XCTestCase {
+    func testExplicitTankNewGameUsesSchemaV2ProgressionState() throws {
+        let state = try GameState.newGame(
+            classID: .tank,
+            balance: .standard,
+            progression: .standard
+        )
+
+        XCTAssertEqual(state.party.heroes.count, 1)
+        XCTAssertEqual(state.party.heroes[0].classID, .tank)
+        XCTAssertEqual(state.party.heroes[0].level, 1)
+        XCTAssertEqual(state.party.heroes[0].currentXP, 0)
+        XCTAssertEqual(state.party.heroes[0].combat.maxHealth, 130)
+        XCTAssertEqual(state.campaign.highestUnlockedLevel, 1)
+        XCTAssertEqual(state.campaign.selectedLevel, 1)
+        XCTAssertNil(state.campaign.queuedLevel)
+        XCTAssertEqual(state.campaign.mode, .push)
+        XCTAssertEqual(state.campaign.consecutiveDefeats, 0)
+        XCTAssertEqual(state.economy.gold, 0)
+    }
+
     func testStandardNewGameStartsAtEnemyOneWithAutoEquip() {
         let state = GameState.newGame(balance: .standard)
 

@@ -2,7 +2,6 @@ enum ProgressionError: Error, Equatable {
     case invalidLevel
     case invalidRatio
     case arithmeticOverflow
-    case missingTier(EnemyTierID)
 }
 
 enum IntegerRounding: Equatable, Sendable {
@@ -36,77 +35,96 @@ struct EnemyTierDefinition: Equatable, Sendable {
 
 struct ProgressionConfiguration: Sendable {
     static let standard = ProgressionConfiguration(
-        classes: [
-            .init(
-                id: .tank,
-                baseHealth: 130,
-                baseAttack: 8,
-                baseDefense: 2,
-                healthGrowthBasisPoints: 150,
-                attackGrowthBasisPoints: 25,
-                defenseGrowthBasisPoints: 100
-            ),
-            .init(
-                id: .dps,
-                baseHealth: 100,
-                baseAttack: 12,
-                baseDefense: 0,
-                healthGrowthBasisPoints: 75,
-                attackGrowthBasisPoints: 125,
-                defenseGrowthBasisPoints: 40
-            ),
-            .init(
-                id: .healer,
-                baseHealth: 110,
-                baseAttack: 9,
-                baseDefense: 1,
-                healthGrowthBasisPoints: 100,
-                attackGrowthBasisPoints: 60,
-                defenseGrowthBasisPoints: 75
-            ),
-        ],
-        tiers: [
-            .init(
-                id: .normal,
-                healthRatio: .init(numerator: 1, denominator: 1),
-                damageRatio: .init(numerator: 1, denominator: 1),
-                xpRatio: .init(numerator: 1, denominator: 1),
-                itemStatRatio: .init(numerator: 1, denominator: 1),
-                goldRatio: .init(numerator: 1, denominator: 1)
-            ),
-            .init(
-                id: .elite,
-                healthRatio: .init(numerator: 7, denominator: 5),
-                damageRatio: .init(numerator: 7, denominator: 5),
-                xpRatio: .init(numerator: 7, denominator: 4),
-                itemStatRatio: .init(numerator: 11, denominator: 10),
-                goldRatio: .init(numerator: 3, denominator: 2)
-            ),
-            .init(
-                id: .boss,
-                healthRatio: .init(numerator: 5, denominator: 2),
-                damageRatio: .init(numerator: 9, denominator: 4),
-                xpRatio: .init(numerator: 7, denominator: 2),
-                itemStatRatio: .init(numerator: 6, denominator: 5),
-                goldRatio: .init(numerator: 2, denominator: 1)
-            ),
-        ]
+        tank: .init(
+            id: .tank,
+            baseHealth: 130,
+            baseAttack: 8,
+            baseDefense: 2,
+            healthGrowthBasisPoints: 150,
+            attackGrowthBasisPoints: 25,
+            defenseGrowthBasisPoints: 100
+        ),
+        dps: .init(
+            id: .dps,
+            baseHealth: 100,
+            baseAttack: 12,
+            baseDefense: 0,
+            healthGrowthBasisPoints: 75,
+            attackGrowthBasisPoints: 125,
+            defenseGrowthBasisPoints: 40
+        ),
+        healer: .init(
+            id: .healer,
+            baseHealth: 110,
+            baseAttack: 9,
+            baseDefense: 1,
+            healthGrowthBasisPoints: 100,
+            attackGrowthBasisPoints: 60,
+            defenseGrowthBasisPoints: 75
+        ),
+        normalTier: .init(
+            id: .normal,
+            healthRatio: .init(numerator: 1, denominator: 1),
+            damageRatio: .init(numerator: 1, denominator: 1),
+            xpRatio: .init(numerator: 1, denominator: 1),
+            itemStatRatio: .init(numerator: 1, denominator: 1),
+            goldRatio: .init(numerator: 1, denominator: 1)
+        ),
+        eliteTier: .init(
+            id: .elite,
+            healthRatio: .init(numerator: 7, denominator: 5),
+            damageRatio: .init(numerator: 7, denominator: 5),
+            xpRatio: .init(numerator: 7, denominator: 4),
+            itemStatRatio: .init(numerator: 11, denominator: 10),
+            goldRatio: .init(numerator: 3, denominator: 2)
+        ),
+        bossTier: .init(
+            id: .boss,
+            healthRatio: .init(numerator: 5, denominator: 2),
+            damageRatio: .init(numerator: 9, denominator: 4),
+            xpRatio: .init(numerator: 7, denominator: 2),
+            itemStatRatio: .init(numerator: 6, denominator: 5),
+            goldRatio: .init(numerator: 2, denominator: 1)
+        )
     )
 
-    private let classesByID: [HeroClassID: HeroClassDefinition]
-    private let tiersByID: [EnemyTierID: EnemyTierDefinition]
+    private let tank: HeroClassDefinition
+    private let dps: HeroClassDefinition
+    private let healer: HeroClassDefinition
+    private let normalTier: EnemyTierDefinition
+    private let eliteTier: EnemyTierDefinition
+    private let bossTier: EnemyTierDefinition
 
-    init(classes: [HeroClassDefinition], tiers: [EnemyTierDefinition]) {
-        classesByID = Dictionary(uniqueKeysWithValues: classes.map { ($0.id, $0) })
-        tiersByID = Dictionary(uniqueKeysWithValues: tiers.map { ($0.id, $0) })
+    private init(
+        tank: HeroClassDefinition,
+        dps: HeroClassDefinition,
+        healer: HeroClassDefinition,
+        normalTier: EnemyTierDefinition,
+        eliteTier: EnemyTierDefinition,
+        bossTier: EnemyTierDefinition
+    ) {
+        self.tank = tank
+        self.dps = dps
+        self.healer = healer
+        self.normalTier = normalTier
+        self.eliteTier = eliteTier
+        self.bossTier = bossTier
     }
 
-    func classDefinition(for id: HeroClassID) -> HeroClassDefinition? {
-        classesByID[id]
+    func classDefinition(for id: HeroClassID) -> HeroClassDefinition {
+        switch id {
+        case .tank: tank
+        case .dps: dps
+        case .healer: healer
+        }
     }
 
-    func tierDefinition(for id: EnemyTierID) -> EnemyTierDefinition? {
-        tiersByID[id]
+    func tierDefinition(for id: EnemyTierID) -> EnemyTierDefinition {
+        switch id {
+        case .normal: normalTier
+        case .elite: eliteTier
+        case .boss: bossTier
+        }
     }
 
     func xpRequired(for heroLevel: Int) throws -> Int64 {
@@ -121,9 +139,7 @@ struct ProgressionConfiguration: Sendable {
     ) throws -> Int64 {
         let enemy = try positiveInt64(enemyLevel)
         let hero = try positiveInt64(heroLevel)
-        guard let definition = tierDefinition(for: tier) else {
-            throw ProgressionError.missingTier(tier)
-        }
+        let definition = tierDefinition(for: tier)
 
         let baseXP = try multiplied(try multiplied(25, enemy), enemy)
         let tierXP = try applying(definition.xpRatio, to: baseXP, rounding: .down)
@@ -141,9 +157,7 @@ struct ProgressionConfiguration: Sendable {
 
     func goldReward(enemyLevel: Int, tier: EnemyTierID) throws -> Int64 {
         let level = try positiveInt64(enemyLevel)
-        guard let definition = tierDefinition(for: tier) else {
-            throw ProgressionError.missingTier(tier)
-        }
+        let definition = tierDefinition(for: tier)
 
         let square = try multiplied(level, level)
         let linear = try multiplied(4, level)

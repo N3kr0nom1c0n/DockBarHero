@@ -30,9 +30,9 @@ final class ProgressionConfigurationTests: XCTestCase {
 
     func testApprovedClassDefinitions() throws {
         let config = ProgressionConfiguration.standard
-        let tank = try XCTUnwrap(config.classDefinition(for: .tank))
-        let dps = try XCTUnwrap(config.classDefinition(for: .dps))
-        let healer = try XCTUnwrap(config.classDefinition(for: .healer))
+        let tank = config.classDefinition(for: .tank)
+        let dps = config.classDefinition(for: .dps)
+        let healer = config.classDefinition(for: .healer)
 
         XCTAssertEqual(tank.baseHealth, 130)
         XCTAssertEqual(tank.healthGrowthBasisPoints, 150)
