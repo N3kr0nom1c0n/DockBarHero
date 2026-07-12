@@ -5,6 +5,34 @@ import XCTest
 final class SaveDocumentTests: XCTestCase {
     private let savedAt = Date(timeIntervalSince1970: 1_783_641_600)
 
+    func testGoldenV1FixtureRemainsByteStable() throws {
+        let codec = SaveCodec()
+        let document = try codec.decode(SaveV1GoldenFixture.data)
+
+        XCTAssertEqual(document.state, .newGame(balance: .standard))
+        XCTAssertEqual(
+            try codec.encode(state: document.state, savedAt: document.savedAt),
+            SaveV1GoldenFixture.data
+        )
+    }
+
+    func testOlderDocumentIsMigratedBeforeCurrentDecode() throws {
+        var object = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: SaveV1GoldenFixture.data) as? [String: Any]
+        )
+        object["schemaVersion"] = 0
+        let versionZero = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
+        let registry = try SaveMigrationRegistry(
+            currentVersion: SaveDocument.currentVersion,
+            migrations: [HeaderMigrationForSaveCodec(sourceVersion: 0, targetVersion: 1)]
+        )
+
+        let document = try SaveCodec(migrationRegistry: registry).decode(versionZero)
+
+        XCTAssertEqual(document.schemaVersion, SaveDocument.currentVersion)
+        XCTAssertEqual(document.state, .newGame(balance: .standard))
+    }
+
     func testActiveStateRoundTripsWithVersionAndTimestamp() throws {
         let state = GameState.newGame(balance: .standard)
         let codec = SaveCodec()
@@ -300,5 +328,18 @@ final class SaveDocumentTests: XCTestCase {
             attackInterval: source.attackInterval,
             timeUntilNextAttack: source.timeUntilNextAttack
         )
+    }
+}
+
+private struct HeaderMigrationForSaveCodec: SaveMigration {
+    let sourceVersion: Int
+    let targetVersion: Int
+
+    func migrate(_ data: Data) throws -> Data {
+        var object = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: data) as? [String: Any]
+        )
+        object["schemaVersion"] = targetVersion
+        return try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
     }
 }

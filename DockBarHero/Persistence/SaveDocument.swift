@@ -31,9 +31,16 @@ struct SaveCodec: Sendable {
     }
 
     private let balance: BalanceConfiguration
+    private let migrationRegistry: SaveMigrationRegistry
 
-    init(balance: BalanceConfiguration = .standard) {
+    init(
+        balance: BalanceConfiguration = .standard,
+        migrationRegistry: SaveMigrationRegistry = .empty(
+            currentVersion: SaveDocument.currentVersion
+        )
+    ) {
         self.balance = balance
+        self.migrationRegistry = migrationRegistry
     }
 
     func encode(state: GameState, savedAt: Date) throws -> Data {
@@ -53,13 +60,23 @@ struct SaveCodec: Sendable {
     func decode(_ data: Data) throws -> SaveDocument {
         let headerDecoder = JSONDecoder()
         let header = try headerDecoder.decode(VersionHeader.self, from: data)
-        guard header.schemaVersion == SaveDocument.currentVersion else {
+        guard header.schemaVersion <= SaveDocument.currentVersion else {
             throw SaveDecodingError.unsupportedVersion(header.schemaVersion)
+        }
+
+        let currentData = if header.schemaVersion < SaveDocument.currentVersion {
+            try migrationRegistry.migrateToCurrent(data, from: header.schemaVersion)
+        } else {
+            data
+        }
+        let currentHeader = try headerDecoder.decode(VersionHeader.self, from: currentData)
+        guard currentHeader.schemaVersion == SaveDocument.currentVersion else {
+            throw SaveDecodingError.unsupportedVersion(currentHeader.schemaVersion)
         }
 
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        let document = try decoder.decode(SaveDocument.self, from: data)
+        let document = try decoder.decode(SaveDocument.self, from: currentData)
         try validate(document.state)
         return document
     }
