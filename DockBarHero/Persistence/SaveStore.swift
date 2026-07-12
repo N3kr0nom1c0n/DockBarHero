@@ -8,9 +8,9 @@ struct SaveURLs: Sendable {
 
     init(directory: URL) {
         self.directory = directory
-        self.primary = directory.appendingPathComponent("save-v1.json", isDirectory: false)
-        self.backup = directory.appendingPathComponent("save-v1.backup.json", isDirectory: false)
-        self.temporary = directory.appendingPathComponent("save-v1.pending.json", isDirectory: false)
+        self.primary = directory.appendingPathComponent("save-v2.json", isDirectory: false)
+        self.backup = directory.appendingPathComponent("save-v2.backup.json", isDirectory: false)
+        self.temporary = directory.appendingPathComponent("save-v2.pending.json", isDirectory: false)
     }
 
     static var applicationSupport: SaveURLs {
@@ -31,24 +31,57 @@ enum SaveLoadIssue: Equatable, Sendable {
 }
 
 struct SaveLoadResult: Equatable, Sendable {
-    let state: GameState
+    let runState: RunState
     let source: SaveLoadSource
     let issue: SaveLoadIssue?
+
+    init(
+        runState: RunState,
+        source: SaveLoadSource,
+        issue: SaveLoadIssue? = nil
+    ) {
+        self.runState = runState
+        self.source = source
+        self.issue = issue
+    }
 
     init(
         state: GameState,
         source: SaveLoadSource,
         issue: SaveLoadIssue? = nil
     ) {
-        self.state = state
-        self.source = source
-        self.issue = issue
+        self.init(runState: .active(state), source: source, issue: issue)
+    }
+
+    var state: GameState {
+        guard case let .active(state) = runState else {
+            preconditionFailure("Class selection does not contain game state.")
+        }
+        return state
     }
 }
 
 protocol SaveStoring: Sendable {
     func load(newGame: GameState) async -> SaveLoadResult
     func save(_ state: GameState) async throws
+    func load() async -> SaveLoadResult
+    func save(_ runState: RunState) async throws
+    func replaceRun(with runState: RunState) async throws
+}
+
+extension SaveStoring {
+    func load() async -> SaveLoadResult {
+        await load(newGame: .newGame(balance: .standard))
+    }
+
+    func save(_ runState: RunState) async throws {
+        guard case let .active(state) = runState else { return }
+        try await save(state)
+    }
+
+    func replaceRun(with runState: RunState) async throws {
+        try await save(runState)
+    }
 }
 
 protocol SaveFileSystem {
@@ -123,7 +156,7 @@ actor SaveStore: SaveStoring {
         self.now = now
     }
 
-    func load(newGame: GameState) async -> SaveLoadResult {
+    func load() async -> SaveLoadResult {
         var issue: SaveLoadIssue?
 
         for (url, source) in [(urls.primary, SaveLoadSource.primary), (urls.backup, .backup)] {
@@ -131,7 +164,7 @@ actor SaveStore: SaveStoring {
 
             do {
                 let document = try codec.decode(fileSystem.read(from: url))
-                return SaveLoadResult(state: document.state, source: source, issue: issue)
+                return SaveLoadResult(runState: document.runState, source: source, issue: issue)
             } catch {
                 if case let SaveDecodingError.unsupportedVersion(version) = error {
                     issue = issue ?? .unsupportedVersion(version)
@@ -144,17 +177,27 @@ actor SaveStore: SaveStoring {
             }
         }
 
-        return SaveLoadResult(state: newGame, source: .newGame, issue: issue)
+        return SaveLoadResult(runState: .classSelection, source: .newGame, issue: issue)
+    }
+
+    func load(newGame: GameState) async -> SaveLoadResult {
+        let result = await load()
+        guard result.runState == .classSelection, result.source == .newGame else { return result }
+        return SaveLoadResult(runState: .active(newGame), source: .newGame, issue: result.issue)
     }
 
     func save(_ state: GameState) async throws {
+        try await save(.active(state))
+    }
+
+    func save(_ runState: RunState) async throws {
         defer { try? removeIfPresent(urls.temporary) }
 
         do {
             try fileSystem.createDirectory(at: urls.directory)
             try removeIfPresent(urls.temporary)
 
-            let data = try codec.encode(state: state, savedAt: now())
+            let data = try codec.encode(runState: runState, savedAt: now())
             try fileSystem.write(data, to: urls.temporary, options: .atomic)
 
             if fileSystem.fileExists(at: urls.primary) {
@@ -171,6 +214,22 @@ actor SaveStore: SaveStoring {
         }
     }
 
+    func replaceRun(with runState: RunState) async throws {
+        defer { try? removeIfPresent(urls.temporary) }
+
+        do {
+            try fileSystem.createDirectory(at: urls.directory)
+            try removeIfPresent(urls.temporary)
+            let data = try codec.encode(runState: runState, savedAt: now())
+            try fileSystem.write(data, to: urls.temporary, options: .atomic)
+            try removeIfPresent(urls.backup)
+            try replace(urls.primary, with: urls.temporary)
+        } catch {
+            AppLog.persistence.error("Run replacement failed at \(self.urls.directory.path, privacy: .private(mask: .hash))")
+            throw error
+        }
+    }
+
     private func validatedSaveData(at url: URL) -> Data? {
         do {
             let data = try fileSystem.read(from: url)
@@ -183,7 +242,7 @@ actor SaveStore: SaveStoring {
 
     private func installBackup(from primaryData: Data) throws {
         let stagedBackup = urls.directory.appendingPathComponent(
-            ".save-v1.backup-\(UUID().uuidString).pending",
+            ".save-v2.backup-\(UUID().uuidString).pending",
             isDirectory: false
         )
         defer { try? removeIfPresent(stagedBackup) }

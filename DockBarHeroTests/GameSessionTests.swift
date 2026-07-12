@@ -3,6 +3,71 @@ import XCTest
 
 @MainActor
 final class GameSessionTests: XCTestCase {
+    func testClassSelectionDoesNotStartCombatUntilChoiceIsDurable() async throws {
+        let store = RunLifecycleStore(initial: .classSelection)
+        let driver = SessionDriverFake()
+        let coordinator = SessionSaveCoordinatorFake()
+        let session = makeSession(store: store, driver: driver, coordinator: coordinator)
+        var runs: [RunPresentation] = []
+        session.onRunState = { runs.append($0) }
+
+        session.start()
+        await waitUntil { runs == [.classSelection] }
+        XCTAssertEqual(driver.startCount, 0)
+
+        try await session.chooseStartingClass(.tank)
+
+        XCTAssertEqual(driver.startCount, 1)
+        XCTAssertEqual(driver.currentState.party.heroes[0].classID, .tank)
+        let replacements = await store.replacements()
+        XCTAssertEqual(replacements, [.active(driver.currentState)])
+    }
+
+    func testSuccessfulNewGamePublishesSelectionAfterDurableReplacement() async throws {
+        let active = state(autoEquip: false)
+        let store = RunLifecycleStore(initial: .active(active))
+        let driver = SessionDriverFake()
+        let session = makeSession(
+            store: store,
+            driver: driver,
+            coordinator: SessionSaveCoordinatorFake()
+        )
+        var runs: [RunPresentation] = []
+        session.onRunState = { runs.append($0) }
+        session.start()
+        await waitUntil { driver.startCount == 1 }
+
+        try await session.startNewGame()
+
+        XCTAssertEqual(driver.stopCount, 1)
+        XCTAssertEqual(runs.last, .classSelection)
+        let replacements = await store.replacements()
+        XCTAssertEqual(replacements.last, .classSelection)
+    }
+
+    func testFailedNewGameRestartsOldActiveRun() async {
+        let active = state(autoEquip: false)
+        let store = RunLifecycleStore(initial: .active(active))
+        let driver = SessionDriverFake()
+        let session = makeSession(
+            store: store,
+            driver: driver,
+            coordinator: SessionSaveCoordinatorFake()
+        )
+        session.start()
+        await waitUntil { driver.startCount == 1 }
+        await store.failNextReplacement()
+
+        do {
+            try await session.startNewGame()
+            XCTFail("Expected replacement failure")
+        } catch { }
+
+        XCTAssertEqual(driver.stopCount, 1)
+        XCTAssertEqual(driver.startCount, 2)
+        XCTAssertEqual(driver.currentState, active)
+    }
+
     func testLoadFinishesBeforeDriverStartsAndDuplicateStartsAreIgnored() async {
         let loaded = state(autoEquip: false)
         let store = SessionStoreFake(result: SaveLoadResult(state: loaded, source: .primary), blockLoad: true)
@@ -301,7 +366,7 @@ final class GameSessionTests: XCTestCase {
     }
 
     private func makeSession(
-        store: SessionStoreFake,
+        store: any SaveStoring,
         driver: SessionDriverFake,
         coordinator: any SaveCoordinating,
         autosaveInterval: Duration = .seconds(30),
@@ -444,6 +509,46 @@ actor SessionStoreFake: SaveStoring {
     func finishLoad() {
         loadContinuation?.resume(returning: result)
         loadContinuation = nil
+    }
+}
+
+private enum RunLifecycleStoreError: Error {
+    case replacement
+}
+
+actor RunLifecycleStore: SaveStoring {
+    private let initial: RunState
+    private var replacementRuns: [RunState] = []
+    private var shouldFailReplacement = false
+
+    init(initial: RunState) {
+        self.initial = initial
+    }
+
+    func load() async -> SaveLoadResult {
+        SaveLoadResult(runState: initial, source: .newGame)
+    }
+
+    func load(newGame: GameState) async -> SaveLoadResult {
+        await load()
+    }
+
+    func save(_ state: GameState) async throws { }
+
+    func replaceRun(with runState: RunState) async throws {
+        if shouldFailReplacement {
+            shouldFailReplacement = false
+            throw RunLifecycleStoreError.replacement
+        }
+        replacementRuns.append(runState)
+    }
+
+    func replacements() -> [RunState] {
+        replacementRuns
+    }
+
+    func failNextReplacement() {
+        shouldFailReplacement = true
     }
 }
 

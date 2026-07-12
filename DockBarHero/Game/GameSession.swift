@@ -1,18 +1,37 @@
 import Foundation
 
+enum RunPresentation: Equatable, Sendable {
+    case classSelection
+    case active(GamePresentation)
+}
+
 @MainActor
 protocol GameSessionControlling: AnyObject {
     var onPresentation: ((GamePresentation) -> Void)? { get set }
+    var onRunState: ((RunPresentation) -> Void)? { get set }
     var onEvents: (([GameEvent]) -> Void)? { get set }
     var onSaveStatus: ((SaveStatus) -> Void)? { get set }
     func start()
     func send(_ intent: GameIntent) throws
+    func chooseStartingClass(_ classID: HeroClassID) async throws
+    func startNewGame() async throws
     func stopAndSave() async
+}
+
+extension GameSessionControlling {
+    var onRunState: ((RunPresentation) -> Void)? {
+        get { nil }
+        set { }
+    }
+
+    func chooseStartingClass(_ classID: HeroClassID) async throws { }
+    func startNewGame() async throws { }
 }
 
 @MainActor
 final class GameSession: GameSessionControlling {
     var onPresentation: ((GamePresentation) -> Void)?
+    var onRunState: ((RunPresentation) -> Void)?
     var onEvents: (([GameEvent]) -> Void)?
     var onSaveStatus: ((SaveStatus) -> Void)?
 
@@ -35,6 +54,7 @@ final class GameSession: GameSessionControlling {
     private var saveSubmissionWaiters: [CheckedContinuation<Void, Never>] = []
     private var stopWaiters: [CheckedContinuation<Void, Never>] = []
     private var intentEventRequestedSave = false
+    private var currentRunState: RunState = .classSelection
 
     init(
         driver: any SimulationDriving,
@@ -70,7 +90,7 @@ final class GameSession: GameSessionControlling {
                 }
             }
             guard self.canContinueStartup(startGeneration) else { return nil }
-            let result = await self.store.load(newGame: self.newGame)
+            let result = await self.store.load()
             self.finishStart(result, generation: startGeneration)
             return result
         }
@@ -87,6 +107,46 @@ final class GameSession: GameSessionControlling {
         guard previousState != driver.currentState,
               !intentEventRequestedSave else { return }
         requestSave()
+    }
+
+    func chooseStartingClass(_ classID: HeroClassID) async throws {
+        guard hasStarted, !isStopping, !hasStopped, currentRunState == .classSelection else { return }
+        let state = GameState.newGame(
+            classID: classID,
+            balance: .standard,
+            progression: .standard
+        )
+        do {
+            try await store.replaceRun(with: .active(state))
+            currentRunState = .active(state)
+            startActive(state, generation: generation)
+        } catch {
+            receive(.failed(String(describing: error)), generation: generation)
+            throw error
+        }
+    }
+
+    func startNewGame() async throws {
+        guard hasStarted, !isStopping, !hasStopped else { return }
+        let oldState = currentRunState
+        autosaveTask?.cancel()
+        autosaveTask = nil
+        isRunning = false
+        driver.stop()
+        await waitForSaveSubmissions()
+
+        do {
+            try await store.replaceRun(with: .classSelection)
+            currentRunState = .classSelection
+            onRunState?(.classSelection)
+        } catch {
+            if case let .active(state) = oldState {
+                currentRunState = oldState
+                startActive(state, generation: generation)
+            }
+            receive(.failed(String(describing: error)), generation: generation)
+            throw error
+        }
     }
 
     func stopAndSave() async {
@@ -111,8 +171,8 @@ final class GameSession: GameSessionControlling {
 
         let startupResult = await pendingStartupTask?.value
         await waitForSaveSubmissions()
-        let finalState = startupResult?.state ?? driver.currentState
-        await coordinator.flush(finalState)
+        let finalRunState = startupResult?.runState ?? currentRunState
+        await coordinator.flush(finalRunState)
         await statusObserver?.setStatusHandler(nil)
 
         hasStopped = true
@@ -125,29 +185,43 @@ final class GameSession: GameSessionControlling {
     private func finishStart(_ result: SaveLoadResult, generation startGeneration: UInt64) {
         guard canContinueStartup(startGeneration) else { return }
 
-        driver.onPresentation = { @MainActor [weak self] presentation in
-            self?.receive(presentation, generation: startGeneration)
-        }
-        driver.onEvents = { @MainActor [weak self] events in
-            self?.receive(events, generation: startGeneration)
-        }
-        driver.replaceState(result.state)
         if case let .unsupportedVersion(version) = result.issue {
             receive(.unsupportedVersion(version), generation: startGeneration)
         } else if result.source == .backup {
             receive(.recovered, generation: startGeneration)
         }
+        currentRunState = result.runState
+        switch result.runState {
+        case .classSelection:
+            isRunning = false
+            onRunState?(.classSelection)
+        case let .active(state):
+            startActive(state, generation: startGeneration)
+        }
+        startupTask = nil
+    }
+
+    private func startActive(_ state: GameState, generation activeGeneration: UInt64) {
+        driver.onPresentation = { @MainActor [weak self] presentation in
+            self?.receive(presentation, generation: activeGeneration)
+        }
+        driver.onEvents = { @MainActor [weak self] events in
+            self?.receive(events, generation: activeGeneration)
+        }
+        driver.replaceState(state)
         isRunning = true
         driver.start()
-        startupTask = nil
+        autosaveTask?.cancel()
         autosaveTask = Task { @MainActor [weak self] in
-            await self?.runAutosave(generation: startGeneration)
+            await self?.runAutosave(generation: activeGeneration)
         }
     }
 
     private func receive(_ presentation: GamePresentation, generation callbackGeneration: UInt64) {
         guard isActive(callbackGeneration) else { return }
         onPresentation?(presentation)
+        onRunState?(.active(presentation))
+        currentRunState = .active(presentation.state)
     }
 
     private func receive(_ events: [GameEvent], generation callbackGeneration: UInt64) {
@@ -179,11 +253,11 @@ final class GameSession: GameSessionControlling {
     private func requestSave() {
         guard isRunning, !isStopping, !hasStopped else { return }
 
-        let state = driver.currentState
+        let runState = RunState.active(driver.currentState)
         let coordinator = coordinator
         outstandingSaveSubmissionCount += 1
         Task { @MainActor [weak self] in
-            await coordinator.request(state)
+            await coordinator.request(runState)
             self?.saveSubmissionCompleted()
         }
     }

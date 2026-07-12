@@ -5,32 +5,20 @@ import XCTest
 final class SaveDocumentTests: XCTestCase {
     private let savedAt = Date(timeIntervalSince1970: 1_783_641_600)
 
-    func testGoldenV1FixtureRemainsByteStable() throws {
-        let codec = SaveCodec()
-        let document = try codec.decode(SaveV1GoldenFixture.data)
-
-        XCTAssertEqual(document.state, .newGame(balance: .standard))
-        XCTAssertEqual(
-            try codec.encode(state: document.state, savedAt: document.savedAt),
-            SaveV1GoldenFixture.data
-        )
+    func testV1SaveIsRejectedWithoutMigration() {
+        XCTAssertThrowsError(try SaveCodec().decode(SaveV1GoldenFixture.data)) { error in
+            XCTAssertEqual(error as? SaveDecodingError, .unsupportedVersion(1))
+        }
     }
 
-    func testOlderDocumentIsMigratedBeforeCurrentDecode() throws {
-        var object = try XCTUnwrap(
-            JSONSerialization.jsonObject(with: SaveV1GoldenFixture.data) as? [String: Any]
-        )
-        object["schemaVersion"] = 0
-        let versionZero = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
-        let registry = try SaveMigrationRegistry(
-            currentVersion: SaveDocument.currentVersion,
-            migrations: [HeaderMigrationForSaveCodec(sourceVersion: 0, targetVersion: 1)]
-        )
-
-        let document = try SaveCodec(migrationRegistry: registry).decode(versionZero)
+    func testClassSelectionRoundTripsWithoutGameBody() throws {
+        let codec = SaveCodec()
+        let data = try codec.encode(runState: .classSelection, savedAt: savedAt)
+        let document = try codec.decode(data)
 
         XCTAssertEqual(document.schemaVersion, SaveDocument.currentVersion)
-        XCTAssertEqual(document.state, .newGame(balance: .standard))
+        XCTAssertEqual(document.runState, .classSelection)
+        XCTAssertFalse(String(decoding: data, as: UTF8.self).contains(#""game""#))
     }
 
     func testActiveStateRoundTripsWithVersionAndTimestamp() throws {
@@ -86,17 +74,20 @@ final class SaveDocumentTests: XCTestCase {
 
         let data = try SaveCodec().encode(state: state, savedAt: savedAt)
         let object = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
-        let body = try XCTUnwrap(object["state"] as? [String: Any])
-        let hero = try XCTUnwrap(body["hero"] as? [String: Any])
+        let runState = try XCTUnwrap(object["runState"] as? [String: Any])
+        let body = try XCTUnwrap(runState["game"] as? [String: Any])
+        let party = try XCTUnwrap(body["party"] as? [String: Any])
+        let heroes = try XCTUnwrap(party["heroes"] as? [[String: Any]])
+        let hero = try XCTUnwrap(heroes.first?["combat"] as? [String: Any])
 
         XCTAssertEqual(hero["timeUntilNextAttack"] as? Int, 123_456_789)
     }
 
     func testFutureVersionIsRejectedBeforeMalformedBodyDecoding() {
-        let data = Data(#"{"schemaVersion":2,"savedAt":"2026-07-10T00:00:00Z","state":{}}"#.utf8)
+        let data = Data(#"{"schemaVersion":3,"savedAt":"2026-07-10T00:00:00Z","runState":{}}"#.utf8)
 
         XCTAssertThrowsError(try SaveCodec().decode(data)) { error in
-            XCTAssertEqual(error as? SaveDecodingError, .unsupportedVersion(2))
+            XCTAssertEqual(error as? SaveDecodingError, .unsupportedVersion(3))
         }
     }
 
@@ -130,7 +121,7 @@ final class SaveDocumentTests: XCTestCase {
 
         var level = GameState.newGame(balance: .standard)
         level.encounter.enemyLevel = 0
-        assertValidation(.invalidEnemyLevel, for: level)
+        assertValidation(.invalidCampaign, for: level)
     }
 
     func testNegativeCombatBaseStatsAreRejected() {
@@ -187,21 +178,24 @@ final class SaveDocumentTests: XCTestCase {
         XCTAssertEqual(decoded.state, simulation.state)
     }
 
-    func testEnemyLevelMustSupportCurrentAndNextBalanceScaling() throws {
+    func testEnemyLevelMustSupportCurrentBalanceScaling() throws {
         let balance = BalanceConfiguration.standard
         let lastScalableLevel = try XCTUnwrap((1...2_000).last { balance.enemy(level: $0) != nil })
         XCTAssertNil(balance.enemy(level: lastScalableLevel + 1))
 
-        var nextUnscalable = GameState.newGame(balance: balance)
-        nextUnscalable.encounter.enemyLevel = lastScalableLevel
-        assertValidation(.invalidEnemyLevel, for: nextUnscalable)
-
         var currentUnscalable = GameState.newGame(balance: balance)
-        currentUnscalable.encounter.enemyLevel = lastScalableLevel + 1
+        let invalidLevel = lastScalableLevel + 1
+        currentUnscalable.encounter.enemyLevel = invalidLevel
+        currentUnscalable.encounter.tier = try XCTUnwrap(EncounterSchedule.standard.tier(for: invalidLevel))
+        currentUnscalable.campaign.highestUnlockedLevel = invalidLevel
+        currentUnscalable.campaign.selectedLevel = invalidLevel
         assertValidation(.invalidEnemyLevel, for: currentUnscalable)
 
         var nextLevelOverflow = GameState.newGame(balance: balance)
         nextLevelOverflow.encounter.enemyLevel = Int.max
+        nextLevelOverflow.encounter.tier = try XCTUnwrap(EncounterSchedule.standard.tier(for: Int.max))
+        nextLevelOverflow.campaign.highestUnlockedLevel = Int.max
+        nextLevelOverflow.campaign.selectedLevel = Int.max
         assertValidation(.invalidEnemyLevel, for: nextLevelOverflow)
     }
 
@@ -306,12 +300,16 @@ final class SaveDocumentTests: XCTestCase {
         struct Fixture: Codable {
             let schemaVersion: Int
             let savedAt: Date
-            let state: GameState
+            let runState: RunState
         }
 
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
-        return try encoder.encode(Fixture(schemaVersion: SaveDocument.currentVersion, savedAt: savedAt, state: state))
+        return try encoder.encode(Fixture(
+            schemaVersion: SaveDocument.currentVersion,
+            savedAt: savedAt,
+            runState: .active(state)
+        ))
     }
 
     private func combatant(

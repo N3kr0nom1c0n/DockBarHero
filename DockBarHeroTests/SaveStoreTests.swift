@@ -23,9 +23,9 @@ final class SaveStoreTests: XCTestCase {
     func testSaveURLsUseVersionedNames() {
         let urls = SaveURLs(directory: directory)
 
-        XCTAssertEqual(urls.primary.lastPathComponent, "save-v1.json")
-        XCTAssertEqual(urls.backup.lastPathComponent, "save-v1.backup.json")
-        XCTAssertEqual(urls.temporary.lastPathComponent, "save-v1.pending.json")
+        XCTAssertEqual(urls.primary.lastPathComponent, "save-v2.json")
+        XCTAssertEqual(urls.backup.lastPathComponent, "save-v2.backup.json")
+        XCTAssertEqual(urls.temporary.lastPathComponent, "save-v2.pending.json")
     }
 
     func testApplicationSupportURLsUseDockBarHeroDirectory() {
@@ -33,6 +33,47 @@ final class SaveStoreTests: XCTestCase {
 
         XCTAssertEqual(urls.directory.lastPathComponent, "com.n3kr0nom1c0n.DockBarHero")
         XCTAssertEqual(urls.directory.deletingLastPathComponent().lastPathComponent, "Application Support")
+    }
+
+    func testAbsentV2RequiresClassSelection() async {
+        let result = await makeStore().load()
+
+        XCTAssertEqual(result.runState, .classSelection)
+        XCTAssertEqual(result.source, .newGame)
+    }
+
+    func testFailedReplaceKeepsOldRunLoadable() async throws {
+        let urls = SaveURLs(directory: directory)
+        let oldState = GameState.newGame(balance: .standard)
+        try SaveCodec().encode(state: oldState, savedAt: savedAt).write(to: urls.primary)
+        let store = SaveStore(
+            urls: urls,
+            fileSystem: MutationFailingFileSystem(failure: .installPrimary(urls.primary)),
+            codec: SaveCodec(),
+            now: { [savedAt] in savedAt }
+        )
+
+        await XCTAssertThrowsErrorAsync(try await store.replaceRun(with: .classSelection))
+
+        let recovered = await makeStore().load()
+        XCTAssertEqual(recovered.runState, .active(oldState))
+    }
+
+    func testSuccessfulResetCannotRecoverOldBackup() async throws {
+        let store = makeStore()
+        let oldState = GameState.newGame(balance: .standard)
+        var newerOldState = oldState
+        newerOldState.autoEquipEnabled = false
+        try await store.save(oldState)
+        try await store.save(newerOldState)
+
+        try await store.replaceRun(with: .classSelection)
+        let urls = SaveURLs(directory: directory)
+        try Data("corrupt-reset".utf8).write(to: urls.primary)
+
+        let recovered = await store.load()
+        XCTAssertEqual(recovered.runState, .classSelection)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: urls.backup.path))
     }
 
     func testFirstSaveCreatesPrimaryAndLeavesNoPendingFile() async throws {
@@ -91,7 +132,7 @@ final class SaveStoreTests: XCTestCase {
         let quarantined = try FileManager.default.contentsOfDirectory(
             at: directory,
             includingPropertiesForKeys: nil
-        ).filter { $0.lastPathComponent.contains("save-v1.json.invalid-") }
+        ).filter { $0.lastPathComponent.contains("save-v2.json.invalid-") }
         XCTAssertEqual(quarantined.count, 1)
         XCTAssertTrue(quarantined[0].lastPathComponent.contains(".invalid-2026-07-10T00-00-00Z-"))
         XCTAssertEqual(try Data(contentsOf: quarantined[0]), corruptData)
@@ -153,7 +194,7 @@ final class SaveStoreTests: XCTestCase {
         let quarantined = try XCTUnwrap(try FileManager.default.contentsOfDirectory(
             at: directory,
             includingPropertiesForKeys: nil
-        ).first { $0.lastPathComponent.contains("save-v1.json.invalid-") })
+        ).first { $0.lastPathComponent.contains("save-v2.json.invalid-") })
         XCTAssertEqual(try Data(contentsOf: quarantined), futureData)
     }
 
@@ -211,7 +252,7 @@ final class SaveStoreTests: XCTestCase {
         let quarantinedPrimary = try XCTUnwrap(FileManager.default.contentsOfDirectory(
             at: directory,
             includingPropertiesForKeys: nil
-        ).first { $0.lastPathComponent.contains("save-v1.json.invalid-") })
+        ).first { $0.lastPathComponent.contains("save-v2.json.invalid-") })
         XCTAssertEqual(try Data(contentsOf: quarantinedPrimary), corruptPrimaryData)
 
         let recovery = await makeStore().load(newGame: stateWithAutoEquip(false))
@@ -306,7 +347,7 @@ final class SaveStoreTests: XCTestCase {
         let quarantinedBackup = try XCTUnwrap(FileManager.default.contentsOfDirectory(
             at: directory,
             includingPropertiesForKeys: nil
-        ).first { $0.lastPathComponent.contains("save-v1.backup.json.invalid-") })
+        ).first { $0.lastPathComponent.contains("save-v2.backup.json.invalid-") })
         XCTAssertEqual(try Data(contentsOf: quarantinedBackup), unreadableBackup)
     }
 
@@ -370,7 +411,7 @@ private struct MutationFailingFileSystem: SaveFileSystem {
 
     func write(_ data: Data, to url: URL, options: Data.WritingOptions) throws {
         if case .stageBackup = failure,
-           url.lastPathComponent.hasPrefix(".save-v1.backup-") {
+           url.lastPathComponent.hasPrefix(".save-v2.backup-") {
             throw InjectedFileSystemError.primaryInstall
         }
         try data.write(to: url, options: options)

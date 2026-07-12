@@ -12,6 +12,20 @@ enum SaveStatus: Equatable, Sendable {
 protocol SaveCoordinating: Sendable {
     func request(_ state: GameState) async
     func flush(_ state: GameState) async
+    func request(_ runState: RunState) async
+    func flush(_ runState: RunState) async
+}
+
+extension SaveCoordinating {
+    func request(_ runState: RunState) async {
+        guard case let .active(state) = runState else { return }
+        await request(state)
+    }
+
+    func flush(_ runState: RunState) async {
+        guard case let .active(state) = runState else { return }
+        await flush(state)
+    }
 }
 
 protocol SaveStatusObserving: Sendable {
@@ -25,7 +39,7 @@ actor SaveCoordinator: SaveCoordinating, SaveStatusObserving {
     private let now: @Sendable () -> Date
     private var onStatus: (@MainActor @Sendable (SaveStatus) -> Void)?
 
-    private var pendingState: GameState?
+    private var pendingState: RunState?
     private var isDraining = false
     private var flushWaiters: [CheckedContinuation<Void, Never>] = []
 
@@ -39,9 +53,13 @@ actor SaveCoordinator: SaveCoordinating, SaveStatusObserving {
         self.onStatus = onStatus
     }
 
-    func request(_ state: GameState) async {
-        pendingState = state
+    func request(_ runState: RunState) async {
+        pendingState = runState
         startDrainIfNeeded()
+    }
+
+    func request(_ state: GameState) async {
+        await request(.active(state))
     }
 
     func setStatusHandler(
@@ -50,13 +68,17 @@ actor SaveCoordinator: SaveCoordinating, SaveStatusObserving {
         onStatus = handler
     }
 
-    func flush(_ state: GameState) async {
-        pendingState = state
+    func flush(_ runState: RunState) async {
+        pendingState = runState
         startDrainIfNeeded()
 
         await withCheckedContinuation { continuation in
             flushWaiters.append(continuation)
         }
+    }
+
+    func flush(_ state: GameState) async {
+        await flush(.active(state))
     }
 
     private func startDrainIfNeeded() {
