@@ -16,6 +16,8 @@ struct GameSimulation {
     let balance: BalanceConfiguration
     private let policy: any ActionPolicy
     private let combatResolver: CombatResolver
+    private let encounterDirector: EncounterDirector
+    private let rewardResolver: RewardResolver
     private var simulationTime: SimulationDuration = .zero
     private var damageMetrics = DamageMetrics()
 
@@ -24,6 +26,8 @@ struct GameSimulation {
         self.balance = balance
         self.policy = policy
         self.combatResolver = CombatResolver()
+        self.encounterDirector = EncounterDirector()
+        self.rewardResolver = RewardResolver()
     }
 
     init(state: GameState, balance: BalanceConfiguration = .standard, policy: any ActionPolicy = BasicAttackPolicy()) {
@@ -31,6 +35,8 @@ struct GameSimulation {
         self.balance = balance
         self.policy = policy
         self.combatResolver = CombatResolver()
+        self.encounterDirector = EncounterDirector()
+        self.rewardResolver = RewardResolver()
     }
 
     var presentation: GamePresentation {
@@ -126,7 +132,8 @@ struct GameSimulation {
 
                 guard state.encounter.reviveRemaining == .zero else { return events }
                 let enemyLevel = state.encounter.enemyLevel
-                try finishRevive()
+                state = try encounterDirector.finishRevive(in: state, balance: balance)
+                damageMetrics.reset()
                 events.append(.revived(enemyLevel: enemyLevel))
             }
 
@@ -158,14 +165,15 @@ struct GameSimulation {
             guard state.enemy.currentHealth == 0 else { return false }
             let defeatedLevel = state.encounter.enemyLevel
             events.append(.victory(defeatedLevel: defeatedLevel))
-            var loot = LootSystem(balance: balance)
-            let item = try loot.drop(defeatedLevel: defeatedLevel, state: &state)
-            events.append(.loot(item))
-            if state.autoEquipEnabled, try combatResolver.isStrictUpgrade(item, in: state) {
-                state.equipment[item.slot] = item.id
-                events.append(.equipped(slot: item.slot, itemID: item.id))
-            }
-            try beginNextEncounter()
+            let reward = try rewardResolver.applyVictory(
+                defeatedLevel: defeatedLevel,
+                to: state,
+                balance: balance
+            )
+            state = reward.state
+            events.append(contentsOf: reward.events)
+            state = try encounterDirector.beginNextEncounter(in: state, balance: balance)
+            damageMetrics.reset()
             return true
         }
     }
@@ -182,7 +190,8 @@ struct GameSimulation {
             guard state.hero.currentHealth == 0 else { return }
             let enemyLevel = state.encounter.enemyLevel
             events.append(.defeat(enemyLevel: enemyLevel))
-            try beginRevive()
+            state = try encounterDirector.beginRevive(in: state, balance: balance)
+            damageMetrics.reset()
         }
     }
 
@@ -191,48 +200,6 @@ struct GameSimulation {
         state.enemy.timeUntilNextAttack = try subtracting(elapsed, from: state.enemy.timeUntilNextAttack)
         state.encounter.activeElapsed = try adding(elapsed, to: state.encounter.activeElapsed)
         simulationTime = try adding(elapsed, to: simulationTime)
-    }
-
-    private mutating func beginNextEncounter() throws {
-        let (enemyLevel, overflow) = state.encounter.enemyLevel.addingReportingOverflow(1)
-        guard !overflow else { throw SimulationError.arithmeticOverflow }
-        guard let enemy = balance.enemy(level: enemyLevel) else {
-            throw SimulationError.invalidBalance
-        }
-        state.encounter.enemyLevel = enemyLevel
-        state.hero.currentHealth = state.hero.maxHealth
-        state.enemy = enemy
-        resetEncounterMetrics(phase: .active, reviveRemaining: .zero)
-    }
-
-    private mutating func beginRevive() throws {
-        guard balance.reviveDelay >= .zero, balance.reviveDelay <= .maximumAdvance else {
-            throw SimulationError.invalidBalance
-        }
-        state.encounter.phase = .reviving
-        state.encounter.activeElapsed = .zero
-        state.encounter.heroDamage = 0
-        state.encounter.reviveRemaining = balance.reviveDelay
-        damageMetrics.reset()
-    }
-
-    private mutating func finishRevive() throws {
-        guard let enemy = balance.enemy(level: state.encounter.enemyLevel) else {
-            throw SimulationError.invalidBalance
-        }
-        state.hero.currentHealth = state.hero.maxHealth
-        state.enemy = enemy
-        resetEncounterMetrics(phase: .active, reviveRemaining: .zero)
-    }
-
-    private mutating func resetEncounterMetrics(phase: EncounterPhase, reviveRemaining: SimulationDuration) {
-        state.encounter.phase = phase
-        state.encounter.activeElapsed = .zero
-        state.encounter.heroDamage = 0
-        state.encounter.reviveRemaining = reviveRemaining
-        state.hero.timeUntilNextAttack = state.hero.attackInterval
-        state.enemy.timeUntilNextAttack = state.enemy.attackInterval
-        damageMetrics.reset()
     }
 
     private func validateStateAndBalance() throws {
