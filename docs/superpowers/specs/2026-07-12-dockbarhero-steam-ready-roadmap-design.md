@@ -108,7 +108,7 @@ No remote balance configuration or live content download is included.
 
 ### 5.5 Persistence
 
-The current Phase 1 save remains schema v1. The local MVP introduces one coherent next public schema and a pure migration from v1. Internal tasks do not create artificial public schema versions for every code change.
+The current Phase 1 save remains schema v1. Foundation work introduces the migration registry and locks a golden v1 fixture. The Heroes and Classes milestone introduces one coherent local-MVP schema v2, once `PartyState` and class identity exist, with a pure migration from v1. Internal tasks do not create artificial public schema versions for every code change.
 
 The save envelope contains schema metadata, save identity, monotonic snapshot sequence, content version, and game state. Migration:
 
@@ -139,7 +139,7 @@ Audio, launch at login, crash reporting, telemetry, and Steam are optional servi
 ### 6.2 Foundation Upgrade
 
 - Extract deterministic resolver boundaries without changing Phase 1 outcomes.
-- Add the local-MVP save envelope, v1 migration registry, and golden fixtures.
+- Add the save migration registry and golden v1 fixtures without changing the emitted schema.
 - Add isolated settings persistence.
 - Introduce management navigation.
 - Add `SpriteCatalog`, sprite sequences, and placeholder fallback.
@@ -148,6 +148,7 @@ Audio, launch at login, crash reporting, telemetry, and Steam are optional servi
 
 - Add Tank, DPS, and Healer content definitions.
 - Add first-run class choice and a one-slot `PartyState`.
+- Add the local-MVP v2 save envelope and migrate the v1 hero into the selected/default one-slot party.
 - Preserve automatic basic attacks.
 - Add one manual active ability per class and deterministic targeting/cooldowns.
 - Route manual casts through domain intents from management controls and interactive-only rail icons.
