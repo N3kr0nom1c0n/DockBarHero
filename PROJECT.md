@@ -7,8 +7,8 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 ## Current Milestone
 
 - Goal: complete the Foundation Upgrade on `feature/foundation-upgrade` without changing accepted Phase 1 behavior.
-- Current checkpoint: isolated worktree created from pushed Phase 1 head `4da81dd`; 163-test baseline passes.
-- Remaining: resolver extraction, migration registry, settings persistence, management navigation, pixel sprites, and bounded milestone QA.
+- Current checkpoint: Task 1 combat resolver committed at `333dd7e`; 42 focused tests pass and paired Terra review follows Task 2.
+- Remaining: encounter/reward extraction, migration registry, settings persistence, management navigation, pixel sprites, and bounded milestone QA.
 - Acceptance: clean worktree; required tests and arm64 build pass after the focus hold is cleared; live verification succeeds; no blocking findings; push without merge or force.
 
 ## Architecture
@@ -47,7 +47,7 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 
 ## Active Work
 
-- Parent orchestrator: Foundation plan Task 1, pure combat resolver extraction.
+- Parent orchestrator: Foundation plan Task 2, encounter and victory reward boundaries.
 - Focus safety: testing and live verification are cleared.
 - Subagent routing: Spark for bounded reads or mechanical edits, Luna for implementation, Terra for required review or QA, Sol only for final deep review.
 - Foundation branch is local-only and must not be merged, rebased, or force-pushed.
