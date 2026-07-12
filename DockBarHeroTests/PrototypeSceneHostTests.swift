@@ -1,3 +1,4 @@
+import AppKit
 import SpriteKit
 import XCTest
 @testable import DockBarHero
@@ -10,8 +11,10 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertEqual(host.view.preferredFramesPerSecond, 30)
         XCTAssertTrue(host.view.allowsTransparency)
         XCTAssertEqual(host.scene.backgroundColor.cgColor.alpha, 0)
-        XCTAssertNotNil(host.scene.childNode(withName: "hero"))
-        XCTAssertNotNil(host.scene.childNode(withName: "enemy"))
+        let hero = try XCTUnwrap(host.scene.childNode(withName: "hero") as? SKSpriteNode)
+        let enemy = try XCTUnwrap(host.scene.childNode(withName: "enemy") as? SKSpriteNode)
+        XCTAssertEqual(hero.texture?.filteringMode, .nearest)
+        XCTAssertEqual(enemy.texture?.filteringMode, .nearest)
         XCTAssertNotNil(host.scene.childNode(withName: "ground"))
     }
 
@@ -27,6 +30,8 @@ final class PrototypeSceneHostTests: XCTestCase {
 
     func testRenderingUsesStableNamedNodesAndClampedSnapshotValues() throws {
         let host = try PrototypeSceneHost()
+        let originalHero = try XCTUnwrap(host.scene.childNode(withName: "hero") as? SKSpriteNode)
+        let originalEnemy = try XCTUnwrap(host.scene.childNode(withName: "enemy") as? SKSpriteNode)
         var state = GameState.newGame(balance: .standard)
         state.hero.currentHealth = 75
         state.enemy.currentHealth = 12
@@ -40,6 +45,9 @@ final class PrototypeSceneHostTests: XCTestCase {
         )
 
         host.scene.render(presentation)
+
+        XCTAssertTrue(host.scene.childNode(withName: "hero") === originalHero)
+        XCTAssertTrue(host.scene.childNode(withName: "enemy") === originalEnemy)
 
         let enemyLevel = try XCTUnwrap(host.scene.childNode(withName: "//enemyLevel") as? SKLabelNode)
         let rollingDPS = try XCTUnwrap(host.scene.childNode(withName: "//rollingDPS") as? SKLabelNode)
@@ -74,6 +82,24 @@ final class PrototypeSceneHostTests: XCTestCase {
         host.scene.handle([.attack(attacker: .hero, defender: .enemy, damage: 10)])
 
         XCTAssertNotNil(host.scene.childNode(withName: "//hit"))
+        XCTAssertNotNil(hero.action(forKey: "spriteAction"))
+    }
+
+    func testEventsRequestPresentationOnlySpriteActions() throws {
+        let catalog = RecordingSpriteCatalog()
+        let host = try PrototypeSceneHost(spriteCatalog: catalog)
+        catalog.calls.removeAll()
+
+        host.scene.handle([
+            .attack(attacker: .enemy, defender: .hero, damage: 2),
+            .victory(defeatedLevel: 1),
+            .defeat(enemyLevel: 2),
+        ])
+
+        XCTAssertTrue(catalog.calls.contains(.init(token: .enemy, action: .attack)))
+        XCTAssertTrue(catalog.calls.contains(.init(token: .hero, action: .hit)))
+        XCTAssertTrue(catalog.calls.contains(.init(token: .enemy, action: .defeated)))
+        XCTAssertTrue(catalog.calls.contains(.init(token: .hero, action: .defeated)))
     }
 
     func testVictoryUsesBriefEnemyFadeOutAndIn() throws {
@@ -109,5 +135,27 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertNil(hero.action(forKey: "reviveVisibility"))
         XCTAssertNil(hero.action(forKey: "eventFade"))
         XCTAssertEqual(hero.alpha, 1, accuracy: 0.001)
+    }
+}
+
+@MainActor
+private final class RecordingSpriteCatalog: SpriteCatalog {
+    struct Call: Equatable {
+        let token: SpriteToken
+        let action: SpriteAction
+    }
+
+    var calls: [Call] = []
+    private let texture: SKTexture
+
+    init() {
+        let image = NSImage(size: CGSize(width: 1, height: 1))
+        texture = SKTexture(image: image)
+        texture.filteringMode = .nearest
+    }
+
+    func textures(for token: SpriteToken, action: SpriteAction) -> [SKTexture] {
+        calls.append(Call(token: token, action: action))
+        return [texture]
     }
 }

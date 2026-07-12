@@ -5,6 +5,16 @@ import SpriteKit
 final class PrototypeScene: SKScene {
     private let actorSize = CGSize(width: 24, height: 36)
     private let healthBarSize = CGSize(width: 150, height: 5)
+    private let spriteCatalog: any SpriteCatalog
+
+    init(size: CGSize, spriteCatalog: any SpriteCatalog) {
+        self.spriteCatalog = spriteCatalog
+        super.init(size: size)
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        nil
+    }
 
     override func didMove(to view: SKView) {
         guard childNode(withName: "ground") == nil else { return }
@@ -19,8 +29,8 @@ final class PrototypeScene: SKScene {
         ground.position = CGPoint(x: size.width / 2, y: 12)
         addChild(ground)
 
-        let hero = actor(name: "hero", color: .systemYellow, x: size.width * 0.22)
-        let enemy = actor(name: "enemy", color: .systemRed, x: size.width * 0.78)
+        let hero = actor(name: "hero", token: .hero, x: size.width * 0.22)
+        let enemy = actor(name: "enemy", token: .enemy, x: size.width * 0.78)
         addChild(hero)
         addChild(enemy)
 
@@ -66,12 +76,17 @@ final class PrototypeScene: SKScene {
             switch event {
             case let .attack(attacker, defender, _):
                 animateAttack(from: attacker)
+                playSpriteAction(attacker == .hero ? .hero : .enemy, action: .attack)
+                playSpriteAction(defender == .hero ? .hero : .enemy, action: .hit)
                 showHit(at: position(of: defender))
             case .victory:
+                playSpriteAction(.enemy, action: .defeated)
                 animateBriefFade(nodeNamed: "enemy")
             case .defeat:
+                playSpriteAction(.hero, action: .defeated)
                 animateDefeat()
             case .revived:
+                setIdleTexture(for: .hero)
                 restoreHeroAfterRevive()
             case .loot, .equipped, .autoEquipChanged:
                 break
@@ -109,13 +124,35 @@ final class PrototypeScene: SKScene {
         ]))
     }
 
-    private func actor(name: String, color: NSColor, x: CGFloat) -> SKShapeNode {
-        let node = SKShapeNode(rectOf: actorSize, cornerRadius: 2)
+    private func actor(name: String, token: SpriteToken, x: CGFloat) -> SKSpriteNode {
+        let node = SKSpriteNode(
+            texture: spriteCatalog.textures(for: token, action: .idle).first,
+            size: actorSize
+        )
         node.name = name
-        node.fillColor = color
-        node.strokeColor = NSColor.black.withAlphaComponent(0.35)
         node.position = CGPoint(x: x, y: 32)
         return node
+    }
+
+    private func playSpriteAction(_ token: SpriteToken, action: SpriteAction) {
+        let name = token == .hero ? "hero" : "enemy"
+        guard let node = childNode(withName: name) as? SKSpriteNode else { return }
+        let textures = spriteCatalog.textures(for: token, action: action)
+        guard !textures.isEmpty else { return }
+        node.removeAction(forKey: "spriteAction")
+        node.run(.sequence([
+            .animate(with: textures, timePerFrame: 0.08, resize: false, restore: false),
+            .run { [weak self, weak node] in
+                node?.texture = self?.spriteCatalog.textures(for: token, action: .idle).first
+            },
+        ]), withKey: "spriteAction")
+    }
+
+    private func setIdleTexture(for token: SpriteToken) {
+        let name = token == .hero ? "hero" : "enemy"
+        guard let node = childNode(withName: name) as? SKSpriteNode else { return }
+        node.removeAction(forKey: "spriteAction")
+        node.texture = spriteCatalog.textures(for: token, action: .idle).first
     }
 
     private func addHealthBar(prefix: String, color: NSColor) {

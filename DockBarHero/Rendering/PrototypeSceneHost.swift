@@ -18,11 +18,14 @@ final class PrototypeSceneHost: SceneControlling {
     let view: SKView
     let scene: PrototypeScene
 
-    init(size: CGSize = CGSize(width: 1_140, height: 96)) throws {
+    init(
+        size: CGSize = CGSize(width: 1_140, height: 96),
+        spriteCatalog: any SpriteCatalog = BuiltinSpriteCatalog()
+    ) throws {
         view = SKView(frame: CGRect(origin: .zero, size: size))
         view.allowsTransparency = true
         view.preferredFramesPerSecond = 30
-        scene = PrototypeScene(size: size)
+        scene = PrototypeScene(size: size, spriteCatalog: spriteCatalog)
         view.presentScene(scene)
         guard view.scene === scene else {
             throw PrototypeSceneHostError.scenePresentationFailed
