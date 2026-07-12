@@ -7,8 +7,8 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 ## Current Milestone
 
 - Goal: finish the Phase 1 playable slice on feature/phase-1-playable-slice.
-- Current checkpoint: automated and static gates are green; Sol returned BLOCK only for missing live observations.
-- Remaining: complete the unchecked live QA checklist, obtain a Sol APPROVE verdict, and push the feature branch.
+- Current checkpoint: automated and static gates are green; the Steam-ready roadmap is approved and the Foundation Upgrade execution plan is ready.
+- Remaining: complete the unchecked live QA checklist, obtain an evidence-only Sol APPROVE verdict, push Phase 1, then create `feature/foundation-upgrade`.
 - Acceptance: clean worktree; required tests and arm64 build pass after the focus hold is cleared; live verification succeeds; no blocking findings; push without merge or force.
 
 ## Architecture
@@ -25,6 +25,8 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 
 - docs/superpowers/plans/2026-07-10-dockbarhero-phase-1-playable-slice.md: authoritative task plan.
 - docs/superpowers/specs/2026-07-10-dockbarhero-phase-1-playable-slice-design.md: approved design.
+- docs/superpowers/specs/2026-07-12-dockbarhero-steam-ready-roadmap-design.md: approved code-first roadmap through Steam-ready release.
+- docs/superpowers/plans/2026-07-12-dockbarhero-foundation-upgrade.md: next executable milestone plan.
 - .superpowers/sdd/progress.md: detailed task and gate ledger.
 - .superpowers/sdd/task-9-report.md: latest Task 9 evidence.
 - DockBarHero/Game/: simulation, driver, session, loot, and metrics.
@@ -45,7 +47,7 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 
 ## Active Work
 
-- Parent orchestrator: Task 10 live QA unblock.
+- Parent orchestrator: Foundation plan Task 0, Phase 1 live QA closeout.
 - Focus safety: testing and live verification are cleared.
 - Subagent routing: Spark for bounded reads or mechanical edits, Luna for implementation, Terra for required review or QA, Sol only for final deep review.
 - Feature branch is local-only and must not be merged; final approved work may be pushed without force.
@@ -67,3 +69,5 @@ DockBarHero is a native macOS menu-bar app with a passive desktop rail. Phase 1 
 - Sol found no blocking static correctness issue but blocked push pending live gameplay, DPS, relaunch, and Phase 0 observations.
 - Computer Use is unavailable in the current task because `node_repl` is not exposed; do not substitute automated evidence for the unchecked observations.
 - Automated evidence must not be converted into manual visual evidence.
+- Provisional graphics use pixel sprites; production art polish is deferred behind code systems.
+- The release target is Apple Silicon and Steam-ready without tradable-item economy.
