@@ -29,7 +29,7 @@ final class GameSession: GameSessionControlling {
     private var isStopping = false
     private var hasStopped = false
     private var generation: UInt64 = 0
-    private var startupTask: Task<Void, Never>?
+    private var startupTask: Task<SaveLoadResult?, Never>?
     private var autosaveTask: Task<Void, Never>?
     private(set) var outstandingSaveSubmissionCount = 0
     private var saveSubmissionWaiters: [CheckedContinuation<Void, Never>] = []
@@ -62,16 +62,17 @@ final class GameSession: GameSessionControlling {
         generation &+= 1
         let startGeneration = generation
         startupTask = Task { @MainActor [weak self] in
-            guard let self else { return }
-            guard self.canContinueStartup(startGeneration) else { return }
+            guard let self else { return nil }
+            guard self.canContinueStartup(startGeneration) else { return nil }
             if let statusObserver = self.statusObserver {
                 await statusObserver.setStatusHandler { @MainActor [weak self] status in
                     self?.receive(status, generation: startGeneration)
                 }
             }
-            guard self.canContinueStartup(startGeneration) else { return }
+            guard self.canContinueStartup(startGeneration) else { return nil }
             let result = await self.store.load(newGame: self.newGame)
             self.finishStart(result, generation: startGeneration)
+            return result
         }
     }
 
@@ -101,14 +102,16 @@ final class GameSession: GameSessionControlling {
         hasStarted = false
         isRunning = false
         generation &+= 1
-        startupTask?.cancel()
+        let pendingStartupTask = startupTask
+        pendingStartupTask?.cancel()
         startupTask = nil
         autosaveTask?.cancel()
         autosaveTask = nil
         driver.stop()
 
+        let startupResult = await pendingStartupTask?.value
         await waitForSaveSubmissions()
-        let finalState = driver.currentState
+        let finalState = startupResult?.state ?? driver.currentState
         await coordinator.flush(finalState)
         await statusObserver?.setStatusHandler(nil)
 
@@ -131,8 +134,7 @@ final class GameSession: GameSessionControlling {
         driver.replaceState(result.state)
         if case let .unsupportedVersion(version) = result.issue {
             receive(.unsupportedVersion(version), generation: startGeneration)
-        }
-        if result.source == .backup {
+        } else if result.source == .backup {
             receive(.recovered, generation: startGeneration)
         }
         isRunning = true

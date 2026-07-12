@@ -59,7 +59,7 @@ final class GameSessionTests: XCTestCase {
         XCTAssertEqual(statuses.values, [SaveStatus.recovered])
     }
 
-    func testUnsupportedVersionStatusPrecedesBackupRecoveryStatus() async {
+    func testUnsupportedVersionStatusRemainsVisibleAfterBackupRecovery() async {
         let loaded = state(autoEquip: false)
         let store = SessionStoreFake(result: SaveLoadResult(
             state: loaded,
@@ -76,7 +76,7 @@ final class GameSessionTests: XCTestCase {
         await waitUntil { driver.startCount == 1 }
 
         XCTAssertEqual(driver.currentState, loaded)
-        XCTAssertEqual(statuses.values, [.unsupportedVersion(99), .recovered])
+        XCTAssertEqual(statuses.values, [.unsupportedVersion(99)])
     }
 
     func testUnsupportedVersionStatusPublishesWhenLoadStartsNewGame() async {
@@ -280,7 +280,7 @@ final class GameSessionTests: XCTestCase {
         XCTAssertEqual(session.outstandingSaveSubmissionCount, 0)
     }
 
-    func testStopBeforeLoadPreventsLateLoadFromStartingDriver() async {
+    func testStopDuringLoadFlushesLoadedStateWithoutStartingDriver() async {
         let loaded = state(autoEquip: false)
         let store = SessionStoreFake(result: SaveLoadResult(state: loaded, source: .primary), blockLoad: true)
         let driver = SessionDriverFake()
@@ -289,14 +289,15 @@ final class GameSessionTests: XCTestCase {
 
         session.start()
         await store.waitForLoadStart()
-        await session.stopAndSave()
-        await store.finishLoad()
+        let stopTask = Task { await session.stopAndSave() }
         await Task.yield()
+        await store.finishLoad()
+        await stopTask.value
 
         XCTAssertEqual(driver.startCount, 0)
         XCTAssertEqual(driver.replacedStates, [])
         let flushedStates = await coordinator.flushedStates()
-        XCTAssertEqual(flushedStates.count, 1)
+        XCTAssertEqual(flushedStates, [loaded])
     }
 
     private func makeSession(

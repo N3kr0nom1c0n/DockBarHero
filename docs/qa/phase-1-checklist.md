@@ -2,16 +2,16 @@
 
 Date opened: 2026-07-11
 Worktree: `/Users/n3kr0/Projects/TBH/.worktrees/phase-1-playable-slice`
-Status: Automated Gate D complete; integration reviews active; manual observations pending.
+Status: Repaired Gate D complete; final review active; manual observations pending.
 
 ## Automated Gate
 
 - [x] Clean arm64 build completes.
   - Evidence: `xcodebuild clean build` succeeded with `platform=macOS,arch=arm64` and `CODE_SIGNING_ALLOWED=NO` using `.build/FinalDerivedData`.
 - [x] Complete test suite passes; test count recorded.
-  - Evidence: 162 tests passed with 0 failures using `.build/Task10Full`.
+  - Evidence: 163 tests passed with 0 failures using `.build/RepairFull` after the Terra repair.
 - [x] Focused management, app, and scene tests pass.
-  - Evidence: 34 tests passed with 0 failures using `.build/Task10Focused`.
+  - Evidence: initial 34-test UI slice passed; 20 directly affected GameSession and management tests passed after repair.
 - [x] Automated corrupt-primary save recovery passes.
   - Evidence: the passing full suite includes `SaveStoreTests.testCorruptPrimaryLoadsBackupAndQuarantinesPrimary` and the related mutation-failure recovery coverage.
 
@@ -61,12 +61,12 @@ Status: Automated Gate D complete; integration reviews active; manual observatio
 
 - [ ] Deferred features are absent.
   - Evidence:
-- [ ] Terra findings and resolutions are recorded.
-  - Evidence:
+- [x] Terra findings and resolutions are recorded.
+  - Evidence: Terra found a quit-during-load save race, unsupported-version status overwrite, and missing inventory sort/creation-order support. The repair now awaits the pending load and flushes its state, preserves unsupported-version precedence, and wires native table sorting with a Created column. The 163-test full gate and clean build passed afterward.
 - [ ] Sol final verdict is recorded.
   - Evidence:
 - [ ] Feature branch and reviewed implementation commit are recorded.
-  - Evidence:
+  - Evidence: branch `feature/phase-1-playable-slice`; Task 10 implementation `bc7a536`; repair commit pending.
 - [ ] Final pushed HEAD is reported in the overnight report.
   - Evidence:
 

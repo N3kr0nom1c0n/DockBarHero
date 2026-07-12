@@ -33,7 +33,11 @@ struct InventoryRow: Identifiable, Equatable {
     let slot: EquipmentSlot
     let level: Int
     let primaryStat: Int
+    let creationSequence: UInt64
     let isEquipped: Bool
+
+    var slotName: String { slot.rawValue.capitalized }
+    var equippedLabel: String { isEquipped ? "Yes" : "No" }
 
     static func rows(for state: GameState) -> [InventoryRow] {
         state.inventory
@@ -49,18 +53,32 @@ struct InventoryRow: Identifiable, Equatable {
                     slot: item.slot,
                     level: item.level,
                     primaryStat: item.primaryStat,
+                    creationSequence: item.creationSequence,
                     isEquipped: state.equipment[item.slot] == item.id
                 )
             }
+    }
+
+    static func sorted(
+        _ rows: [InventoryRow],
+        using sortOrder: [KeyPathComparator<InventoryRow>]
+    ) -> [InventoryRow] {
+        rows.sorted(using: sortOrder)
     }
 }
 
 struct ManagementView: View {
     @ObservedObject var model: AppModel
     @State private var selection: ItemID?
+    @State private var sortOrder = [
+        KeyPathComparator(\InventoryRow.creationSequence, order: .reverse),
+        KeyPathComparator(\InventoryRow.id.rawValue, order: .reverse)
+    ]
 
     private var presentation: GamePresentation { model.game }
-    private var rows: [InventoryRow] { InventoryRow.rows(for: presentation.state) }
+    private var rows: [InventoryRow] {
+        InventoryRow.sorted(InventoryRow.rows(for: presentation.state), using: sortOrder)
+    }
     private var selectedItemIsOwned: Bool {
         guard let selection else { return false }
         return rows.contains { $0.id == selection }
@@ -150,19 +168,18 @@ struct ManagementView: View {
                 .accessibilityIdentifier("equip-selected-item")
             }
 
-            Table(rows, selection: $selection) {
-                TableColumn("Slot") { row in
-                    Text(row.slot.rawValue.capitalized)
-                }
-                TableColumn("Level") { row in
+            Table(rows, selection: $selection, sortOrder: $sortOrder) {
+                TableColumn("Slot", value: \.slotName)
+                TableColumn("Level", value: \.level) { row in
                     Text("\(row.level)")
                 }
-                TableColumn("Stat") { row in
+                TableColumn("Stat", value: \.primaryStat) { row in
                     Text("\(row.primaryStat)")
                 }
-                TableColumn("Equipped") { row in
-                    Text(row.isEquipped ? "Yes" : "No")
+                TableColumn("Created", value: \.creationSequence) { row in
+                    Text("\(row.creationSequence)")
                 }
+                TableColumn("Equipped", value: \.equippedLabel)
             }
             .accessibilityIdentifier("inventory-table")
             .frame(minHeight: 180)

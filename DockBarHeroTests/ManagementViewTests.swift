@@ -14,6 +14,23 @@ final class ManagementViewTests: XCTestCase {
         let rows = InventoryRow.rows(for: state)
 
         XCTAssertEqual(rows.map(\.id.rawValue), [3, 2, 1])
+        XCTAssertEqual(rows.map(\.creationSequence), [5, 4, 4])
+    }
+
+    func testInventoryRowsHonorAlternateTableSortOrder() {
+        var state = GameSimulation().state
+        state.inventory = [
+            Item(id: ItemID(rawValue: 1), level: 3, slot: .weapon, primaryStat: 8, creationSequence: 1),
+            Item(id: ItemID(rawValue: 2), level: 1, slot: .armor, primaryStat: 4, creationSequence: 2)
+        ]
+        let rows = InventoryRow.rows(for: state)
+
+        let sorted = InventoryRow.sorted(
+            rows,
+            using: [KeyPathComparator(\InventoryRow.level, order: .forward)]
+        )
+
+        XCTAssertEqual(sorted.map(\.level), [1, 3])
     }
 
     func testInventoryRowsDeriveEquippedStateByID() {
