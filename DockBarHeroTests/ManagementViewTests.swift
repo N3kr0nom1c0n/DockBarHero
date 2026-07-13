@@ -110,6 +110,43 @@ final class ManagementViewTests: XCTestCase {
         XCTAssertEqual(row.equippedLabel, "Hero 2 · DPS")
     }
 
+    func testInventoryQueryFiltersRarityAndSortsByLevel() {
+        var state = GameState.newGame(balance: .standard)
+        state.inventory = [
+            Item(id: ItemID(rawValue: 1), level: 4, slot: .weapon, primaryStat: 4, creationSequence: 1),
+            Item(id: ItemID(rawValue: 2), level: 9, slot: .armor, primaryStat: 9, creationSequence: 2, rarity: .rare),
+            Item(id: ItemID(rawValue: 3), level: 6, slot: .weapon, primaryStat: 6, creationSequence: 3, rarity: .rare),
+        ]
+
+        let rows = InventoryQuery(
+            rarity: .rare,
+            slot: nil,
+            upgradeOnly: false,
+            sort: .level
+        ).apply(to: InventoryRow.rows(for: state))
+
+        XCTAssertEqual(rows.map(\.id.rawValue), [2, 3])
+    }
+
+    func testInventoryRowsIncludeOverflowLocationAndStackQuantity() {
+        var state = GameState.newGame(balance: .standard)
+        state.overflowInventory = [
+            Item(
+                id: ItemID(rawValue: 7),
+                level: 2,
+                slot: .armor,
+                primaryStat: 3,
+                creationSequence: 7,
+                quantity: 12
+            ),
+        ]
+
+        let row = InventoryRow.rows(for: state).first { $0.id.rawValue == 7 }
+
+        XCTAssertEqual(row?.location, .overflow)
+        XCTAssertEqual(row?.quantity, 12)
+    }
+
     func testGamePresentationContainsEffectiveStatsForEveryHero() {
         var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
         let second = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]

@@ -19,6 +19,13 @@ enum ManagementIntent {
     static func setItemLocked(itemID: ItemID, isLocked: Bool) -> GameIntent {
         .setItemLocked(itemID: itemID, isLocked: isLocked)
     }
+    static var purchaseInventoryCapacity: GameIntent { .purchaseInventoryCapacity }
+    static func moveOverflow(itemID: ItemID, quantity: UInt64) -> GameIntent {
+        .moveOverflow(itemID: itemID, quantity: quantity)
+    }
+    static func salvage(_ selections: [SalvageSelection]) -> GameIntent {
+        .salvage(selections)
+    }
 }
 
 enum ManagementFormat {
@@ -60,6 +67,8 @@ struct InventoryRow: Identifiable, Equatable {
     let isLocked: Bool
     let comparisonScore: Int64?
     let comparisonLabel: String
+    let location: InventoryLocation
+    let quantity: UInt64
 
     var slotName: String { slot.rawValue.capitalized }
     var equippedLabel: String {
@@ -68,16 +77,20 @@ struct InventoryRow: Identifiable, Equatable {
     }
 
     var rarityName: String { rarity.rawValue.capitalized }
+    var locationName: String { location == .inventory ? "Inventory" : "Overflow" }
+    var isSalvageable: Bool { !isEquipped && !isLocked && rarity != .unique }
 
     static func rows(for state: GameState, heroSlot: Int = 0) -> [InventoryRow] {
-        state.inventory
+        let inventoryRows = state.inventory.map { ($0, InventoryLocation.inventory) }
+        let overflowRows = state.overflowInventory.map { ($0, InventoryLocation.overflow) }
+        return (inventoryRows + overflowRows)
             .sorted {
-                if $0.creationSequence != $1.creationSequence {
-                    return $0.creationSequence > $1.creationSequence
+                if $0.0.creationSequence != $1.0.creationSequence {
+                    return $0.0.creationSequence > $1.0.creationSequence
                 }
-                return $0.id.rawValue > $1.id.rawValue
+                return $0.0.id.rawValue > $1.0.id.rawValue
             }
-            .map { item in
+            .map { item, location in
                 let owner = state.party.heroes.enumerated().first { _, hero in
                     hero.equipment[item.slot] == item.id
                 }
@@ -104,7 +117,9 @@ struct InventoryRow: Identifiable, Equatable {
                     comparisonLabel: comparison.map {
                         let marker = $0.isStrictUpgrade ? "Upgrade" : "Sidegrade"
                         return "\(marker) · A \(signed($0.deltas.attack)) · D \(signed($0.deltas.defense)) · HP \(signed($0.deltas.maximumHealth)) · \(ManagementFormat.interval($0.deltas.attackInterval))"
-                    } ?? "Unavailable"
+                    } ?? "Unavailable",
+                    location: location,
+                    quantity: item.quantity
                 )
             }
     }
@@ -118,6 +133,53 @@ struct InventoryRow: Identifiable, Equatable {
         using sortOrder: [KeyPathComparator<InventoryRow>]
     ) -> [InventoryRow] {
         rows.sorted(using: sortOrder)
+    }
+}
+
+enum InventorySortOption: String, CaseIterable, Equatable, Sendable {
+    case newest
+    case level
+    case rarity
+    case heroScore
+
+    var label: String {
+        switch self {
+        case .newest: "Newest"
+        case .level: "Level"
+        case .rarity: "Rarity"
+        case .heroScore: "Hero score"
+        }
+    }
+}
+
+struct InventoryQuery: Equatable, Sendable {
+    var rarity: ItemRarity?
+    var slot: EquipmentSlot?
+    var upgradeOnly: Bool
+    var sort: InventorySortOption
+
+    func apply(to rows: [InventoryRow]) -> [InventoryRow] {
+        rows.filter { row in
+            (rarity == nil || row.rarity == rarity) &&
+                (slot == nil || row.slot == slot) &&
+                (!upgradeOnly || row.comparisonLabel.hasPrefix("Upgrade"))
+        }.sorted { lhs, rhs in
+            switch sort {
+            case .newest:
+                if lhs.creationSequence != rhs.creationSequence {
+                    return lhs.creationSequence > rhs.creationSequence
+                }
+            case .level:
+                if lhs.level != rhs.level { return lhs.level > rhs.level }
+            case .rarity:
+                if lhs.rarity != rhs.rarity { return lhs.rarity > rhs.rarity }
+            case .heroScore:
+                if lhs.comparisonScore != rhs.comparisonScore {
+                    return (lhs.comparisonScore ?? .min) > (rhs.comparisonScore ?? .min)
+                }
+            }
+            return lhs.id.rawValue > rhs.id.rawValue
+        }
     }
 }
 
