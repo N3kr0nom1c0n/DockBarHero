@@ -6,14 +6,16 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Current Milestone
 
-- Goal: verify and push Heroes and Party on the integrated Foundation and schema-v2 Progression Safety systems without merging to `main`.
-- Current checkpoint: Heroes and Party is implemented, verified, and pushed in six vertical slices on `feature/heroes-and-party`.
+- Goal: verify Class Actions and the two-slice Loot Expansion without merging to `main` or starting authored quest rewards.
+- Current checkpoint: Class Actions, Item Depth, and Inventory Operations are implemented in verified vertical slices on `feature/class-actions-and-loot`.
 - Integration: the owner lifted the internal hold and the feature branch was fast-forwarded and pushed to `main` on 2026-07-12.
-- Remaining: owner review of the pushed feature branch; Class Actions remain a later milestone and this is not release-ready.
+- Remaining: unlock the Mac and complete the required live clicks/visual QA; push remains gated on that evidence and this is not release-ready.
 
 ## Architecture
 
 - GameSimulation: deterministic fixed-point combat, tiered rewards, XP/levels, farming, retreat, loot, equipment, and presentation snapshots.
+- AbilityResolver: transactional Tank Guard, DPS Power Strike, and Healer Mend resolution with persisted active-time cooldowns.
+- LootGenerator, InventoryResolver, SalvageResolver: deterministic enriched drops, exact stacking, finite capacity, durable overflow, exclusive extraction, and atomic salvage.
 - SimulationDriver: MainActor monotonic advancement and throttled presentation/event delivery.
 - GameSession: explicit class-selection/active lifecycle, autosave triggers, safe run replacement, status propagation, and final flush.
 - SaveCodec, SaveStore, SaveCoordinator: schema-v2 validation, v2-only atomic recovery/replacement, quarantine, and coalescing.
@@ -31,6 +33,12 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - docs/superpowers/plans/2026-07-12-dockbarhero-progression-safety.md: executable first-gate plan for XP, tiers, gold, farming, retreat, schema v2, reset, and management empty states.
 - docs/superpowers/specs/2026-07-12-dockbarhero-heroes-and-party-design.md: approved party lifecycle, combat, rewards, equipment, and presentation behavior.
 - docs/superpowers/plans/2026-07-12-dockbarhero-heroes-and-party.md: executable six-slice Heroes and Party plan.
+- docs/superpowers/specs/2026-07-12-dockbarhero-class-actions-design.md: approved Class Actions behavior.
+- docs/superpowers/specs/2026-07-12-dockbarhero-loot-expansion-design.md: approved two-slice loot and inventory behavior.
+- docs/superpowers/plans/2026-07-12-dockbarhero-class-actions.md: executable Class Actions plan.
+- docs/superpowers/plans/2026-07-12-dockbarhero-item-depth.md: executable Item Depth plan.
+- docs/superpowers/plans/2026-07-12-dockbarhero-inventory-operations.md: executable Inventory Operations plan.
+- docs/qa/review-packets/class-actions-and-loot.md: current automated, isolation, launch, and blocked-live-QA evidence.
 - docs/qa/review-packets/heroes-and-party.md: focused, integrated, save-isolation, and live-QA evidence.
 - docs/qa/review-packets/progression-safety.md: current automated evidence, manual QA list, and integration hold.
 - .superpowers/sdd/progress.md: detailed task and gate ledger.
@@ -53,17 +61,17 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Active Work
 
-- Parent orchestrator: preserve the pushed Heroes and Party worktree for owner review without merging.
-- Next design work after owner review: Tank, DPS, and Healer actions.
-- Manual QA items not explicitly exercised remain open in the Progression Safety review packet.
+- Parent orchestrator: preserve `feature/class-actions-and-loot` without merging or releasing.
+- Live QA is blocked only by the locked macOS session; automated and exact-bundle launch gates passed.
+- Authored quest/boss content that grants specific Unique items remains a later milestone.
 
 ## Last Verified State
 
 - Date: 2026-07-12.
-- Checkout: `/Users/n3kr0/Projects/TBH/.worktrees/heroes-and-party` on `feature/heroes-and-party`.
-- Final gate: 290 arm64 tests passed with zero failures; clean unsigned arm64 build, context guard, and exact-worktree launch all succeeded.
-- Live clean-save QA selected DPS, persisted/relaunched the Boss 25 Tank/Healer choice, selected Healer, and observed Tank auto-add at Boss 100 with uninterrupted level 101-plus combat.
-- Live management showed ordered party summaries and shared inventory ownership; the verified worktree rail showed three class-distinct sprites, health bars, level labels, and centered rolling DPS.
+- Checkout: `/Users/n3kr0/Projects/TBH/.worktrees/heroes-and-party` on `feature/class-actions-and-loot`.
+- Final automated gate: 343 arm64 tests passed with zero failures; clean unsigned arm64 build, context guard, and exact-worktree launch succeeded.
+- Save isolation archived and hashed the active pending save; settings hashes were unchanged and the clean launch remained at class selection.
+- Live clicks and visual QA are not verified because the Mac was locked and computer control could not unlock it.
 
 ## Decisions and Risks
 
@@ -82,3 +90,6 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - Boss 25 rewards and the pending second-class choice are durable before combat pauses; Boss 100 adds the final unique class without pausing.
 - Inventory is party-shared, equipped item IDs are exclusive per hero, and newcomers take the strongest unused weapon and armor.
 - Party combat uses independent hero timers, ascending slot ties, lowest-living targeting, time-alive XP, and per-hero death streaks.
+- Class actions use persisted deterministic cooldown state and active living time; passive rail mode cannot cast.
+- Ordinary loot stacks without a product quantity cap only across the approved descriptor signature; capacity prices and grants remain configuration data.
+- Overflow prevents item loss, equipped and Unique items keep individual identities, and salvage is a checked all-or-nothing transaction.
