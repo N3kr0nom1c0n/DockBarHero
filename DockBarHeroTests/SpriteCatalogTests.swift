@@ -41,6 +41,17 @@ final class SpriteCatalogTests: XCTestCase {
         XCTAssertNotEqual(hero, enemy)
     }
 
+    func testPartyClassSpritesAreDistinct() throws {
+        let catalog = BuiltinSpriteCatalog()
+        let tank = try XCTUnwrap(catalog.pixelData(for: .tank, action: .idle).first)
+        let dps = try XCTUnwrap(catalog.pixelData(for: .dps, action: .idle).first)
+        let healer = try XCTUnwrap(catalog.pixelData(for: .healer, action: .idle).first)
+
+        XCTAssertNotEqual(tank, dps)
+        XCTAssertNotEqual(dps, healer)
+        XCTAssertNotEqual(tank, healer)
+    }
+
     func testTexturesUseNearestFilteringAndStableDimensions() throws {
         let texture = try XCTUnwrap(BuiltinSpriteCatalog().textures(for: .hero, action: .idle).first)
 

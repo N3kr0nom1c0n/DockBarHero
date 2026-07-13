@@ -175,6 +175,39 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertNil(hero.action(forKey: "eventFade"))
         XCTAssertEqual(hero.alpha, 1, accuracy: 0.001)
     }
+
+    func testRailCreatesOrderedNodesAndHealthBarsForEveryPartySlot() throws {
+        let host = try PrototypeSceneHost(size: CGSize(width: 1_140, height: 96))
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        let dps = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        let healer = GameState.newGame(classID: .healer, balance: .standard, progression: .standard).party.heroes[0]
+        state.party = PartyState(heroes: [state.party.heroes[0], dps, healer], unlocks: .complete)
+
+        host.render(.active(GameSimulation(state: state).presentation))
+
+        let first = try XCTUnwrap(host.scene.childNode(withName: "//hero"))
+        let second = try XCTUnwrap(host.scene.childNode(withName: "//hero-1"))
+        let third = try XCTUnwrap(host.scene.childNode(withName: "//hero-2"))
+        XCTAssertLessThan(first.position.x, second.position.x)
+        XCTAssertLessThan(second.position.x, third.position.x)
+        XCTAssertNotNil(host.scene.childNode(withName: "//hero-1HealthFill"))
+        XCTAssertNotNil(host.scene.childNode(withName: "//hero-2Level"))
+    }
+
+    func testSlotAddressedEventsAnimateExactHero() throws {
+        let host = try PrototypeSceneHost()
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        let second = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        state.party = PartyState(heroes: [state.party.heroes[0], second], unlocks: .secondUnlocked)
+        host.render(.active(GameSimulation(state: state).presentation))
+        let first = try XCTUnwrap(host.scene.childNode(withName: "//hero"))
+        let secondNode = try XCTUnwrap(host.scene.childNode(withName: "//hero-1"))
+
+        host.scene.handle([.heroAttack(slot: 1, damage: 12), .heroDown(slot: 1)])
+
+        XCTAssertNil(first.action(forKey: "reviveVisibility"))
+        XCTAssertNotNil(secondNode.action(forKey: "reviveVisibility"))
+    }
 }
 
 @MainActor

@@ -53,7 +53,16 @@ struct GameSimulation {
             encounterDPS: DamageMetrics.encounterAverage(
                 totalDamage: state.encounter.heroDamage,
                 elapsed: state.encounter.activeElapsed
-            )
+            ),
+            heroes: state.party.heroes.indices.map { slot in
+                HeroCombatPresentation(
+                    slot: slot,
+                    attack: (try? combatResolver.effectiveAttack(forHeroAt: slot, in: state))
+                        ?? state.party.heroes[slot].combat.baseAttack,
+                    defense: (try? combatResolver.effectiveDefense(forHeroAt: slot, in: state))
+                        ?? state.party.heroes[slot].combat.baseDefense
+                )
+            }
         )
     }
 

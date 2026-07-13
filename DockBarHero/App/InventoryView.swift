@@ -3,6 +3,7 @@ import SwiftUI
 struct InventoryView: View {
     @ObservedObject var model: AppModel
     @State private var selection: ItemID?
+    @State private var selectedHeroSlot = 0
     @State private var sortOrder = [
         KeyPathComparator(\InventoryRow.creationSequence, order: .reverse),
         KeyPathComparator(\InventoryRow.id.rawValue, order: .reverse),
@@ -19,6 +20,12 @@ struct InventoryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
+                Picker("Hero", selection: $selectedHeroSlot) {
+                    ForEach(Array(model.game.state.party.heroes.enumerated()), id: \.offset) { slot, hero in
+                        Text("Hero \(slot + 1) · \(hero.classID.displayName)").tag(slot)
+                    }
+                }
+                .frame(maxWidth: 220)
                 Toggle("Auto-equip upgrades", isOn: Binding(
                     get: { model.game.state.autoEquipEnabled },
                     set: { model.send(ManagementIntent.autoEquip($0)) }
@@ -26,7 +33,10 @@ struct InventoryView: View {
                 Spacer()
                 Button("Equip", systemImage: "arrow.up.circle") {
                     guard selectedItemIsOwned,
-                          let intent = ManagementIntent.equip(selection) else { return }
+                          let intent = ManagementIntent.equip(
+                              heroSlot: selectedHeroSlot,
+                              selection: selection
+                          ) else { return }
                     model.send(intent)
                 }
                 .disabled(!selectedItemIsOwned)

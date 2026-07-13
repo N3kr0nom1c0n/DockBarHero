@@ -195,4 +195,11 @@ struct GamePresentation: Equatable, Sendable {
     let heroDefense: Int
     let rollingDPS: Double
     let encounterDPS: Double
+    var heroes: [HeroCombatPresentation] = []
+}
+
+struct HeroCombatPresentation: Equatable, Sendable {
+    let slot: Int
+    let attack: Int
+    let defense: Int
 }

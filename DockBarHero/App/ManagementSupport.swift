@@ -7,6 +7,10 @@ enum ManagementIntent {
         selection.map(GameIntent.equip)
     }
 
+    static func equip(heroSlot: Int, selection: ItemID?) -> GameIntent? {
+        selection.map { .equipHero(slot: heroSlot, itemID: $0) }
+    }
+
     static func selectLevel(_ level: Int) -> GameIntent { .selectLevel(level) }
     static var returnToFrontier: GameIntent { .returnToFrontier }
 }
@@ -43,9 +47,14 @@ struct InventoryRow: Identifiable, Equatable {
     let primaryStat: Int
     let creationSequence: UInt64
     let isEquipped: Bool
+    let equippedHeroSlot: Int?
+    let equippedHeroClass: HeroClassID?
 
     var slotName: String { slot.rawValue.capitalized }
-    var equippedLabel: String { isEquipped ? "Yes" : "No" }
+    var equippedLabel: String {
+        guard let equippedHeroSlot, let equippedHeroClass else { return "No" }
+        return "Hero \(equippedHeroSlot + 1) · \(equippedHeroClass.displayName)"
+    }
 
     static func rows(for state: GameState) -> [InventoryRow] {
         state.inventory
@@ -56,13 +65,18 @@ struct InventoryRow: Identifiable, Equatable {
                 return $0.id.rawValue > $1.id.rawValue
             }
             .map { item in
-                InventoryRow(
+                let owner = state.party.heroes.enumerated().first { _, hero in
+                    hero.equipment[item.slot] == item.id
+                }
+                return InventoryRow(
                     id: item.id,
                     slot: item.slot,
                     level: item.level,
                     primaryStat: item.primaryStat,
                     creationSequence: item.creationSequence,
-                    isEquipped: state.equipment[item.slot] == item.id
+                    isEquipped: owner != nil,
+                    equippedHeroSlot: owner?.offset,
+                    equippedHeroClass: owner?.element.classID
                 )
             }
     }
@@ -72,6 +86,16 @@ struct InventoryRow: Identifiable, Equatable {
         using sortOrder: [KeyPathComparator<InventoryRow>]
     ) -> [InventoryRow] {
         rows.sorted(using: sortOrder)
+    }
+}
+
+extension HeroClassID {
+    var displayName: String {
+        switch self {
+        case .tank: "Tank"
+        case .dps: "DPS"
+        case .healer: "Healer"
+        }
     }
 }
 

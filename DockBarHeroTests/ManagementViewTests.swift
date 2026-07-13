@@ -85,4 +85,40 @@ final class ManagementViewTests: XCTestCase {
         XCTAssertEqual(ManagementIntent.equip(itemID), .equip(itemID))
         XCTAssertNil(ManagementIntent.equip(nil))
     }
+
+    func testSelectedHeroCreatesHeroTargetedEquipIntent() {
+        let itemID = ItemID(rawValue: 12)
+
+        XCTAssertEqual(
+            ManagementIntent.equip(heroSlot: 1, selection: itemID),
+            .equipHero(slot: 1, itemID: itemID)
+        )
+        XCTAssertNil(ManagementIntent.equip(heroSlot: 1, selection: nil))
+    }
+
+    func testInventoryRowsIdentifyEquippedHero() {
+        let weapon = Item(id: ItemID(rawValue: 10), level: 2, slot: .weapon, primaryStat: 8, creationSequence: 1)
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        var second = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        second.equipment.weaponID = weapon.id
+        state.party = PartyState(heroes: [state.party.heroes[0], second], unlocks: .secondUnlocked)
+        state.inventory = [weapon]
+
+        let row = InventoryRow.rows(for: state)[0]
+
+        XCTAssertEqual(row.equippedHeroSlot, 1)
+        XCTAssertEqual(row.equippedLabel, "Hero 2 · DPS")
+    }
+
+    func testGamePresentationContainsEffectiveStatsForEveryHero() {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        let second = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        state.party = PartyState(heroes: [state.party.heroes[0], second], unlocks: .secondUnlocked)
+
+        let presentation = GameSimulation(state: state).presentation
+
+        XCTAssertEqual(presentation.heroes.map(\.slot), [0, 1])
+        XCTAssertEqual(presentation.heroes.map(\.attack), [8, 12])
+        XCTAssertEqual(presentation.heroes.map(\.defense), [2, 0])
+    }
 }

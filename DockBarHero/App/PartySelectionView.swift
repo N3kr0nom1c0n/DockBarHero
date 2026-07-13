@@ -51,14 +51,6 @@ struct PartySelectionView: View {
 }
 
 private extension HeroClassID {
-    var displayName: String {
-        switch self {
-        case .tank: "Tank"
-        case .dps: "DPS"
-        case .healer: "Healer"
-        }
-    }
-
     var selectionDetail: String {
         switch self {
         case .tank: "High health and defense"

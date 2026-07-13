@@ -4,6 +4,9 @@ import SpriteKit
 
 enum SpriteToken: Hashable, Sendable {
     case hero
+    case tank
+    case dps
+    case healer
     case enemy
 }
 
