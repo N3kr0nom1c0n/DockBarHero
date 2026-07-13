@@ -28,4 +28,45 @@ final class LootGeneratorTests: XCTestCase {
             XCTAssertTrue(item.affixes.allSatisfy { $0.magnitude > 0 })
         }
     }
+
+    func testUniqueGrantUsesExactAuthoredDefinition() throws {
+        let definition = UniqueItemDefinition(
+            templateID: ItemTemplateID(rawValue: "fixture.quest-blade"),
+            displayName: "Fixture Quest Blade",
+            level: 25,
+            slot: .weapon,
+            primaryStat: 40,
+            affixes: [
+                ItemAffix(id: .haste, magnitude: 500),
+                ItemAffix(id: .might, magnitude: 12),
+            ]
+        )
+        let configuration = LootConfiguration(uniqueDefinitions: [definition])
+
+        let item = try configuration.grantUnique(
+            templateID: definition.templateID,
+            id: ItemID(rawValue: 9),
+            creationSequence: 9
+        )
+
+        XCTAssertEqual(item.uniqueName, definition.displayName)
+        XCTAssertEqual(item.rarity, .unique)
+        XCTAssertTrue(item.isLocked)
+        XCTAssertEqual(item.quantity, 1)
+        XCTAssertNoThrow(try configuration.validate(item))
+
+        let impostor = Item(
+            id: item.id,
+            level: item.level,
+            slot: item.slot,
+            primaryStat: item.primaryStat,
+            creationSequence: item.creationSequence,
+            templateID: item.templateID,
+            rarity: .unique,
+            affixes: item.affixes,
+            isLocked: true,
+            uniqueName: "Impostor"
+        )
+        XCTAssertThrowsError(try configuration.validate(impostor))
+    }
 }

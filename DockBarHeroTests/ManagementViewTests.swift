@@ -147,6 +147,53 @@ final class ManagementViewTests: XCTestCase {
         XCTAssertEqual(row?.quantity, 12)
     }
 
+    func testInventoryQueryFiltersLockEquipmentAndLocation() {
+        var state = GameState.newGame(balance: .standard)
+        var equipped = Item(id: ItemID(rawValue: 1), level: 2, slot: .weapon, primaryStat: 2, creationSequence: 1)
+        equipped.isLocked = true
+        state.inventory = [equipped]
+        state.party.heroes[0].equipment.weaponID = equipped.id
+        state.overflowInventory = [
+            Item(id: ItemID(rawValue: 2), level: 3, slot: .armor, primaryStat: 3, creationSequence: 2),
+        ]
+
+        let rows = InventoryQuery(
+            rarity: nil,
+            slot: nil,
+            upgradeOnly: false,
+            sort: .newest,
+            locked: true,
+            equipped: true,
+            location: .inventory
+        ).apply(to: InventoryRow.rows(for: state))
+
+        XCTAssertEqual(rows.map(\.id), [equipped.id])
+    }
+
+    func testSalvagePreviewReportsExactUnitsStacksAndGold() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.inventory = [
+            Item(id: ItemID(rawValue: 1), level: 10, slot: .weapon, primaryStat: 2, creationSequence: 1, quantity: 3),
+            Item(id: ItemID(rawValue: 2), level: 5, slot: .armor, primaryStat: 2, creationSequence: 2, rarity: .rare, affixes: [
+                ItemAffix(id: .vitality, magnitude: 1),
+                ItemAffix(id: .ward, magnitude: 1),
+            ], quantity: 2),
+        ]
+        let rows = InventoryRow.rows(for: state)
+
+        let preview = try SalvagePreview(
+            selections: [
+                SalvageSelection(location: .inventory, itemID: ItemID(rawValue: 1), quantity: 2),
+                SalvageSelection(location: .inventory, itemID: ItemID(rawValue: 2), quantity: 1),
+            ],
+            rows: rows
+        )
+
+        XCTAssertEqual(preview.units, 3)
+        XCTAssertEqual(preview.entries, 2)
+        XCTAssertEqual(preview.gold, 40)
+    }
+
     func testGamePresentationContainsEffectiveStatsForEveryHero() {
         var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
         let second = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]

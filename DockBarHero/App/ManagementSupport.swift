@@ -69,6 +69,7 @@ struct InventoryRow: Identifiable, Equatable {
     let comparisonLabel: String
     let location: InventoryLocation
     let quantity: UInt64
+    let itemName: String
 
     var slotName: String { slot.rawValue.capitalized }
     var equippedLabel: String {
@@ -119,7 +120,8 @@ struct InventoryRow: Identifiable, Equatable {
                         return "\(marker) · A \(signed($0.deltas.attack)) · D \(signed($0.deltas.defense)) · HP \(signed($0.deltas.maximumHealth)) · \(ManagementFormat.interval($0.deltas.attackInterval))"
                     } ?? "Unavailable",
                     location: location,
-                    quantity: item.quantity
+                    quantity: item.quantity,
+                    itemName: item.uniqueName ?? item.templateID.rawValue
                 )
             }
     }
@@ -157,12 +159,18 @@ struct InventoryQuery: Equatable, Sendable {
     var slot: EquipmentSlot?
     var upgradeOnly: Bool
     var sort: InventorySortOption
+    var locked: Bool? = nil
+    var equipped: Bool? = nil
+    var location: InventoryLocation? = nil
 
     func apply(to rows: [InventoryRow]) -> [InventoryRow] {
         rows.filter { row in
             (rarity == nil || row.rarity == rarity) &&
                 (slot == nil || row.slot == slot) &&
-                (!upgradeOnly || row.comparisonLabel.hasPrefix("Upgrade"))
+                (!upgradeOnly || row.comparisonLabel.hasPrefix("Upgrade")) &&
+                (locked == nil || row.isLocked == locked) &&
+                (equipped == nil || row.isEquipped == equipped) &&
+                (location == nil || row.location == location)
         }.sorted { lhs, rhs in
             switch sort {
             case .newest:
@@ -180,6 +188,46 @@ struct InventoryQuery: Equatable, Sendable {
             }
             return lhs.id.rawValue > rhs.id.rawValue
         }
+    }
+}
+
+struct SalvagePreview: Equatable, Sendable {
+    let units: UInt64
+    let entries: Int
+    let gold: Int64
+
+    init(
+        selections: [SalvageSelection],
+        rows: [InventoryRow],
+        configuration: InventoryConfiguration = .standard
+    ) throws {
+        guard !selections.isEmpty else { throw SimulationError.invalidState }
+        var units: UInt64 = 0
+        var gold: Int64 = 0
+        for selection in selections {
+            guard let row = rows.first(where: {
+                $0.id == selection.itemID && $0.location == selection.location
+            }), row.isSalvageable, selection.quantity > 0,
+                  selection.quantity <= row.quantity,
+                  selection.quantity <= UInt64(Int64.max) else {
+                throw SimulationError.invalidState
+            }
+            let multiplier = try configuration.salvageMultiplier(for: row.rarity)
+            let (unitGold, levelOverflow) = Int64(row.level).multipliedReportingOverflow(by: multiplier)
+            let (selectionGold, valueOverflow) = unitGold.multipliedReportingOverflow(
+                by: Int64(selection.quantity)
+            )
+            let (nextGold, goldOverflow) = gold.addingReportingOverflow(selectionGold)
+            let (nextUnits, quantityOverflow) = units.addingReportingOverflow(selection.quantity)
+            guard !levelOverflow, !valueOverflow, !goldOverflow, !quantityOverflow else {
+                throw SimulationError.arithmeticOverflow
+            }
+            gold = nextGold
+            units = nextUnits
+        }
+        self.units = units
+        self.entries = selections.count
+        self.gold = gold
     }
 }
 

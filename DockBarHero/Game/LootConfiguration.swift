@@ -3,8 +3,50 @@ struct RarityWeight: Equatable, Sendable {
     let weight: UInt64
 }
 
+struct UniqueItemDefinition: Equatable, Sendable {
+    let templateID: ItemTemplateID
+    let displayName: String
+    let level: Int
+    let slot: EquipmentSlot
+    let primaryStat: Int
+    let affixes: [ItemAffix]
+}
+
 struct LootConfiguration: Sendable {
     static let standard = LootConfiguration()
+
+    let uniqueDefinitions: [UniqueItemDefinition]
+
+    init(uniqueDefinitions: [UniqueItemDefinition] = []) {
+        self.uniqueDefinitions = uniqueDefinitions
+    }
+
+    func grantUnique(
+        templateID: ItemTemplateID,
+        id: ItemID,
+        creationSequence: UInt64
+    ) throws -> Item {
+        let matches = uniqueDefinitions.filter { $0.templateID == templateID }
+        guard matches.count == 1, let definition = matches.first,
+              id.rawValue > 0, creationSequence > 0 else {
+            throw SimulationError.invalidState
+        }
+        let item = Item(
+            id: id,
+            level: definition.level,
+            slot: definition.slot,
+            primaryStat: definition.primaryStat,
+            creationSequence: creationSequence,
+            templateID: definition.templateID,
+            rarity: .unique,
+            affixes: definition.affixes,
+            isLocked: true,
+            uniqueName: definition.displayName,
+            quantity: 1
+        )
+        try validate(item)
+        return item
+    }
 
     func affixCount(for rarity: ItemRarity) -> Int {
         switch rarity {
@@ -69,7 +111,15 @@ struct LootConfiguration: Sendable {
             throw SimulationError.invalidState
         }
         if item.rarity == .unique {
-            guard item.isLocked, item.uniqueName?.isEmpty == false else {
+            let matches = uniqueDefinitions.filter { $0.templateID == item.templateID }
+            guard matches.count == 1, let definition = matches.first,
+                  item.isLocked,
+                  item.quantity == 1,
+                  item.uniqueName == definition.displayName,
+                  item.level == definition.level,
+                  item.slot == definition.slot,
+                  item.primaryStat == definition.primaryStat,
+                  item.affixes == definition.affixes else {
                 throw SimulationError.invalidState
             }
         } else {

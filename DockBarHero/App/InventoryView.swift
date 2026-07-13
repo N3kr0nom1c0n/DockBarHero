@@ -8,6 +8,9 @@ struct InventoryView: View {
     @State private var slotFilter: EquipmentSlot?
     @State private var upgradeOnly = false
     @State private var sortOption = InventorySortOption.newest
+    @State private var lockedFilter: Bool?
+    @State private var equippedFilter: Bool?
+    @State private var locationFilter: InventoryLocation?
     @State private var operationQuantity: UInt64 = 1
     @State private var pendingSalvage: [SalvageSelection] = []
     @State private var showingSalvageConfirmation = false
@@ -17,7 +20,10 @@ struct InventoryView: View {
             rarity: rarityFilter,
             slot: slotFilter,
             upgradeOnly: upgradeOnly,
-            sort: sortOption
+            sort: sortOption,
+            locked: lockedFilter,
+            equipped: equippedFilter,
+            location: locationFilter
         ).apply(to: InventoryRow.rows(for: model.game.state, heroSlot: selectedHeroSlot))
     }
 
@@ -34,6 +40,13 @@ struct InventoryView: View {
         guard capacity < InventoryConfiguration.standard.maximumCapacity else { return nil }
         return try? InventoryConfiguration.standard.purchasePrice(
             after: model.game.state.inventoryExpansionPurchases
+        )
+    }
+
+    private var salvagePreview: SalvagePreview? {
+        try? SalvagePreview(
+            selections: pendingSalvage,
+            rows: InventoryRow.rows(for: model.game.state, heroSlot: selectedHeroSlot)
         )
     }
 
@@ -55,7 +68,9 @@ struct InventoryView: View {
                 selection = nil
             }
         } message: {
-            Text("This permanently removes \(pendingSalvage.reduce(UInt64(0)) { $0 + $1.quantity }) item(s) and grants gold.")
+            if let salvagePreview {
+                Text("Permanently remove \(salvagePreview.units) item(s) from \(salvagePreview.entries) stack(s) for exactly \(salvagePreview.gold) gold.")
+            }
         }
     }
 
@@ -84,39 +99,67 @@ struct InventoryView: View {
     }
 
     private var heroAndFilterControls: some View {
-        HStack {
-            Picker("Hero", selection: $selectedHeroSlot) {
-                ForEach(Array(model.game.state.party.heroes.enumerated()), id: \.offset) { slot, hero in
-                    Text("Hero \(slot + 1) · \(hero.classID.displayName)").tag(slot)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Picker("Hero", selection: $selectedHeroSlot) {
+                    ForEach(Array(model.game.state.party.heroes.enumerated()), id: \.offset) { slot, hero in
+                        Text("Hero \(slot + 1) · \(hero.classID.displayName)").tag(slot)
+                    }
                 }
-            }
-            .frame(maxWidth: 210)
-            Picker("Rarity", selection: $rarityFilter) {
-                Text("All rarities").tag(nil as ItemRarity?)
-                ForEach(ItemRarity.allCases, id: \.rawValue) { rarity in
-                    Text(rarity.rawValue.capitalized).tag(rarity as ItemRarity?)
+                .frame(maxWidth: 210)
+                Picker("Rarity", selection: $rarityFilter) {
+                    Text("All rarities").tag(nil as ItemRarity?)
+                    ForEach(ItemRarity.allCases, id: \.rawValue) { rarity in
+                        Text(rarity.rawValue.capitalized).tag(rarity as ItemRarity?)
+                    }
                 }
-            }
-            .frame(maxWidth: 155)
-            Picker("Slot", selection: $slotFilter) {
-                Text("All slots").tag(nil as EquipmentSlot?)
-                ForEach(EquipmentSlot.allCases, id: \.rawValue) { slot in
-                    Text(slot.rawValue.capitalized).tag(slot as EquipmentSlot?)
+                .frame(maxWidth: 155)
+                Picker("Slot", selection: $slotFilter) {
+                    Text("All slots").tag(nil as EquipmentSlot?)
+                    ForEach(EquipmentSlot.allCases, id: \.rawValue) { slot in
+                        Text(slot.rawValue.capitalized).tag(slot as EquipmentSlot?)
+                    }
                 }
-            }
-            .frame(maxWidth: 140)
-            Picker("Sort", selection: $sortOption) {
-                ForEach(InventorySortOption.allCases, id: \.rawValue) { option in
-                    Text(option.label).tag(option)
+                .frame(maxWidth: 140)
+                Picker("Sort", selection: $sortOption) {
+                    ForEach(InventorySortOption.allCases, id: \.rawValue) { option in
+                        Text(option.label).tag(option)
+                    }
                 }
+                .frame(maxWidth: 145)
+                Toggle("Upgrades only", isOn: $upgradeOnly)
+                Toggle("Auto-equip", isOn: Binding(
+                    get: { model.game.state.autoEquipEnabled },
+                    set: { model.send(ManagementIntent.autoEquip($0)) }
+                ))
             }
-            .frame(maxWidth: 145)
-            Toggle("Upgrades only", isOn: $upgradeOnly)
-            Toggle("Auto-equip", isOn: Binding(
-                get: { model.game.state.autoEquipEnabled },
-                set: { model.send(ManagementIntent.autoEquip($0)) }
-            ))
+            HStack {
+                triStatePicker("Lock", all: "Any lock", trueLabel: "Locked", falseLabel: "Unlocked", selection: $lockedFilter)
+                triStatePicker("Equipment", all: "Any equipment", trueLabel: "Equipped", falseLabel: "Unequipped", selection: $equippedFilter)
+                Picker("Location", selection: $locationFilter) {
+                    Text("All locations").tag(nil as InventoryLocation?)
+                    Text("Inventory").tag(InventoryLocation.inventory as InventoryLocation?)
+                    Text("Overflow").tag(InventoryLocation.overflow as InventoryLocation?)
+                }
+                .frame(maxWidth: 180)
+                Spacer()
+            }
         }
+    }
+
+    private func triStatePicker(
+        _ title: String,
+        all: String,
+        trueLabel: String,
+        falseLabel: String,
+        selection: Binding<Bool?>
+    ) -> some View {
+        Picker(title, selection: selection) {
+            Text(all).tag(nil as Bool?)
+            Text(trueLabel).tag(true as Bool?)
+            Text(falseLabel).tag(false as Bool?)
+        }
+        .frame(maxWidth: 180)
     }
 
     private var operationControls: some View {
@@ -189,15 +232,27 @@ struct InventoryView: View {
         Table(rows, selection: $selection) {
             TableColumn("Location", value: \.locationName)
             TableColumn("Qty") { Text("\($0.quantity)") }
+            TableColumn("Item", value: \.itemName)
             TableColumn("Slot", value: \.slotName)
-            TableColumn("Level") { Text(ManagementFormat.itemLevel($0.level)) }
-            TableColumn("Rarity", value: \.rarityName)
-            TableColumn("Stat") { Text("\($0.primaryStat)") }
+            TableColumn("Level · Stat") { Text("Lv. \($0.level) · \($0.primaryStat)") }
+            TableColumn("Rarity") { row in
+                Text(row.rarityName).foregroundStyle(rarityColor(row.rarity))
+            }
             TableColumn("Affixes", value: \.affixLabel)
             TableColumn("Comparison", value: \.comparisonLabel)
             TableColumn("Equipped", value: \.equippedLabel)
             TableColumn("Locked") { Text($0.isLocked ? "Yes" : "No") }
         }
         .accessibilityIdentifier("inventory-table")
+    }
+
+    private func rarityColor(_ rarity: ItemRarity) -> Color {
+        switch rarity {
+        case .common: .secondary
+        case .uncommon: .green
+        case .rare: .blue
+        case .epic: .purple
+        case .unique: .orange
+        }
     }
 }
