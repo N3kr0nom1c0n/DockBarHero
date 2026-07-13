@@ -1,6 +1,6 @@
 # DockBarHero Class Actions Design
 
-**Status:** Approved in conversation; written-spec review pending
+**Status:** Approved
 
 **Date:** 2026-07-12
 
@@ -29,7 +29,7 @@ A pure `AbilityResolver` validates and resolves manual action intents against pa
 
 New runs and newly unlocked heroes start with their action ready. A successful cast sets the definition's full cooldown. Cooldowns carry across encounter boundaries and advance only during active combat time using checked `SimulationDuration` integer nanoseconds.
 
-A downed hero's cooldown freezes. Cooldowns also freeze during class selection, the Boss 25 party-choice boundary, completed-encounter transitions, revival, paused settings, and application downtime. Victory and defeat do not reset cooldowns. Completed revival restores health and attack timers but leaves action cooldowns unchanged.
+A downed hero's cooldown freezes. Cooldowns also freeze during class selection, the Boss 25 party-choice boundary, completed-encounter transitions, revival, and application downtime. The overlay animation preference remains presentation-only and does not pause gameplay. Victory and defeat do not reset cooldowns. Completed revival restores health and attack timers but leaves action cooldowns unchanged.
 
 Partitioned and unpartitioned advances must produce identical cooldown state and action ordering.
 
@@ -89,7 +89,7 @@ Partial cooldowns and an active Guard round-trip through primary and backup save
 
 ## 7. Presentation
 
-The Abilities route becomes a party-ordered Class Actions page. Each hero card shows class, action name, concise effect description, cooldown state, and a Cast button. A disabled button exposes a specific visible reason: paused, down, cooldown remaining, no valid target, or action already active. Accessibility identifiers address the party slot and stable action ID.
+The Abilities route becomes a party-ordered Class Actions page. Each hero card shows class, action name, concise effect description, cooldown state, and a Cast button. A disabled button exposes a specific visible reason: encounter inactive, down, cooldown remaining, no valid target, or action already active. Accessibility identifiers address the party slot and stable action ID.
 
 The desktop rail displays one compact class-distinct action control adjacent to each hero. Cooldown progress remains visible in both passive and interactive modes, but controls accept input only while the existing overlay is explicitly interactive. Passive mode remains click-through and does not create hit targets. Adding controls must not change overlay placement, focus, fullscreen suppression, or application preference behavior.
 
