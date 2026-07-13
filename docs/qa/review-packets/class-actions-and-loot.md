@@ -36,14 +36,31 @@
 
 ## Exact-Bundle and Live QA
 
-- `./script/build_and_run.sh --verify` regenerated the project, built successfully, and launched PID 37995 from `.worktrees/heroes-and-party/.build/RunDerivedData/Build/Products/Debug/DockBarHero.app`.
-- The clean launch remained at class selection and did not create a gameplay save before a class choice.
-- The Mac was locked when computer control attached. The runtime explicitly reported that automatic unlock could not unlock it, so no class choice, cast, inventory click, confirmation, or visual claim is recorded.
-- Required live three-class casts, cooldown carryover/relaunch, rarity/affix inspection, lock/relaunch, capacity purchase, overflow recovery, partial/bulk salvage, and rail visual confirmation remain open. Automated coverage is not presented as visual evidence.
+- App-name targeting initially launched a stale registered DockBarHero bundle beside the candidate. All DockBarHero processes were terminated, `./script/build_and_run.sh --verify` rebuilt the candidate, and every later check used the absolute worktree bundle path. Process inspection then showed one DockBarHero executable, from `.worktrees/heroes-and-party/.build/RunDerivedData/Build/Products/Debug/DockBarHero.app`.
+- The clean run selected DPS first, chose Tank at the durable Boss 25 pause, and received Healer automatically at Boss 100 without another pause. The saved party had three exclusive equipment pairs and the newcomer began at the current highest hero level with zero XP.
+- DPS Power Strike and Tank Guard were cast from the interactive rail. Healer Mend was cast from management after damage was present. Each action visibly entered cooldown.
+- Passive mode rejected rail casts; Interactive mode accepted them. Power Strike was cast and the app was terminated immediately with `5,893,251,459` ns remaining on disk; relaunch displayed `PS 5.6`, confirming cooldown did not consume offline time. The temporary preference was returned to Passive after QA while overlay visibility and animations remained enabled.
+- The clean run naturally produced Common, Uncommon, Rare, and Epic items. Every inspected non-Common row had canonical affixes, and the management table visibly showed rarity color, affix text, comparison results, auto-equip, capacity, and overflow. Auto-equip remained enabled and the six equipped IDs were distinct.
+- Four provisional 10-slot expansions were purchased to continue the run. The second purchase visibly cost exactly 1,000 gold; the later 8,000-gold next-price presentation matched the approved doubling schedule.
+- Capacity pressure routed nonmatching drops to overflow. Moving one stack back changed inventory from 44 to 45 stacks and overflow from 12 to 11. Ordinary identical items naturally stacked above 100 quantity; the saved run later contained a 254-item stack.
+- Partial salvage confirmed exactly 1 item for 74 gold, reduced the selected stack from 104 to 103, and raised gold from 603,787 to 603,861. Bulk salvage confirmed exactly 1,030 items from 357 stacks for 100,810 gold and changed inventory from 70 to 7 stacks and overflow from 298 to 12.
+- A common armor stack was locked and remained locked after relaunch. The final live save retained one locked stack, four expansion purchases, finite 110-stack capacity, durable overflow, and auto-equip enabled.
+- The rail window showed three class-distinct pixel silhouettes, three health bars and action labels, one enemy, and the centered DPS scale. This exact-window evidence replaced the stale rectangle-era bundle image.
+- Live play exercised deterministic remedial farming twice: a Boss 75 loss retreated to level 49, and a later frontier-84 loss retreated to level 74. Player-directed progress resumed from those farming destinations and subsequently cleared the blocked bosses.
+- Native computer-control transport failed after the live session had started, so remaining clicks used macOS Accessibility and exact-window captures. No locked-screen or inferred visual result is presented as evidence.
+
+## Rendering Correction Found During QA
+
+- Live QA exposed a real candidate-build defect: a hero defeated during a party victory could remain invisible even though party state restored every hero.
+- A regression test first failed because two defeated party slots retained zero alpha after `.victory`. The minimal fix restores every rendered hero's idle texture and visibility when victory resolves.
+- Fresh focused verification passed all 15 `PrototypeSceneHostTests`, including `testVictoryRestoresEveryDefeatedPartySprite`, with zero failures; `** TEST SUCCEEDED **`.
 
 ## Final Gates
 
-- The clean unsigned arm64 build reported both `** CLEAN SUCCEEDED **` and `** BUILD SUCCEEDED **` using `.build/ClassActionsLootBuildFinal`.
+- The final post-QA arm64 suite executed 344 tests with zero failures or unexpected results; `** TEST SUCCEEDED **` using `.build/ClassActionsLootFinalQA2`.
+- `xcodebuild clean build` completed successfully for the unsigned arm64 target and reported `** BUILD SUCCEEDED **` using `.build/ClassActionsLootBuildFinalQA2`.
 - The project context guard reported `project context is valid`; `AGENTS.md` is 28 lines and `PROJECT.md` remains below 150 lines.
-- `git diff --check` was clean before documentation.
-- The branch is not merged or released. Push is withheld because the required live click gate could not run while macOS was locked.
+- `./script/build_and_run.sh --verify` rebuilt and launched PID 98411. Process inspection found exactly one DockBarHero executable, at the absolute worktree bundle path.
+- A final exact-window capture from that process showed all three pixel heroes, their action labels and health bars, the enemy, and the centered DPS scale. Both settings files still matched the original SHA-256 `1bd458308cf46a91b10dfe45093bf41993bdd24477626ca80278cf6e981a61a9`.
+- `git diff --check` was clean before the documentation commit.
+- The branch is not merged or released. Authored Unique reward content and Class Action modifiers remain excluded.

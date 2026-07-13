@@ -6,10 +6,10 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Current Milestone
 
-- Goal: verify Class Actions and the two-slice Loot Expansion without merging to `main` or starting authored quest rewards.
-- Current checkpoint: Class Actions, Item Depth, and Inventory Operations are implemented in verified vertical slices on `feature/class-actions-and-loot`.
+- Goal: complete Class Actions and the two-slice Loot Expansion without merging to `main` or starting authored quest rewards.
+- Current checkpoint: Class Actions, Item Depth, Inventory Operations, and the live QA rendering correction are implemented in verified vertical slices on `feature/class-actions-and-loot`.
 - Integration: the owner lifted the internal hold and the feature branch was fast-forwarded and pushed to `main` on 2026-07-12.
-- Remaining: unlock the Mac and complete the required live clicks/visual QA; push remains gated on that evidence and this is not release-ready.
+- Remaining: commit the verified QA record and push only the feature branch; this is not release-ready.
 
 ## Architecture
 
@@ -38,7 +38,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - docs/superpowers/plans/2026-07-12-dockbarhero-class-actions.md: executable Class Actions plan.
 - docs/superpowers/plans/2026-07-12-dockbarhero-item-depth.md: executable Item Depth plan.
 - docs/superpowers/plans/2026-07-12-dockbarhero-inventory-operations.md: executable Inventory Operations plan.
-- docs/qa/review-packets/class-actions-and-loot.md: current automated, isolation, launch, and blocked-live-QA evidence.
+- docs/qa/review-packets/class-actions-and-loot.md: current automated, isolation, launch, and completed live-QA evidence.
 - docs/qa/review-packets/heroes-and-party.md: focused, integrated, save-isolation, and live-QA evidence.
 - docs/qa/review-packets/progression-safety.md: current automated evidence, manual QA list, and integration hold.
 - .superpowers/sdd/progress.md: detailed task and gate ledger.
@@ -62,16 +62,18 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 ## Active Work
 
 - Parent orchestrator: preserve `feature/class-actions-and-loot` without merging or releasing.
-- Live QA is blocked only by the locked macOS session; automated and exact-bundle launch gates passed.
+- Live QA passed for unlocks, three-class actions, cooldown relaunch, rarity/affixes, auto-equip, capacity/overflow, partial and bulk salvage, locking, remedial farming, pixel sprites, and the DPS scale.
+- Final push remains gated on the verified QA documentation commit and clean worktree.
 - Authored quest/boss content that grants specific Unique items remains a later milestone.
 
 ## Last Verified State
 
-- Date: 2026-07-12.
+- Date: 2026-07-13.
 - Checkout: `/Users/n3kr0/Projects/TBH/.worktrees/heroes-and-party` on `feature/class-actions-and-loot`.
-- Final automated gate: 343 arm64 tests passed with zero failures; clean unsigned arm64 build, context guard, and exact-worktree launch succeeded.
-- Save isolation archived and hashed the active pending save; settings hashes were unchanged and the clean launch remained at class selection.
-- Live clicks and visual QA are not verified because the Mac was locked and computer control could not unlock it.
+- Final post-QA gate: 344 arm64 tests passed with zero failures; clean unsigned arm64 build, context guard, and exact-worktree launch succeeded.
+- Save isolation retained both diagnostic archives and the clean end-to-end save. Primary and backup settings were restored byte-identically to their pre-QA hash.
+- Exact-window QA showed three class-distinct pixel sprites and the centered DPS scale. A stale same-bundle-ID app caused the earlier duplicate process and rectangle-era image; absolute worktree-bundle targeting removed that ambiguity.
+- Victory now restores every defeated party sprite; the regression passed all 15 focused rendering tests before the full suite.
 
 ## Decisions and Risks
 
