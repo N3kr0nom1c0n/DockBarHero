@@ -115,19 +115,29 @@ struct GameSimulation {
         while true {
             switch state.encounter.phase {
             case .active:
-                let step = min(remaining, state.hero.timeUntilNextAttack, state.enemy.timeUntilNextAttack)
+                guard let nextHeroAction = state.party.heroes
+                    .filter({ $0.combat.currentHealth > 0 })
+                    .map({ $0.combat.timeUntilNextAttack })
+                    .min() else {
+                    throw SimulationError.invalidState
+                }
+                let step = min(remaining, nextHeroAction, state.enemy.timeUntilNextAttack)
                 if step > .zero {
                     try consumeActiveTime(step)
                     remaining = try subtracting(step, from: remaining)
                 }
 
-                let heroReady = state.hero.timeUntilNextAttack == .zero
+                let readyHeroSlots = state.party.heroes.indices.filter {
+                    state.party.heroes[$0].combat.currentHealth > 0 &&
+                    state.party.heroes[$0].combat.timeUntilNextAttack == .zero
+                }
                 let enemyReady = state.enemy.timeUntilNextAttack == .zero
-                guard heroReady || enemyReady else { return events }
+                guard !readyHeroSlots.isEmpty || enemyReady else { return events }
 
                 var heroWon = false
-                if heroReady {
-                    heroWon = try resolveHeroAction(into: &events)
+                for slot in readyHeroSlots {
+                    heroWon = try resolveHeroAction(slot: slot, into: &events)
+                    if heroWon { break }
                 }
 
                 if enemyReady, !heroWon, state.encounter.phase == .active {
@@ -155,7 +165,9 @@ struct GameSimulation {
 
             if remaining == .zero {
                 let hasReadyActor = state.encounter.phase == .active &&
-                    (state.hero.timeUntilNextAttack == .zero || state.enemy.timeUntilNextAttack == .zero)
+                    (state.party.heroes.contains(where: {
+                        $0.combat.currentHealth > 0 && $0.combat.timeUntilNextAttack == .zero
+                    }) || state.enemy.timeUntilNextAttack == .zero)
                 let reviveIsDue = state.encounter.phase == .reviving && state.encounter.reviveRemaining == .zero
                 if !hasReadyActor && !reviveIsDue {
                     return events
@@ -164,19 +176,26 @@ struct GameSimulation {
         }
     }
 
-    private mutating func resolveHeroAction(into events: inout [GameEvent]) throws -> Bool {
+    private mutating func resolveHeroAction(slot: Int, into events: inout [GameEvent]) throws -> Bool {
         switch policy.action(for: .hero, in: state) {
         case .basicAttack:
-            let damage = try combatResolver.damage(attacker: .hero, defender: .enemy, in: state)
+            let attack = try combatResolver.effectiveAttack(forHeroAt: slot, in: state)
+            let (difference, overflow) = attack.subtractingReportingOverflow(state.enemy.baseDefense)
+            guard !overflow else { throw SimulationError.arithmeticOverflow }
+            let damage = max(1, difference)
             let enemyHealth = try combatResolver.health(afterTaking: damage, from: state.enemy.currentHealth)
             let (actualDamage, damageOverflow) = state.enemy.currentHealth.subtractingReportingOverflow(enemyHealth)
             guard !damageOverflow else { throw SimulationError.arithmeticOverflow }
             let heroDamage = try adding(actualDamage, to: state.encounter.heroDamage)
             state.enemy.currentHealth = enemyHealth
-            state.hero.timeUntilNextAttack = state.hero.attackInterval
+            state.party.heroes[slot].combat.timeUntilNextAttack = state.party.heroes[slot].combat.attackInterval
             state.encounter.heroDamage = heroDamage
             damageMetrics.record(damage: actualDamage, at: simulationTime)
-            events.append(.attack(attacker: .hero, defender: .enemy, damage: damage))
+            if state.party.heroes.count == 1 {
+                events.append(.attack(attacker: .hero, defender: .enemy, damage: damage))
+            } else {
+                events.append(.heroAttack(slot: slot, damage: damage))
+            }
 
             guard state.enemy.currentHealth == 0 else { return false }
             let defeatedLevel = state.encounter.enemyLevel
@@ -213,13 +232,32 @@ struct GameSimulation {
     private mutating func resolveEnemyAction(into events: inout [GameEvent]) throws {
         switch policy.action(for: .enemy, in: state) {
         case .basicAttack:
-            let damage = try combatResolver.damage(attacker: .enemy, defender: .hero, in: state)
-            let heroHealth = try combatResolver.health(afterTaking: damage, from: state.hero.currentHealth)
-            state.hero.currentHealth = heroHealth
+            guard let targetSlot = state.party.heroes.firstIndex(where: { $0.combat.currentHealth > 0 }) else {
+                throw SimulationError.invalidState
+            }
+            let damage = try combatResolver.enemyDamage(
+                targetingHeroAt: targetSlot,
+                in: state,
+                tier: state.encounter.tier
+            )
+            let heroHealth = try combatResolver.health(
+                afterTaking: damage,
+                from: state.party.heroes[targetSlot].combat.currentHealth
+            )
+            state.party.heroes[targetSlot].combat.currentHealth = heroHealth
             state.enemy.timeUntilNextAttack = state.enemy.attackInterval
-            events.append(.attack(attacker: .enemy, defender: .hero, damage: damage))
+            if state.party.heroes.count == 1 {
+                events.append(.attack(attacker: .enemy, defender: .hero, damage: damage))
+            } else {
+                events.append(.enemyAttack(targetSlot: targetSlot, damage: damage))
+            }
 
-            guard state.hero.currentHealth == 0 else { return }
+            guard heroHealth == 0 else { return }
+            state.party.heroes[targetSlot].wasDownThisEncounter = true
+            if state.party.heroes.count > 1 {
+                events.append(.heroDown(slot: targetSlot))
+            }
+            guard !state.party.heroes.contains(where: { $0.combat.currentHealth > 0 }) else { return }
             let enemyLevel = state.encounter.enemyLevel
             events.append(.defeat(enemyLevel: enemyLevel))
             state = try encounterDirector.beginDefeat(in: state, balance: balance)
@@ -228,7 +266,16 @@ struct GameSimulation {
     }
 
     private mutating func consumeActiveTime(_ elapsed: SimulationDuration) throws {
-        state.hero.timeUntilNextAttack = try subtracting(elapsed, from: state.hero.timeUntilNextAttack)
+        for slot in state.party.heroes.indices where state.party.heroes[slot].combat.currentHealth > 0 {
+            state.party.heroes[slot].combat.timeUntilNextAttack = try subtracting(
+                elapsed,
+                from: state.party.heroes[slot].combat.timeUntilNextAttack
+            )
+            state.party.heroes[slot].encounterAliveDuration = try adding(
+                elapsed,
+                to: state.party.heroes[slot].encounterAliveDuration
+            )
+        }
         state.enemy.timeUntilNextAttack = try subtracting(elapsed, from: state.enemy.timeUntilNextAttack)
         state.encounter.activeElapsed = try adding(elapsed, to: state.encounter.activeElapsed)
         simulationTime = try adding(elapsed, to: simulationTime)
@@ -236,7 +283,8 @@ struct GameSimulation {
 
     private func validateStateAndBalance() throws {
         try validateBalance()
-        guard state.party.heroes.count == 1 else {
+        guard (1...3).contains(state.party.heroes.count),
+              Set(state.party.heroes.map(\.classID)).count == state.party.heroes.count else {
             throw SimulationError.invalidState
         }
         guard state.campaign.highestUnlockedLevel >= 1,
@@ -252,7 +300,9 @@ struct GameSimulation {
               }) ?? true else {
             throw SimulationError.invalidState
         }
-        try validateCombatant(state.hero, expectedID: .hero)
+        for hero in state.party.heroes {
+            try validateCombatant(hero.combat, expectedID: .hero)
+        }
         try validateCombatant(state.enemy, expectedID: .enemy)
 
         guard state.encounter.enemyLevel >= 1,
@@ -262,13 +312,13 @@ struct GameSimulation {
 
         switch state.encounter.phase {
         case .active:
-            guard state.hero.currentHealth > 0,
+            guard state.party.heroes.contains(where: { $0.combat.currentHealth > 0 }),
                   state.enemy.currentHealth > 0,
                   state.encounter.reviveRemaining == .zero else {
                 throw SimulationError.invalidState
             }
         case .reviving:
-            guard state.hero.currentHealth == 0,
+            guard state.party.heroes.allSatisfy({ $0.combat.currentHealth == 0 }),
                   state.enemy.currentHealth > 0,
                   state.encounter.reviveRemaining <= balance.reviveDelay else {
                 throw SimulationError.invalidState
@@ -281,8 +331,10 @@ struct GameSimulation {
             }
         }
 
-        _ = try combatResolver.effectiveAttack(for: .hero, in: state)
-        _ = try combatResolver.effectiveDefense(for: .hero, in: state)
+        for slot in state.party.heroes.indices {
+            _ = try combatResolver.effectiveAttack(forHeroAt: slot, in: state)
+            _ = try combatResolver.effectiveDefense(forHeroAt: slot, in: state)
+        }
         try validateEnemyScaling()
         try validateTimerState()
     }
@@ -331,15 +383,13 @@ struct GameSimulation {
 
     private func validateTimerState() throws {
         let attackIntervals = [
-            state.hero.attackInterval,
             state.enemy.attackInterval,
             balance.heroAttackInterval,
             balance.enemyAttackInterval
-        ]
+        ] + state.party.heroes.map(\.combat.attackInterval)
         let countdowns = [
-            state.hero.timeUntilNextAttack,
             state.enemy.timeUntilNextAttack
-        ]
+        ] + state.party.heroes.map(\.combat.timeUntilNextAttack)
 
         guard attackIntervals.allSatisfy({ $0 >= .minimumAttackInterval }),
               countdowns.allSatisfy({ $0 >= .zero }),

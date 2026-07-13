@@ -169,6 +169,9 @@ enum GameIntent: Equatable, Sendable {
 
 enum GameEvent: Equatable, Sendable {
     case attack(attacker: CombatantID, defender: CombatantID, damage: Int)
+    case heroAttack(slot: Int, damage: Int)
+    case enemyAttack(targetSlot: Int, damage: Int)
+    case heroDown(slot: Int)
     case victory(defeatedLevel: Int)
     case defeat(enemyLevel: Int)
     case revived(enemyLevel: Int)

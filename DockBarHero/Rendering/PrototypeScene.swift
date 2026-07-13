@@ -97,6 +97,8 @@ final class PrototypeScene: SKScene {
                 playSpriteAction(attacker == .hero ? .hero : .enemy, action: .attack)
                 playSpriteAction(defender == .hero ? .hero : .enemy, action: .hit)
                 showHit(at: position(of: defender))
+            case .heroAttack, .enemyAttack, .heroDown:
+                break
             case .victory:
                 playSpriteAction(.enemy, action: .defeated)
                 animateBriefFade(nodeNamed: "enemy")

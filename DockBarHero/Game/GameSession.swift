@@ -327,7 +327,7 @@ final class GameSession: GameSessionControlling {
              .autoEquipChanged, .destinationQueued, .farmingStarted, .returnedToFrontier,
              .partyUnlockPending:
             return true
-        case .attack, .defeat, .revived:
+        case .attack, .heroAttack, .enemyAttack, .heroDown, .defeat, .revived:
             return false
         }
     }

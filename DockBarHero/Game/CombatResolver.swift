@@ -15,7 +15,7 @@ struct CombatResolver: Sendable {
 
     func effectiveAttack(forHeroAt index: Int, in state: GameState) throws -> Int {
         let hero = try validatedHero(at: index, in: state)
-        let weapon = try equippedItem(in: .weapon, state: state)
+        let weapon = try equippedItem(in: .weapon, heroIndex: index, state: state)
         let rawAttack = try addingEffectiveStat(weapon?.primaryStat ?? 0, to: hero.combat.baseAttack)
         return try scaledStat(
             raw: rawAttack,
@@ -28,7 +28,7 @@ struct CombatResolver: Sendable {
 
     func effectiveDefense(forHeroAt index: Int, in state: GameState) throws -> Int {
         let hero = try validatedHero(at: index, in: state)
-        let armor = try equippedItem(in: .armor, state: state)
+        let armor = try equippedItem(in: .armor, heroIndex: index, state: state)
         let rawDefense = try addingEffectiveStat(armor?.primaryStat ?? 0, to: hero.combat.baseDefense)
         return try scaledStat(
             raw: rawDefense,
@@ -51,7 +51,11 @@ struct CombatResolver: Sendable {
     }
 
     func enemyDamage(in state: GameState, tier: EnemyTierID) throws -> Int {
-        let defense = try effectiveDefense(forHeroAt: 0, in: state)
+        try enemyDamage(targetingHeroAt: 0, in: state, tier: tier)
+    }
+
+    func enemyDamage(targetingHeroAt index: Int, in state: GameState, tier: EnemyTierID) throws -> Int {
+        let defense = try effectiveDefense(forHeroAt: index, in: state)
         let (difference, overflow) = state.enemy.baseAttack.subtractingReportingOverflow(defense)
         guard !overflow else { throw SimulationError.arithmeticOverflow }
         let baseline = max(1, difference)
@@ -77,15 +81,16 @@ struct CombatResolver: Sendable {
     }
 
     func isStrictUpgrade(_ item: Item, in state: GameState) throws -> Bool {
-        guard state.party.heroes.count == 1 else {
+        guard !state.party.heroes.isEmpty else {
             throw SimulationError.invalidState
         }
-        guard let equipped = try equippedItem(in: item.slot, state: state) else { return true }
+        guard let equipped = try equippedItem(in: item.slot, heroIndex: 0, state: state) else { return true }
         return item.primaryStat > equipped.primaryStat
     }
 
-    private func equippedItem(in slot: EquipmentSlot, state: GameState) throws -> Item? {
-        guard let id = state.equipment[slot] else { return nil }
+    private func equippedItem(in slot: EquipmentSlot, heroIndex: Int, state: GameState) throws -> Item? {
+        let hero = try validatedHero(at: heroIndex, in: state)
+        guard let id = hero.equipment[slot] else { return nil }
         let matches = state.inventory.filter { $0.id == id }
         guard matches.count == 1,
               let item = matches.first,
@@ -98,9 +103,8 @@ struct CombatResolver: Sendable {
     }
 
     private func validatedHero(at index: Int, in state: GameState) throws -> HeroState {
-        guard state.party.heroes.count == 1,
-              state.party.heroes.indices.contains(index),
-              index == 0 else {
+        guard (1...3).contains(state.party.heroes.count),
+              state.party.heroes.indices.contains(index) else {
             throw SimulationError.invalidState
         }
         let hero = state.party.heroes[index]
