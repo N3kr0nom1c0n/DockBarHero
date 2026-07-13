@@ -1,6 +1,6 @@
 import Foundation
 
-enum HeroClassID: String, Codable, CaseIterable, Equatable, Sendable {
+enum HeroClassID: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
     case tank
     case dps
     case healer
@@ -39,25 +39,52 @@ struct EquipmentState: Codable, Equatable, Sendable {
     }
 }
 
+enum PartyUnlockMilestone: String, Codable, Equatable, Sendable {
+    case boss25
+    case boss100
+}
+
+struct PendingPartyUnlock: Codable, Equatable, Sendable {
+    let milestone: PartyUnlockMilestone
+    let choices: [HeroClassID]
+}
+
+enum PartyUnlockState: Codable, Equatable, Sendable {
+    case locked
+    case pendingSecond(PendingPartyUnlock)
+    case secondUnlocked
+    case complete
+
+    var pendingUnlock: PendingPartyUnlock? {
+        guard case let .pendingSecond(pending) = self else { return nil }
+        return pending
+    }
+}
+
 struct HeroState: Codable, Equatable, Sendable {
     let classID: HeroClassID
     var level: Int
     var currentXP: Int64
     var combat: CombatantState
     var equipment: EquipmentState
+    var encounterAliveDuration: SimulationDuration = .zero
+    var wasDownThisEncounter: Bool = false
+    var consecutiveDeaths: Int = 0
 }
 
 struct PartyState: Codable, Equatable, Sendable {
     var heroes: [HeroState]
+    var unlocks: PartyUnlockState
 
-    init(heroes: [HeroState]) {
+    init(heroes: [HeroState], unlocks: PartyUnlockState = .locked) {
         self.heroes = heroes
+        self.unlocks = unlocks
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let heroes = try container.decode([HeroState].self, forKey: .heroes)
-        guard !heroes.isEmpty else {
+        guard (1...3).contains(heroes.count) else {
             throw DecodingError.dataCorruptedError(
                 forKey: .heroes,
                 in: container,
@@ -65,10 +92,12 @@ struct PartyState: Codable, Equatable, Sendable {
             )
         }
         self.heroes = heroes
+        self.unlocks = try container.decode(PartyUnlockState.self, forKey: .unlocks)
     }
 
     private enum CodingKeys: String, CodingKey {
         case heroes
+        case unlocks
     }
 }
 
@@ -99,7 +128,7 @@ struct CombatantState: Codable, Equatable, Sendable {
     var timeUntilNextAttack: SimulationDuration
 }
 
-enum EncounterPhase: String, Codable, Equatable, Sendable { case active, reviving }
+enum EncounterPhase: String, Codable, Equatable, Sendable { case active, reviving, awaitingPartyChoice }
 
 struct EncounterState: Codable, Equatable, Sendable {
     var enemyLevel: Int

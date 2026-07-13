@@ -149,6 +149,8 @@ struct GameSimulation {
                 damageMetrics.reset()
                 events.append(.revived(enemyLevel: enemyLevel))
                 appendCampaignTransition(from: priorCampaign, into: &events)
+            case .awaitingPartyChoice:
+                return events
             }
 
             if remaining == .zero {
@@ -255,6 +257,12 @@ struct GameSimulation {
             guard state.hero.currentHealth == 0,
                   state.enemy.currentHealth > 0,
                   state.encounter.reviveRemaining <= balance.reviveDelay else {
+                throw SimulationError.invalidState
+            }
+        case .awaitingPartyChoice:
+            guard state.party.unlocks.pendingUnlock != nil,
+                  state.enemy.currentHealth == 0,
+                  state.encounter.reviveRemaining == .zero else {
                 throw SimulationError.invalidState
             }
         }
