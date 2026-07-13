@@ -127,9 +127,7 @@ struct PartyUnlockResolver: Sendable {
         })
         for equipmentSlot in EquipmentSlot.allCases {
             let candidates = state.inventory
-                .filter {
-                    $0.slot == equipmentSlot && $0.quantity == 1 && !usedIDs.contains($0.id)
-                }
+                .filter { $0.slot == equipmentSlot && !usedIDs.contains($0.id) }
             let scored = try candidates.map { item in
                 (item: item, score: try ItemScoreResolver().compare(
                     item: item,
@@ -146,7 +144,17 @@ struct PartyUnlockResolver: Sendable {
                 }
                 return $0.item.id.rawValue < $1.item.id.rawValue
             }.first?.item
-            state.party.heroes[heroSlot].equipment[equipmentSlot] = selected?.id
+            if let selected {
+                let extraction = try InventoryResolver().extractOne(itemID: selected.id, from: state)
+                state = extraction.state
+                state.party.heroes[heroSlot].equipment[equipmentSlot] = extraction.item.id
+                state = try InventoryResolver().consolidateUnequippedStacks(in: state)
+                guard state.inventory.count <= (try InventoryResolver().capacity(for: state)) else {
+                    throw SimulationError.invalidState
+                }
+            } else {
+                state.party.heroes[heroSlot].equipment[equipmentSlot] = nil
+            }
         }
     }
 }

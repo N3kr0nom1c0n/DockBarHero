@@ -179,31 +179,15 @@ struct GameSimulation {
             }
         }
         guard !isUsedByAnotherHero else { throw GameIntentError.itemInUse }
-        if item.quantity > 1 {
-            guard state.inventory.count < (try InventoryResolver().capacity(for: state)) else {
-                throw SimulationError.invalidState
-            }
-            let (rawID, idOverflow) = state.lootSequence.addingReportingOverflow(1)
-            guard !idOverflow else { throw SimulationError.arithmeticOverflow }
-            state.lootSequence = rawID
-            state.inventory[itemIndex].quantity -= 1
-            item = Item(
-                id: ItemID(rawValue: rawID),
-                level: item.level,
-                slot: item.slot,
-                primaryStat: item.primaryStat,
-                creationSequence: rawID,
-                templateID: item.templateID,
-                rarity: item.rarity,
-                affixes: item.affixes,
-                isLocked: item.isLocked,
-                uniqueName: item.uniqueName,
-                quantity: 1
-            )
-            state.inventory.append(item)
-        }
+        let extraction = try InventoryResolver().extractOne(itemID: item.id, from: state)
+        state = extraction.state
+        item = extraction.item
         let priorStats = try ItemStatResolver().stats(heroSlot: heroSlot, in: state)
         state.party.heroes[heroSlot].equipment[item.slot] = item.id
+        state = try InventoryResolver().consolidateUnequippedStacks(in: state)
+        guard state.inventory.count <= (try InventoryResolver().capacity(for: state)) else {
+            throw SimulationError.invalidState
+        }
         let nextStats = try ItemStatResolver().stats(heroSlot: heroSlot, in: state)
         let priorHealth = state.party.heroes[heroSlot].combat.currentHealth
         let (missingHealth, missingOverflow) = priorStats.maximumHealth.subtractingReportingOverflow(priorHealth)

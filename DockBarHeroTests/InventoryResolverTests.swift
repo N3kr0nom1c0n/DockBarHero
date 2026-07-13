@@ -40,6 +40,25 @@ final class InventoryResolverTests: XCTestCase {
         XCTAssertTrue(InventoryResolver().canStack(unlocked, with: locked))
     }
 
+    func testStackSignatureUsesOnlyApprovedDescriptorFields() {
+        let first = item(id: 1, level: 4, quantity: 1)
+        var second = item(id: 2, level: 4, quantity: 1)
+        second = Item(
+            id: second.id,
+            level: second.level,
+            slot: .armor,
+            primaryStat: 999,
+            creationSequence: second.creationSequence,
+            templateID: first.templateID,
+            rarity: second.rarity,
+            affixes: second.affixes,
+            isLocked: second.isLocked,
+            quantity: second.quantity
+        )
+
+        XCTAssertTrue(InventoryResolver().canStack(first, with: second))
+    }
+
     func testCapacityPurchaseDeductsDoublingPriceAndAddsSlots() throws {
         var state = GameState.newGame(balance: .standard)
         state.economy.gold = 2_000

@@ -40,6 +40,38 @@ final class HeroesAndPartyTests: XCTestCase {
         XCTAssertEqual(resumed.party.heroes.count, 2)
     }
 
+    func testNewHeroExtractsStrongestUnusedEquipmentFromStack() throws {
+        var state = try boss25State(classID: .tank)
+        let stack = Item(
+            id: ItemID(rawValue: 3),
+            level: 25,
+            slot: .weapon,
+            primaryStat: 500,
+            creationSequence: 3,
+            quantity: 2
+        )
+        state.inventory.append(stack)
+        state.lootSequence = 3
+        state.enemy.currentHealth = 0
+        state.encounter.phase = .awaitingPartyChoice
+        state.party.unlocks = .pendingSecond(.init(
+            milestone: .boss25,
+            choices: [.dps, .healer]
+        ))
+
+        let result = try PartyUnlockResolver().completeSecondUnlock(
+            classID: .dps,
+            in: state,
+            balance: .standard
+        )
+
+        let equippedID = try XCTUnwrap(result.party.heroes[1].equipment.weaponID)
+        XCTAssertNotEqual(equippedID, stack.id)
+        XCTAssertEqual(result.inventory.first(where: { $0.id == stack.id })?.quantity, 1)
+        XCTAssertEqual(result.inventory.first(where: { $0.id == equippedID })?.quantity, 1)
+        XCTAssertNoThrow(try SaveCodec().encode(state: result, savedAt: Date(timeIntervalSince1970: 0)))
+    }
+
     func testBoss100AddsFinalHeroAndBeginsLevel101WithoutPause() throws {
         var state = try activeState(level: 100, classes: [.tank, .dps])
         state.enemy.currentHealth = 1

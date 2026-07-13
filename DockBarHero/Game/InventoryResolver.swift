@@ -40,11 +40,64 @@ struct InventoryResolver: Sendable {
         lhs.rarity != .unique && rhs.rarity != .unique &&
             lhs.templateID == rhs.templateID &&
             lhs.level == rhs.level &&
-            lhs.slot == rhs.slot &&
-            lhs.primaryStat == rhs.primaryStat &&
             lhs.rarity == rhs.rarity &&
             lhs.affixes == rhs.affixes &&
             lhs.isLocked == rhs.isLocked
+    }
+
+    func extractOne(itemID: ItemID, from state: GameState) throws -> (state: GameState, item: Item) {
+        guard let index = state.inventory.firstIndex(where: { $0.id == itemID }) else {
+            throw GameIntentError.itemNotFound
+        }
+        let source = state.inventory[index]
+        guard source.quantity > 0 else { throw SimulationError.invalidState }
+        if source.quantity == 1 { return (state, source) }
+
+        let (rawID, idOverflow) = state.lootSequence.addingReportingOverflow(1)
+        guard !idOverflow else { throw SimulationError.arithmeticOverflow }
+        var result = state
+        result.lootSequence = rawID
+        result.inventory[index].quantity -= 1
+        let extracted = Item(
+            id: ItemID(rawValue: rawID),
+            level: source.level,
+            slot: source.slot,
+            primaryStat: source.primaryStat,
+            creationSequence: rawID,
+            templateID: source.templateID,
+            rarity: source.rarity,
+            affixes: source.affixes,
+            isLocked: source.isLocked,
+            uniqueName: source.uniqueName,
+            quantity: 1
+        )
+        result.inventory.append(extracted)
+        return (result, extracted)
+    }
+
+    func consolidateUnequippedStacks(in state: GameState) throws -> GameState {
+        var result = state
+        let equippedIDs = Set(result.party.heroes.flatMap { hero in
+            EquipmentSlot.allCases.compactMap { hero.equipment[$0] }
+        })
+        var index = 0
+        while index < result.inventory.count {
+            let item = result.inventory[index]
+            if item.rarity != .unique, !equippedIDs.contains(item.id),
+               let destination = result.inventory.indices.first(where: {
+                   $0 < index && !equippedIDs.contains(result.inventory[$0].id) &&
+                       canStack(result.inventory[$0], with: item)
+               }) {
+                result.inventory[destination].quantity = try add(
+                    result.inventory[destination].quantity,
+                    item.quantity
+                )
+                result.inventory.remove(at: index)
+            } else {
+                index += 1
+            }
+        }
+        return result
     }
 
     func insertDrop(_ item: Item, into state: GameState) throws -> InventoryInsertion {

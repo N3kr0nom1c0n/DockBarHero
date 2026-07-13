@@ -80,7 +80,7 @@ struct RewardResolver: Sendable {
         events.append(.loot(item))
 
         if result.autoEquipEnabled,
-           result.inventory.contains(where: { $0.id == item.id && $0.quantity == 1 }) {
+           result.inventory.contains(where: { $0.id == item.id }) {
             let resolver = ItemScoreResolver()
             let candidates = try result.party.heroes.indices.compactMap { slot -> (slot: Int, amount: Int64)? in
                 let comparison = try resolver.compare(item: item, heroSlot: slot, in: result)
@@ -92,15 +92,28 @@ struct RewardResolver: Sendable {
             if let selected = candidates.sorted(by: {
                 $0.amount != $1.amount ? $0.amount > $1.amount : $0.slot < $1.slot
             }).first {
-                result.party.heroes[selected.slot].equipment[item.slot] = item.id
-                if result.party.heroes.count == 1 {
-                    events.append(.equipped(slot: item.slot, itemID: item.id))
-                } else {
-                    events.append(.equippedHero(
-                        heroSlot: selected.slot,
-                        slot: item.slot,
-                        itemID: item.id
-                    ))
+                do {
+                    var candidate = result
+                    let extraction = try InventoryResolver().extractOne(itemID: item.id, from: candidate)
+                    candidate = extraction.state
+                    candidate.party.heroes[selected.slot].equipment[item.slot] = extraction.item.id
+                    candidate = try InventoryResolver().consolidateUnequippedStacks(in: candidate)
+                    guard candidate.inventory.count <= (try InventoryResolver().capacity(for: candidate)) else {
+                        throw SimulationError.invalidState
+                    }
+                    result = candidate
+                    if result.party.heroes.count == 1 {
+                        events.append(.equipped(slot: item.slot, itemID: extraction.item.id))
+                    } else {
+                        events.append(.equippedHero(
+                            heroSlot: selected.slot,
+                            slot: item.slot,
+                            itemID: extraction.item.id
+                        ))
+                    }
+                } catch SimulationError.invalidState {
+                    // A full inventory can accept a matching drop but may have no slot for
+                    // the extracted equipment identity. Keep the reward and skip auto-equip.
                 }
             }
         }
