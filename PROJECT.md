@@ -6,10 +6,10 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Current Milestone
 
-- Goal: build Heroes and Party on the integrated Foundation and schema-v2 Progression Safety systems.
-- Current checkpoint: Foundation and Progression Safety are integrated to `main`; review repair, automated verification, launch-window recovery, and visible New Game confirmation are complete.
+- Goal: verify and push Heroes and Party on the integrated Foundation and schema-v2 Progression Safety systems without merging to `main`.
+- Current checkpoint: Heroes and Party is implemented and verified in six vertical slices on `feature/heroes-and-party`; push is pending.
 - Integration: the owner lifted the internal hold and the feature branch was fast-forwarded and pushed to `main` on 2026-07-12.
-- Remaining: unchecked manual interaction QA, Heroes and Party, and the three class actions; this is not a release-ready milestone.
+- Remaining: push the feature branch for owner review; Class Actions remain a later milestone and this is not release-ready.
 
 ## Architecture
 
@@ -29,6 +29,9 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - docs/superpowers/specs/2026-07-12-dockbarhero-progression-safety-design.md: approved progression recovery, classes, party, tiers, rewards, and schema-v2 design.
 - docs/superpowers/plans/2026-07-12-dockbarhero-foundation-upgrade.md: next executable milestone plan.
 - docs/superpowers/plans/2026-07-12-dockbarhero-progression-safety.md: executable first-gate plan for XP, tiers, gold, farming, retreat, schema v2, reset, and management empty states.
+- docs/superpowers/specs/2026-07-12-dockbarhero-heroes-and-party-design.md: approved party lifecycle, combat, rewards, equipment, and presentation behavior.
+- docs/superpowers/plans/2026-07-12-dockbarhero-heroes-and-party.md: executable six-slice Heroes and Party plan.
+- docs/qa/review-packets/heroes-and-party.md: focused, integrated, save-isolation, and live-QA evidence.
 - docs/qa/review-packets/progression-safety.md: current automated evidence, manual QA list, and integration hold.
 - .superpowers/sdd/progress.md: detailed task and gate ledger.
 - .superpowers/sdd/task-9-report.md: latest Task 9 evidence.
@@ -50,17 +53,17 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Active Work
 
-- Parent orchestrator: begin the Heroes and Party design/plan from `main` when requested.
-- Next design work: Heroes and Party, then Tank, DPS, and Healer actions.
+- Parent orchestrator: finish the Heroes and Party gates and push its feature branch without merging.
+- Next design work after owner review: Tank, DPS, and Healer actions.
 - Manual QA items not explicitly exercised remain open in the Progression Safety review packet.
 
 ## Last Verified State
 
 - Date: 2026-07-12.
-- Checkout: /Users/n3kr0/Projects/TBH on `main`.
-- Progression gate: 255 tests passed with zero failures on 2026-07-12 after launch-window and Danger Zone repairs.
-- Clean unsigned Apple Silicon Debug build succeeded; `./script/build_and_run.sh --verify` launched DockBarHero.
-- Owner visually accepted the rounded New Game confirmation field; other unchecked manual QA remains pending.
+- Checkout: `/Users/n3kr0/Projects/TBH/.worktrees/heroes-and-party` on `feature/heroes-and-party`.
+- Final gate: 290 arm64 tests passed with zero failures; clean unsigned arm64 build, context guard, and exact-worktree launch all succeeded.
+- Live clean-save QA selected DPS, persisted/relaunched the Boss 25 Tank/Healer choice, selected Healer, and observed Tank auto-add at Boss 100 with uninterrupted level 101-plus combat.
+- Live management showed ordered party summaries and shared inventory ownership; the verified worktree rail showed three class-distinct sprites, health bars, level labels, and centered rolling DPS.
 
 ## Decisions and Risks
 
@@ -76,3 +79,6 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - Progression Safety is the first gate inside the schema-v2 Heroes and Classes milestone and is not independently release-eligible.
 - The frontier and farming selection remain separate; three defeats retreat one full Boss segment and never auto-return to the frontier.
 - A loaded class-selection run opens the singleton management window; active runs retain menu-bar access to that same window.
+- Boss 25 rewards and the pending second-class choice are durable before combat pauses; Boss 100 adds the final unique class without pausing.
+- Inventory is party-shared, equipped item IDs are exclusive per hero, and newcomers take the strongest unused weapon and armor.
+- Party combat uses independent hero timers, ascending slot ties, lowest-living targeting, time-alive XP, and per-hero death streaks.

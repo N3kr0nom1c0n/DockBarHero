@@ -100,7 +100,7 @@ For each hero, capture its class, level, and alive duration from the defeated en
 heroXP = floor(fullXP * aliveDuration / encounterDuration)
 ```
 
-All multiplication is checked integer arithmetic. A hero with positive alive duration receives at least 1 XP. A hero with zero alive duration receives zero XP. Encounter duration must be positive for a victory reward; malformed zero-duration reward states fail before mutation. Each hero then applies its own XP thresholds and may level multiple times.
+All multiplication is checked integer arithmetic. A hero with positive alive duration receives at least 1 XP. A hero with zero alive duration receives zero XP. Production encounters have positive duration. For deterministic compatibility with existing instantaneous simulation fixtures, a zero-duration victory awards full XP to each living hero and zero XP to a downed hero; it never divides by zero. Each hero then applies its own XP thresholds and may level multiple times.
 
 At every encounter resolution, each hero's streak is updated independently:
 
