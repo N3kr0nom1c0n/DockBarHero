@@ -124,6 +124,17 @@ final class SaveDocumentTests: XCTestCase {
         assertValidation(.invalidCampaign, for: level)
     }
 
+    func testPushModeMustSelectFrontier() {
+        var state = GameState.newGame(balance: .standard)
+        state.campaign.highestUnlockedLevel = 10
+        state.campaign.selectedLevel = 5
+        state.encounter.enemyLevel = 5
+        state.encounter.tier = .elite
+
+        assertValidation(.invalidCampaign, for: state)
+    }
+
+
     func testNegativeCombatBaseStatsAreRejected() {
         var attack = GameState.newGame(balance: .standard)
         attack.hero = combatant(attack.hero, baseAttack: -1)

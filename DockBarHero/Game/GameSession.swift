@@ -134,6 +134,7 @@ final class GameSession: GameSessionControlling {
         isRunning = false
         driver.stop()
         await waitForSaveSubmissions()
+        await coordinator.waitUntilIdle()
 
         do {
             try await store.replaceRun(with: .classSelection)

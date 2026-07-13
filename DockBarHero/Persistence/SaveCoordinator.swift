@@ -14,6 +14,7 @@ protocol SaveCoordinating: Sendable {
     func flush(_ state: GameState) async
     func request(_ runState: RunState) async
     func flush(_ runState: RunState) async
+    func waitUntilIdle() async
 }
 
 extension SaveCoordinating {
@@ -26,6 +27,8 @@ extension SaveCoordinating {
         guard case let .active(state) = runState else { return }
         await flush(state)
     }
+
+    func waitUntilIdle() async { }
 }
 
 protocol SaveStatusObserving: Sendable {
@@ -79,6 +82,13 @@ actor SaveCoordinator: SaveCoordinating, SaveStatusObserving {
 
     func flush(_ state: GameState) async {
         await flush(.active(state))
+    }
+
+    func waitUntilIdle() async {
+        guard isDraining || pendingState != nil else { return }
+        await withCheckedContinuation { continuation in
+            flushWaiters.append(continuation)
+        }
     }
 
     private func startDrainIfNeeded() {

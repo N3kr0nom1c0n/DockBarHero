@@ -145,6 +145,8 @@ struct SaveCodec: Sendable {
               state.campaign.selectedLevel >= 1,
               state.campaign.selectedLevel <= state.campaign.highestUnlockedLevel,
               state.campaign.consecutiveDefeats >= 0,
+              state.campaign.mode != .push ||
+                  state.campaign.selectedLevel == state.campaign.highestUnlockedLevel,
               state.campaign.queuedLevel.map({
                   $0 >= 1 && $0 <= state.campaign.highestUnlockedLevel
               }) ?? true,

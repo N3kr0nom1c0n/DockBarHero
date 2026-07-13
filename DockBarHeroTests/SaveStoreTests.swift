@@ -59,6 +59,25 @@ final class SaveStoreTests: XCTestCase {
         XCTAssertEqual(recovered.runState, .active(oldState))
     }
 
+    func testFailedReplacePreservesBackupOnlyRecoveredRun() async throws {
+        let urls = SaveURLs(directory: directory)
+        let oldState = GameState.newGame(balance: .standard)
+        try SaveCodec().encode(state: oldState, savedAt: savedAt).write(to: urls.backup)
+        let store = SaveStore(
+            urls: urls,
+            fileSystem: MutationFailingFileSystem(failure: .installPrimary(urls.primary)),
+            codec: SaveCodec(),
+            now: { [savedAt] in savedAt }
+        )
+
+        await XCTAssertThrowsErrorAsync(try await store.replaceRun(with: .classSelection))
+
+        let recovered = await makeStore().load()
+        XCTAssertEqual(recovered.runState, .active(oldState))
+        XCTAssertEqual(recovered.source, .backup)
+    }
+
+
     func testSuccessfulResetCannotRecoverOldBackup() async throws {
         let store = makeStore()
         let oldState = GameState.newGame(balance: .standard)

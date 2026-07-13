@@ -3,6 +3,29 @@ import XCTest
 
 @MainActor
 final class SaveCoordinatorTests: XCTestCase {
+    func testWaitUntilIdleDoesNotReturnBeforeBlockedSaveFinishes() async {
+        let store = ControlledSaveStore(blockFirstSave: true)
+        let coordinator = SaveCoordinator(store: store)
+        let state = GameState.newGame(balance: .standard)
+
+        await coordinator.request(.active(state))
+        await store.waitForFirstSave()
+        let recorder = CompletionRecorder()
+        let barrier = Task {
+            await coordinator.waitUntilIdle()
+            await recorder.markComplete()
+        }
+        await Task.yield()
+        let completedBeforeRelease = await recorder.isComplete()
+        XCTAssertFalse(completedBeforeRelease)
+
+        await store.releaseFirstSave()
+        await barrier.value
+
+        let completedAfterRelease = await recorder.isComplete()
+        XCTAssertTrue(completedAfterRelease)
+    }
+
     func testRequestsDuringAnInFlightSavePersistFirstAndLatestOnly() async {
         let first = state(autoEquip: true)
         let middle = state(autoEquip: false)

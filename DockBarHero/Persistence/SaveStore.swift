@@ -222,8 +222,25 @@ actor SaveStore: SaveStoring {
             try removeIfPresent(urls.temporary)
             let data = try codec.encode(runState: runState, savedAt: now())
             try fileSystem.write(data, to: urls.temporary, options: .atomic)
-            try removeIfPresent(urls.backup)
-            try replace(urls.primary, with: urls.temporary)
+            let preservedBackup = urls.directory.appendingPathComponent(
+                ".save-v2.replaced-backup-\(UUID().uuidString)",
+                isDirectory: false
+            )
+            let hadBackup = fileSystem.fileExists(at: urls.backup)
+            if hadBackup {
+                try fileSystem.moveItem(at: urls.backup, to: preservedBackup)
+            }
+            do {
+                try replace(urls.primary, with: urls.temporary)
+            } catch {
+                if hadBackup, !fileSystem.fileExists(at: urls.backup) {
+                    try? fileSystem.moveItem(at: preservedBackup, to: urls.backup)
+                }
+                throw error
+            }
+            if hadBackup {
+                try? removeIfPresent(preservedBackup)
+            }
         } catch {
             AppLog.persistence.error("Run replacement failed at \(self.urls.directory.path, privacy: .private(mask: .hash))")
             throw error

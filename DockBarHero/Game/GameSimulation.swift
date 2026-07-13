@@ -227,6 +227,8 @@ struct GameSimulation {
               state.campaign.selectedLevel >= 1,
               state.campaign.selectedLevel <= state.campaign.highestUnlockedLevel,
               state.campaign.consecutiveDefeats >= 0,
+              state.campaign.mode != .push ||
+                  state.campaign.selectedLevel == state.campaign.highestUnlockedLevel,
               state.encounter.enemyLevel == state.campaign.selectedLevel,
               EncounterSchedule.standard.tier(for: state.encounter.enemyLevel) == state.encounter.tier,
               state.campaign.queuedLevel.map({
