@@ -153,7 +153,7 @@ struct GameSimulation {
                 }
                 let step = min(remaining, nextHeroAction, state.enemy.timeUntilNextAttack)
                 if step > .zero {
-                    try consumeActiveTime(step)
+                    try consumeActiveTime(step, into: &events)
                     remaining = try subtracting(step, from: remaining)
                 }
 
@@ -295,7 +295,10 @@ struct GameSimulation {
         }
     }
 
-    private mutating func consumeActiveTime(_ elapsed: SimulationDuration) throws {
+    private mutating func consumeActiveTime(
+        _ elapsed: SimulationDuration,
+        into events: inout [GameEvent]
+    ) throws {
         for slot in state.party.heroes.indices where state.party.heroes[slot].combat.currentHealth > 0 {
             state.party.heroes[slot].combat.timeUntilNextAttack = try subtracting(
                 elapsed,
@@ -305,6 +308,19 @@ struct GameSimulation {
                 elapsed,
                 to: state.party.heroes[slot].encounterAliveDuration
             )
+            let priorCooldown = state.party.heroes[slot].classAction.cooldownRemaining
+            let cooldownStep = min(elapsed, priorCooldown)
+            state.party.heroes[slot].classAction.cooldownRemaining = try subtracting(
+                cooldownStep,
+                from: priorCooldown
+            )
+            if priorCooldown > .zero,
+               state.party.heroes[slot].classAction.cooldownRemaining == .zero {
+                events.append(.classActionReady(
+                    heroSlot: slot,
+                    actionID: state.party.heroes[slot].classAction.actionID
+                ))
+            }
         }
         state.enemy.timeUntilNextAttack = try subtracting(elapsed, from: state.enemy.timeUntilNextAttack)
         state.encounter.activeElapsed = try adding(elapsed, to: state.encounter.activeElapsed)
@@ -332,6 +348,19 @@ struct GameSimulation {
         }
         for hero in state.party.heroes {
             try validateCombatant(hero.combat, expectedID: .hero)
+            let actionConfiguration = ClassActionConfiguration.standard
+            guard let definition = try? actionConfiguration.definition(for: hero.classAction.actionID),
+                  hero.classAction.actionID == actionConfiguration.action(for: hero.classID),
+                  definition.heroClass == hero.classID,
+                  hero.classAction.cooldownRemaining >= .zero,
+                  hero.classAction.cooldownRemaining <= definition.cooldown,
+                  !hero.classAction.guardActive || (
+                      hero.classID == .tank &&
+                      hero.combat.currentHealth > 0 &&
+                      state.encounter.phase == .active
+                  ) else {
+                throw SimulationError.invalidState
+            }
         }
         try validateCombatant(state.enemy, expectedID: .enemy)
 

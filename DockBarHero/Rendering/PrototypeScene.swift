@@ -130,7 +130,7 @@ final class PrototypeScene: SKScene {
                 }
             case .loot, .xpGained, .heroLeveled, .goldGained, .equipped, .equippedHero,
                  .autoEquipChanged, .destinationQueued, .farmingStarted, .returnedToFrontier,
-                 .partyUnlockPending:
+                 .partyUnlockPending, .classActionReady:
                 break
             }
         }

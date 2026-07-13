@@ -214,6 +214,7 @@ enum GameEvent: Equatable, Sendable {
     case farmingStarted(Int)
     case returnedToFrontier(Int)
     case partyUnlockPending(PartyUnlockMilestone)
+    case classActionReady(heroSlot: Int, actionID: ClassActionID)
 }
 
 struct GamePresentation: Equatable, Sendable {

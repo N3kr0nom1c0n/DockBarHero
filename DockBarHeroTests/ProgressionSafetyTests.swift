@@ -137,6 +137,7 @@ private extension GameEvent {
         case .equippedHero: .equipped
         case .heroAttack, .enemyAttack, .heroDown, .defeat, .revived, .autoEquipChanged, .destinationQueued,
              .farmingStarted, .returnedToFrontier, .partyUnlockPending: .other
+        case .classActionReady: .other
         }
     }
 }
