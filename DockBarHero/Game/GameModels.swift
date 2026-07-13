@@ -70,6 +70,33 @@ struct HeroState: Codable, Equatable, Sendable {
     var encounterAliveDuration: SimulationDuration = .zero
     var wasDownThisEncounter: Bool = false
     var consecutiveDeaths: Int = 0
+    var classAction: ClassActionState
+
+    init(
+        classID: HeroClassID,
+        level: Int,
+        currentXP: Int64,
+        combat: CombatantState,
+        equipment: EquipmentState,
+        encounterAliveDuration: SimulationDuration = .zero,
+        wasDownThisEncounter: Bool = false,
+        consecutiveDeaths: Int = 0,
+        classAction: ClassActionState? = nil
+    ) {
+        self.classID = classID
+        self.level = level
+        self.currentXP = currentXP
+        self.combat = combat
+        self.equipment = equipment
+        self.encounterAliveDuration = encounterAliveDuration
+        self.wasDownThisEncounter = wasDownThisEncounter
+        self.consecutiveDeaths = consecutiveDeaths
+        self.classAction = classAction ?? ClassActionState(
+            actionID: ClassActionConfiguration.standard.action(for: classID),
+            cooldownRemaining: .zero,
+            guardActive: false
+        )
+    }
 }
 
 struct PartyState: Codable, Equatable, Sendable {

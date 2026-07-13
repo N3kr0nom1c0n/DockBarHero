@@ -65,6 +65,7 @@ enum SaveDecodingError: Error, Equatable {
 enum SaveValidationError: Error, Equatable {
     case invalidEnemyLevel
     case invalidHero
+    case invalidClassAction
     case invalidCampaign
     case invalidEconomy
     case invalidHealth(CombatantID)
@@ -145,6 +146,20 @@ struct SaveCodec: Sendable {
                   heroState.encounterAliveDuration <= state.encounter.activeElapsed,
                   heroState.consecutiveDeaths >= 0 else {
                 throw SaveValidationError.invalidHero
+            }
+            let actionConfiguration = ClassActionConfiguration.standard
+            let expectedAction = actionConfiguration.action(for: heroState.classID)
+            guard let definition = try? actionConfiguration.definition(for: heroState.classAction.actionID),
+                  heroState.classAction.actionID == expectedAction,
+                  definition.heroClass == heroState.classID,
+                  heroState.classAction.cooldownRemaining >= .zero,
+                  heroState.classAction.cooldownRemaining <= definition.cooldown,
+                  !heroState.classAction.guardActive || (
+                      heroState.classID == .tank &&
+                      heroState.combat.currentHealth > 0 &&
+                      state.encounter.phase == .active
+                  ) else {
+                throw SaveValidationError.invalidClassAction
             }
         }
         switch state.party.unlocks {
