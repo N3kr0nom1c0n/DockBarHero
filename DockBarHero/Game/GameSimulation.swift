@@ -9,6 +9,7 @@ enum SimulationError: Error, Equatable {
 enum GameIntentError: Error, Equatable, Sendable {
     case itemNotFound
     case slotMismatch
+    case itemInUse
 }
 
 struct GameSimulation {
@@ -82,19 +83,10 @@ struct GameSimulation {
             return [.autoEquipChanged(enabled)]
 
         case let .equip(itemID):
-            guard state.party.heroes.count == 1 else {
-                throw GameIntentError.slotMismatch
-            }
-            let matchingItems = state.inventory.filter { $0.id == itemID }
-            guard matchingItems.count == 1, let item = matchingItems.first else {
-                if matchingItems.count > 1 { throw GameIntentError.slotMismatch }
-                throw GameIntentError.itemNotFound
-            }
-            guard item.level >= 1, item.primaryStat >= 0 else {
-                throw GameIntentError.slotMismatch
-            }
-            state.equipment[item.slot] = item.id
-            return [.equipped(slot: item.slot, itemID: item.id)]
+            return try equip(itemID: itemID, heroSlot: 0, legacyEvent: true)
+
+        case let .equipHero(slot, itemID):
+            return try equip(itemID: itemID, heroSlot: slot, legacyEvent: false)
 
         case let .selectLevel(level):
             state = try encounterDirector.queue(level: level, in: state)
@@ -104,6 +96,35 @@ struct GameSimulation {
             state = try encounterDirector.queueFrontier(in: state)
             return [.destinationQueued(state.campaign.highestUnlockedLevel)]
         }
+    }
+
+    private mutating func equip(
+        itemID: ItemID,
+        heroSlot: Int,
+        legacyEvent: Bool
+    ) throws -> [GameEvent] {
+        guard state.party.heroes.indices.contains(heroSlot) else {
+            throw GameIntentError.slotMismatch
+        }
+        let matchingItems = state.inventory.filter { $0.id == itemID }
+        guard matchingItems.count == 1, let item = matchingItems.first else {
+            if matchingItems.count > 1 { throw GameIntentError.slotMismatch }
+            throw GameIntentError.itemNotFound
+        }
+        guard item.level >= 1, item.primaryStat >= 0 else {
+            throw GameIntentError.slotMismatch
+        }
+        let isUsedByAnotherHero = state.party.heroes.indices.contains { slot in
+            slot != heroSlot && EquipmentSlot.allCases.contains {
+                state.party.heroes[slot].equipment[$0] == itemID
+            }
+        }
+        guard !isUsedByAnotherHero else { throw GameIntentError.itemInUse }
+        state.party.heroes[heroSlot].equipment[item.slot] = item.id
+        if legacyEvent, state.party.heroes.count == 1 {
+            return [.equipped(slot: item.slot, itemID: item.id)]
+        }
+        return [.equippedHero(heroSlot: heroSlot, slot: item.slot, itemID: item.id)]
     }
 
     private mutating func advanceCandidate(by elapsed: SimulationDuration) throws -> [GameEvent] {

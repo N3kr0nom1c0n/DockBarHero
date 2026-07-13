@@ -41,6 +41,7 @@ struct PartyUnlockResolver: Sendable {
             level: try highestHeroLevel(in: result),
             balance: balance
         ))
+        try equipStrongestUnusedItems(onHeroAt: result.party.heroes.count - 1, in: &result)
         result.party.unlocks = .secondUnlocked
         result.encounter.phase = .active
         return try EncounterDirector().completeDeferredVictory(in: result, balance: balance)
@@ -68,6 +69,7 @@ struct PartyUnlockResolver: Sendable {
             level: try highestHeroLevel(in: result),
             balance: balance
         ))
+        try equipStrongestUnusedItems(onHeroAt: result.party.heroes.count - 1, in: &result)
         result.party.unlocks = .complete
         return result
     }
@@ -113,5 +115,29 @@ struct PartyUnlockResolver: Sendable {
             ),
             equipment: EquipmentState(weaponID: nil, armorID: nil)
         )
+    }
+
+    private func equipStrongestUnusedItems(onHeroAt heroSlot: Int, in state: inout GameState) throws {
+        guard state.party.heroes.indices.contains(heroSlot) else {
+            throw SimulationError.invalidState
+        }
+        let usedIDs = Set(state.party.heroes.enumerated().flatMap { slot, hero in
+            guard slot != heroSlot else { return [ItemID]() }
+            return EquipmentSlot.allCases.compactMap { hero.equipment[$0] }
+        })
+        for equipmentSlot in EquipmentSlot.allCases {
+            let selected = state.inventory
+                .filter { $0.slot == equipmentSlot && !usedIDs.contains($0.id) }
+                .sorted {
+                    if $0.primaryStat != $1.primaryStat { return $0.primaryStat > $1.primaryStat }
+                    if $0.level != $1.level { return $0.level > $1.level }
+                    if $0.creationSequence != $1.creationSequence {
+                        return $0.creationSequence < $1.creationSequence
+                    }
+                    return $0.id.rawValue < $1.id.rawValue
+                }
+                .first
+            state.party.heroes[heroSlot].equipment[equipmentSlot] = selected?.id
+        }
     }
 }

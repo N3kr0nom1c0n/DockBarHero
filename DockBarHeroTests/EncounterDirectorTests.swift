@@ -187,6 +187,32 @@ final class EncounterDirectorTests: XCTestCase {
         XCTAssertEqual(result.encounter.enemyLevel, 26)
     }
 
+    func testNewHeroEquipsStrongestUnusedWeaponAndArmor() throws {
+        var state = try fixture(frontier: 25, selected: 25, mode: .push)
+        let usedWeapon = Item(id: ItemID(rawValue: 1), level: 20, slot: .weapon, primaryStat: 20, creationSequence: 1)
+        let olderTie = Item(id: ItemID(rawValue: 2), level: 10, slot: .weapon, primaryStat: 9, creationSequence: 2)
+        let newerTie = Item(id: ItemID(rawValue: 3), level: 10, slot: .weapon, primaryStat: 9, creationSequence: 3)
+        let armor = Item(id: ItemID(rawValue: 4), level: 8, slot: .armor, primaryStat: 7, creationSequence: 4)
+        state.inventory = [usedWeapon, olderTie, newerTie, armor]
+        state.party.heroes[0].equipment.weaponID = usedWeapon.id
+        state.enemy.currentHealth = 0
+        state.encounter.phase = .awaitingPartyChoice
+        state.party.unlocks = .pendingSecond(PendingPartyUnlock(
+            milestone: .boss25,
+            choices: [.tank, .healer]
+        ))
+
+        let result = try PartyUnlockResolver().completeSecondUnlock(
+            classID: .healer,
+            in: state,
+            balance: .standard
+        )
+
+        XCTAssertEqual(result.party.heroes[1].equipment.weaponID, olderTie.id)
+        XCTAssertEqual(result.party.heroes[1].equipment.armorID, armor.id)
+        XCTAssertEqual(result.party.heroes[0].equipment.weaponID, usedWeapon.id)
+    }
+
     func testBoss100AutomaticallyAddsFinalMissingClassOnce() throws {
         var state = try fixture(frontier: 100, selected: 100, mode: .push)
         let tank = GameState.newGame(classID: .tank, balance: .standard, progression: .standard).party.heroes[0]

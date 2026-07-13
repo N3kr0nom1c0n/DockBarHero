@@ -462,6 +462,25 @@ final class GameSimulationTests: XCTestCase {
         XCTAssertNil(simulation.state.equipment.armorID)
     }
 
+    func testManualEquipTargetsOneHeroAndRejectsItemOwnedByAnother() throws {
+        var state = twoHeroState()
+        let firstWeapon = Item(id: ItemID(rawValue: 1), level: 1, slot: .weapon, primaryStat: 2, creationSequence: 1)
+        let secondWeapon = Item(id: ItemID(rawValue: 2), level: 1, slot: .weapon, primaryStat: 3, creationSequence: 2)
+        state.inventory = [firstWeapon, secondWeapon]
+        state.party.heroes[0].equipment.weaponID = firstWeapon.id
+        var simulation = GameSimulation(state: state)
+
+        XCTAssertEqual(
+            try simulation.apply(.equipHero(slot: 1, itemID: secondWeapon.id)),
+            [.equippedHero(heroSlot: 1, slot: .weapon, itemID: secondWeapon.id)]
+        )
+        XCTAssertThrowsError(try simulation.apply(.equipHero(slot: 1, itemID: firstWeapon.id))) { error in
+            XCTAssertEqual(error as? GameIntentError, .itemInUse)
+        }
+        XCTAssertEqual(simulation.state.party.heroes[0].equipment.weaponID, firstWeapon.id)
+        XCTAssertEqual(simulation.state.party.heroes[1].equipment.weaponID, secondWeapon.id)
+    }
+
     func testEnablingAutoEquipDoesNotRetroactivelyScanInventory() throws {
         var state = GameState.newGame(balance: .standard)
         let weapon = Item(id: ItemID(rawValue: 1), level: 1, slot: .weapon, primaryStat: 100, creationSequence: 1)

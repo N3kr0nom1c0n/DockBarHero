@@ -108,7 +108,7 @@ final class PrototypeScene: SKScene {
             case .revived:
                 setIdleTexture(for: .hero)
                 restoreHeroAfterRevive()
-            case .loot, .xpGained, .heroLeveled, .goldGained, .equipped,
+            case .loot, .xpGained, .heroLeveled, .goldGained, .equipped, .equippedHero,
                  .autoEquipChanged, .destinationQueued, .farmingStarted, .returnedToFrontier,
                  .partyUnlockPending:
                 break

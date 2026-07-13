@@ -134,6 +134,7 @@ private extension GameEvent {
         case .goldGained: .goldGained
         case .loot: .loot
         case .equipped: .equipped
+        case .equippedHero: .equipped
         case .heroAttack, .enemyAttack, .heroDown, .defeat, .revived, .autoEquipChanged, .destinationQueued,
              .farmingStarted, .returnedToFrontier, .partyUnlockPending: .other
         }

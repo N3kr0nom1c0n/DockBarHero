@@ -163,6 +163,7 @@ struct GameState: Codable, Equatable, Sendable {
 enum GameIntent: Equatable, Sendable {
     case setAutoEquip(Bool)
     case equip(ItemID)
+    case equipHero(slot: Int, itemID: ItemID)
     case selectLevel(Int)
     case returnToFrontier
 }
@@ -180,6 +181,7 @@ enum GameEvent: Equatable, Sendable {
     case heroLeveled(classID: HeroClassID, level: Int)
     case goldGained(amount: Int64)
     case equipped(slot: EquipmentSlot, itemID: ItemID)
+    case equippedHero(heroSlot: Int, slot: EquipmentSlot, itemID: ItemID)
     case autoEquipChanged(Bool)
     case destinationQueued(Int)
     case farmingStarted(Int)

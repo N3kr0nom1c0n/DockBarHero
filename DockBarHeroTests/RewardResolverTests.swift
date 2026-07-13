@@ -174,4 +174,35 @@ final class RewardResolverTests: XCTestCase {
 
         XCTAssertTrue(result.events.contains(.xpGained(classID: .dps, amount: 1)))
     }
+
+    func testPartyAutoEquipChoosesAscendingSlotForEqualUpgrade() throws {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        let second = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        state.party = PartyState(heroes: [state.party.heroes[0], second], unlocks: .secondUnlocked)
+
+        let result = try RewardResolver().applyVictory(defeatedLevel: 1, to: state, balance: .standard)
+
+        XCTAssertEqual(result.state.party.heroes[0].equipment.weaponID, ItemID(rawValue: 1))
+        XCTAssertNil(result.state.party.heroes[1].equipment.weaponID)
+        XCTAssertTrue(result.events.contains(.equippedHero(
+            heroSlot: 0,
+            slot: .weapon,
+            itemID: ItemID(rawValue: 1)
+        )))
+    }
+
+    func testPartyAutoEquipUsesOnlyHeroWithStrictUpgrade() throws {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        let second = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        let strong = Item(id: ItemID(rawValue: 99), level: 1, slot: .weapon, primaryStat: 99, creationSequence: 99)
+        state.inventory = [strong]
+        state.lootSequence = 0
+        state.party.heroes[0].equipment.weaponID = strong.id
+        state.party = PartyState(heroes: [state.party.heroes[0], second], unlocks: .secondUnlocked)
+
+        let result = try RewardResolver().applyVictory(defeatedLevel: 1, to: state, balance: .standard)
+
+        XCTAssertEqual(result.state.party.heroes[0].equipment.weaponID, strong.id)
+        XCTAssertEqual(result.state.party.heroes[1].equipment.weaponID, ItemID(rawValue: 1))
+    }
 }

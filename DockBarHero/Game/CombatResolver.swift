@@ -84,8 +84,36 @@ struct CombatResolver: Sendable {
         guard !state.party.heroes.isEmpty else {
             throw SimulationError.invalidState
         }
-        guard let equipped = try equippedItem(in: item.slot, heroIndex: 0, state: state) else { return true }
-        return item.primaryStat > equipped.primaryStat
+        return try upgradeAmount(for: item, heroIndex: 0, in: state) != nil
+    }
+
+    func upgradeAmount(for item: Item, heroIndex: Int, in state: GameState) throws -> Int? {
+        _ = try validatedHero(at: heroIndex, in: state)
+        guard state.inventory.filter({ $0.id == item.id }).count == 1,
+              item.level >= 1,
+              item.primaryStat >= 0 else {
+            throw SimulationError.invalidState
+        }
+        let usedByAnotherHero = state.party.heroes.indices.contains { slot in
+            slot != heroIndex && EquipmentSlot.allCases.contains {
+                state.party.heroes[slot].equipment[$0] == item.id
+            }
+        }
+        guard !usedByAnotherHero else { return nil }
+        let current = try effectiveStat(for: item.slot, heroIndex: heroIndex, in: state)
+        var candidate = state
+        candidate.party.heroes[heroIndex].equipment[item.slot] = item.id
+        let replacement = try effectiveStat(for: item.slot, heroIndex: heroIndex, in: candidate)
+        let (difference, overflow) = replacement.subtractingReportingOverflow(current)
+        guard !overflow else { throw SimulationError.arithmeticOverflow }
+        return difference > 0 ? difference : nil
+    }
+
+    private func effectiveStat(for slot: EquipmentSlot, heroIndex: Int, in state: GameState) throws -> Int {
+        switch slot {
+        case .weapon: try effectiveAttack(forHeroAt: heroIndex, in: state)
+        case .armor: try effectiveDefense(forHeroAt: heroIndex, in: state)
+        }
     }
 
     private func equippedItem(in slot: EquipmentSlot, heroIndex: Int, state: GameState) throws -> Item? {

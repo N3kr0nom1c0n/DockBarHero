@@ -79,9 +79,28 @@ struct RewardResolver: Sendable {
         let item = try loot.drop(defeatedLevel: defeatedLevel, tier: tier, state: &result)
         events.append(.loot(item))
 
-        if result.autoEquipEnabled, try CombatResolver().isStrictUpgrade(item, in: result) {
-            result.equipment[item.slot] = item.id
-            events.append(.equipped(slot: item.slot, itemID: item.id))
+        if result.autoEquipEnabled {
+            let resolver = CombatResolver()
+            let candidates = try result.party.heroes.indices.compactMap { slot -> (slot: Int, amount: Int)? in
+                guard let amount = try resolver.upgradeAmount(for: item, heroIndex: slot, in: result) else {
+                    return nil
+                }
+                return (slot, amount)
+            }
+            if let selected = candidates.sorted(by: {
+                $0.amount != $1.amount ? $0.amount > $1.amount : $0.slot < $1.slot
+            }).first {
+                result.party.heroes[selected.slot].equipment[item.slot] = item.id
+                if result.party.heroes.count == 1 {
+                    events.append(.equipped(slot: item.slot, itemID: item.id))
+                } else {
+                    events.append(.equippedHero(
+                        heroSlot: selected.slot,
+                        slot: item.slot,
+                        itemID: item.id
+                    ))
+                }
+            }
         }
 
         return VictoryReward(state: result, events: events)
