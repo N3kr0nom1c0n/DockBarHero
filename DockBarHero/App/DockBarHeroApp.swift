@@ -6,13 +6,12 @@ struct DockBarHeroApp: App {
 
     var body: some Scene {
         MenuBarExtra("DockBarHero", systemImage: "sparkles") {
-            MenuBarContent(model: appDelegate.model, send: appDelegate.send)
+            MenuBarContent(
+                model: appDelegate.model,
+                send: appDelegate.send,
+                openManagementWindow: appDelegate.openManagementWindow
+            )
         }
         .menuBarExtraStyle(.menu)
-
-        Window("DockBarHero", id: "management") {
-            ManagementRootView(model: appDelegate.model)
-        }
-        .defaultSize(width: 860, height: 620)
     }
 }

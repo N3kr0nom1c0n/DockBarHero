@@ -25,7 +25,19 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
                 Text("Type GAME OVER MAN! to confirm.")
                     .font(.caption)
-                TextField("GAME OVER MAN!", text: $confirmation)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Confirmation phrase")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    TextField(
+                        "Confirmation phrase",
+                        text: $confirmation,
+                        prompt: Text("GAME OVER MAN!")
+                    )
+                    .textFieldStyle(.roundedBorder)
+                    .controlSize(.large)
+                    .frame(maxWidth: 360)
+                }
                 Button("Start New Game", role: .destructive) {
                     isResetting = true
                     resetError = nil

@@ -1,4 +1,30 @@
 import AppKit
+import SwiftUI
+
+@MainActor
+final class ManagementWindowController: NSWindowController {
+    init(model: AppModel) {
+        let content = NSHostingController(rootView: ManagementRootView(model: model))
+        let window = NSWindow(contentViewController: content)
+        window.title = "DockBarHero"
+        window.setContentSize(NSSize(width: 860, height: 620))
+        window.minSize = NSSize(width: 720, height: 520)
+        window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
+        window.isReleasedWhenClosed = false
+        super.init(window: window)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func open() {
+        showWindow(nil)
+        window?.makeKeyAndOrderFront(nil)
+        NSApplication.shared.activate()
+    }
+}
 
 struct TerminationRequestGate {
     enum Decision: Equatable {
@@ -37,6 +63,7 @@ struct TerminationRequestGate {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let model: AppModel
+    private let managementWindowController: ManagementWindowController
     private var terminationGate = TerminationRequestGate()
 
     override init() {
@@ -45,8 +72,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let driver = SimulationDriver()
         let session = GameSession(driver: driver, store: store, coordinator: coordinator)
         let settingsSession = SettingsSession(store: SettingsStore())
-        model = AppModel(gameSession: session, settingsController: settingsSession)
+        let model = AppModel(gameSession: session, settingsController: settingsSession)
+        self.model = model
+        managementWindowController = ManagementWindowController(model: model)
         super.init()
+        model.onManagementWindowRequest = { [weak managementWindowController] in
+            managementWindowController?.open()
+        }
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -158,5 +190,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func send(_ action: OverlayAction) {
         model.send(action)
+    }
+
+    func openManagementWindow() {
+        managementWindowController.open()
     }
 }

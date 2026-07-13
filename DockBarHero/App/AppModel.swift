@@ -7,6 +7,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var runPresentation: RunPresentation = .classSelection
     @Published private(set) var saveStatus: SaveStatus = .notLoaded
     @Published private(set) var managementRoute: ManagementRoute = .overview
+    var onManagementWindowRequest: (() -> Void)?
 
     private var window: OverlayWindowControlling?
     private var scene: SceneControlling?
@@ -189,6 +190,7 @@ final class AppModel: ObservableObject {
         switch run {
         case .classSelection:
             scene?.render(run)
+            onManagementWindowRequest?()
         case let .active(presentation):
             receive(presentation)
         }

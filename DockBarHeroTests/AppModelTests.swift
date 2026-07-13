@@ -19,6 +19,20 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(session.newGameCount, 1)
     }
 
+    func testLoadedClassSelectionRequestsManagementWindow() {
+        let session = FakeGameSession()
+        let model = AppModel(gameSession: session)
+        var requestCount = 0
+        model.onManagementWindowRequest = { requestCount += 1 }
+
+        model.start()
+        XCTAssertEqual(requestCount, 0)
+
+        session.emit(.classSelection)
+
+        XCTAssertEqual(requestCount, 1)
+    }
+
     func testStartPlacesButKeepsRailHiddenAndPausedUntilEnvironmentResolves() {
         let dependencies = TestDependencies()
         let model = dependencies.makeModel()

@@ -6,10 +6,10 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Current Milestone
 
-- Goal: accept the internal schema-v2 Progression Safety gate on the Foundation branch.
-- Current checkpoint: implementation and automated gate are complete; all Terra and Sol Important findings are repaired and cleared on re-review.
-- Remaining: manual interaction QA; then separately plan Heroes and Party and the three class abilities.
-- Acceptance hold: do not merge, push, release, or call schema v2 complete until the later Heroes and Party and Class Actions gates pass.
+- Goal: integrate the accepted Foundation and schema-v2 Progression Safety work, then plan Heroes and Party.
+- Current checkpoint: implementation, review repair, automated verification, launch-window recovery, and visible New Game confirmation are complete.
+- Integration: the owner lifted the internal merge/push hold on 2026-07-12 and requested integration to `main`.
+- Remaining: unchecked manual interaction QA, Heroes and Party, and the three class actions; this is not a release-ready milestone.
 
 ## Architecture
 
@@ -17,7 +17,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - SimulationDriver: MainActor monotonic advancement and throttled presentation/event delivery.
 - GameSession: explicit class-selection/active lifecycle, autosave triggers, safe run replacement, status propagation, and final flush.
 - SaveCodec, SaveStore, SaveCoordinator: schema-v2 validation, v2-only atomic recovery/replacement, quarantine, and coalescing.
-- AppModel: run presentation, management navigation, gameplay snapshots, and existing overlay state.
+- AppModel: run presentation, management navigation, first-run window requests, gameplay snapshots, and existing overlay state.
 - PrototypeScene: snapshot-only SpriteKit rendering and event-only visual reactions.
 - AppDelegate: production dependency construction and bounded termination save.
 
@@ -50,17 +50,17 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Active Work
 
-- Parent orchestrator: finish integration/final review and manual QA for Progression Safety.
-- Next design work: separate Heroes and Party plan, then define and plan Tank, DPS, and Healer actions.
-- Branch remains an internal checkpoint and must not be merged, pushed, rebased, or force-pushed yet.
+- Parent orchestrator: integrate `feature/foundation-upgrade` to `main` as owner-authorized.
+- Next design work: Heroes and Party plan, then Tank, DPS, and Healer actions.
+- Manual QA items not explicitly exercised remain open in the Progression Safety review packet.
 
 ## Last Verified State
 
 - Date: 2026-07-12.
 - Worktree: /Users/n3kr0/Projects/TBH/.worktrees/foundation-upgrade on `feature/foundation-upgrade`.
-- Progression gate: 254 tests passed with zero failures on 2026-07-12 after all review repairs.
+- Progression gate: 255 tests passed with zero failures on 2026-07-12 after launch-window and Danger Zone repairs.
 - Clean unsigned Apple Silicon Debug build succeeded; `./script/build_and_run.sh --verify` launched DockBarHero.
-- Manual interaction QA and final reviews remain pending; automated evidence is not treated as manual evidence.
+- Owner visually accepted the rounded New Game confirmation field; other unchecked manual QA remains pending.
 
 ## Decisions and Risks
 
@@ -75,3 +75,4 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - The release target is Apple Silicon and Steam-ready without tradable-item economy.
 - Progression Safety is the first gate inside the schema-v2 Heroes and Classes milestone and is not independently release-eligible.
 - The frontier and farming selection remain separate; three defeats retreat one full Boss segment and never auto-return to the frontier.
+- A loaded class-selection run opens the singleton management window; active runs retain menu-bar access to that same window.
