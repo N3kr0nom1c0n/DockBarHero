@@ -176,6 +176,28 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertEqual(hero.alpha, 1, accuracy: 0.001)
     }
 
+    func testVictoryRestoresEveryDefeatedPartySprite() throws {
+        let host = try PrototypeSceneHost()
+        var state = GameState.newGame(classID: .dps, balance: .standard, progression: .standard)
+        let tank = GameState.newGame(classID: .tank, balance: .standard, progression: .standard).party.heroes[0]
+        let healer = GameState.newGame(classID: .healer, balance: .standard, progression: .standard).party.heroes[0]
+        state.party = PartyState(heroes: [state.party.heroes[0], tank, healer], unlocks: .complete)
+        host.render(.active(GameSimulation(state: state).presentation))
+
+        let first = try XCTUnwrap(host.scene.childNode(withName: "//hero"))
+        let third = try XCTUnwrap(host.scene.childNode(withName: "//hero-2"))
+        host.scene.handle([.heroDown(slot: 0), .heroDown(slot: 2)])
+        first.alpha = 0
+        third.alpha = 0
+
+        host.scene.handle([.victory(defeatedLevel: 25)])
+
+        XCTAssertNil(first.action(forKey: "reviveVisibility"))
+        XCTAssertNil(third.action(forKey: "reviveVisibility"))
+        XCTAssertEqual(first.alpha, 1, accuracy: 0.001)
+        XCTAssertEqual(third.alpha, 1, accuracy: 0.001)
+    }
+
     func testRailCreatesOrderedNodesAndHealthBarsForEveryPartySlot() throws {
         let host = try PrototypeSceneHost(size: CGSize(width: 1_140, height: 96))
         var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)

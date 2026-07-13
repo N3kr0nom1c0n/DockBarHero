@@ -131,6 +131,10 @@ final class PrototypeScene: SKScene {
             case .victory:
                 playSpriteAction(.enemy, action: .defeated)
                 animateBriefFade(nodeNamed: "enemy")
+                for slot in renderedHeroClasses.indices {
+                    setHeroIdleTexture(slot: slot)
+                    restoreHeroAfterRevive(slot: slot)
+                }
             case .defeat:
                 playSpriteAction(.hero, action: .defeated)
                 animateDefeat(slot: 0)
