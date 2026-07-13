@@ -116,7 +116,7 @@ Slice 1 establishes item descriptors and individual identities while retaining a
 - purchased expansion count;
 - the next stable stack and item identity sequences.
 
-Ordinary items stack only when template, level, slot, rarity, primary stat, ordered affixes, and lock state are identical. Quantity has no product-level maximum; checked integer storage overflow rejects the candidate. A stack consumes one inventory slot regardless of quantity.
+Ordinary items stack only when template, level, rarity, ordered affixes, and lock state are identical. Slot and primary stat remain descriptor data but are not independent stack-key fields because an authored template owns those properties. Quantity has no product-level maximum; checked integer storage overflow rejects the candidate. A stack consumes one inventory slot regardless of quantity.
 
 Equipping one ordinary unit decrements or removes its source stack and creates one stable equipped instance. If the source stack retains other units, extraction increases occupied slots by one and therefore requires capacity. Replacing or unequipping that instance removes it and returns its descriptor to an identical stack or creates a new one if capacity permits. Equipment references remain exclusive per hero. Unique items always remain individual stable instances.
 

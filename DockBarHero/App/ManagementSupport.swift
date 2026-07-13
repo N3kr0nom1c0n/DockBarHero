@@ -155,7 +155,7 @@ enum InventorySortOption: String, CaseIterable, Equatable, Sendable {
 }
 
 struct InventoryQuery: Equatable, Sendable {
-    var rarity: ItemRarity?
+    var rarities: Set<ItemRarity>
     var slot: EquipmentSlot?
     var upgradeOnly: Bool
     var sort: InventorySortOption
@@ -163,9 +163,45 @@ struct InventoryQuery: Equatable, Sendable {
     var equipped: Bool? = nil
     var location: InventoryLocation? = nil
 
+    init(
+        rarity: ItemRarity?,
+        slot: EquipmentSlot?,
+        upgradeOnly: Bool,
+        sort: InventorySortOption,
+        locked: Bool? = nil,
+        equipped: Bool? = nil,
+        location: InventoryLocation? = nil
+    ) {
+        self.rarities = rarity.map { [$0] } ?? []
+        self.slot = slot
+        self.upgradeOnly = upgradeOnly
+        self.sort = sort
+        self.locked = locked
+        self.equipped = equipped
+        self.location = location
+    }
+
+    init(
+        rarities: Set<ItemRarity>,
+        slot: EquipmentSlot?,
+        upgradeOnly: Bool,
+        sort: InventorySortOption,
+        locked: Bool? = nil,
+        equipped: Bool? = nil,
+        location: InventoryLocation? = nil
+    ) {
+        self.rarities = rarities
+        self.slot = slot
+        self.upgradeOnly = upgradeOnly
+        self.sort = sort
+        self.locked = locked
+        self.equipped = equipped
+        self.location = location
+    }
+
     func apply(to rows: [InventoryRow]) -> [InventoryRow] {
         rows.filter { row in
-            (rarity == nil || row.rarity == rarity) &&
+            (rarities.isEmpty || rarities.contains(row.rarity)) &&
                 (slot == nil || row.slot == slot) &&
                 (!upgradeOnly || row.comparisonLabel.hasPrefix("Upgrade")) &&
                 (locked == nil || row.isLocked == locked) &&

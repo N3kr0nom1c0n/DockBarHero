@@ -23,7 +23,7 @@ struct ItemTemplateID: RawRepresentable, Codable, Hashable, Equatable, Sendable 
     let rawValue: String
 }
 
-enum ItemRarity: String, Codable, CaseIterable, Comparable, Sendable {
+enum ItemRarity: String, Codable, CaseIterable, Comparable, Hashable, Sendable {
     case common
     case uncommon
     case rare

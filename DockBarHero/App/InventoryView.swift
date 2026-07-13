@@ -4,7 +4,7 @@ struct InventoryView: View {
     @ObservedObject var model: AppModel
     @State private var selection: ItemID?
     @State private var selectedHeroSlot = 0
-    @State private var rarityFilter: ItemRarity?
+    @State private var rarityFilters: Set<ItemRarity> = []
     @State private var slotFilter: EquipmentSlot?
     @State private var upgradeOnly = false
     @State private var sortOption = InventorySortOption.newest
@@ -17,7 +17,7 @@ struct InventoryView: View {
 
     private var rows: [InventoryRow] {
         InventoryQuery(
-            rarity: rarityFilter,
+            rarities: rarityFilters,
             slot: slotFilter,
             upgradeOnly: upgradeOnly,
             sort: sortOption,
@@ -107,11 +107,27 @@ struct InventoryView: View {
                     }
                 }
                 .frame(maxWidth: 210)
-                Picker("Rarity", selection: $rarityFilter) {
-                    Text("All rarities").tag(nil as ItemRarity?)
+                Menu {
+                    Button("All rarities") { rarityFilters = [] }
+                    Divider()
                     ForEach(ItemRarity.allCases, id: \.rawValue) { rarity in
-                        Text(rarity.rawValue.capitalized).tag(rarity as ItemRarity?)
+                        Button {
+                            if rarityFilters.contains(rarity) {
+                                rarityFilters.remove(rarity)
+                            } else {
+                                rarityFilters.insert(rarity)
+                            }
+                        } label: {
+                            Label(
+                                rarity.rawValue.capitalized,
+                                systemImage: rarityFilters.contains(rarity) ? "checkmark" : "circle"
+                            )
+                        }
                     }
+                } label: {
+                    Text(rarityFilters.isEmpty
+                         ? "All rarities"
+                         : rarityFilters.sorted().map { $0.rawValue.capitalized }.joined(separator: ", "))
                 }
                 .frame(maxWidth: 155)
                 Picker("Slot", selection: $slotFilter) {

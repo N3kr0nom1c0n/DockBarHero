@@ -14,7 +14,7 @@
 - Capacity counts stacks, equipped instances, and Unique instances; overflow does not count.
 - Starting capacity 40, Boss 25 +10, Boss 100 +20, purchases +10, release cap 200.
 - Purchase prices start at 500 gold and double; all prices remain `InventoryConfiguration` data for post-build tuning.
-- Stack signatures include template, level, slot, rarity, primary stat, ordered affixes, and lock state.
+- Stack signatures include template, level, rarity, ordered affixes, and lock state; authored templates own slot and primary-stat semantics.
 - Equipped and Unique items remain individual; Unique, equipped, and locked content is never salvageable.
 - Every inventory/economy operation is checked and atomic; no item is silently deleted.
 

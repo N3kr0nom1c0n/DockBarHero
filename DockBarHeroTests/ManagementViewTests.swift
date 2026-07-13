@@ -128,6 +128,24 @@ final class ManagementViewTests: XCTestCase {
         XCTAssertEqual(rows.map(\.id.rawValue), [2, 3])
     }
 
+    func testInventoryQueryAcceptsMultipleRarities() {
+        var state = GameState.newGame(balance: .standard)
+        state.inventory = [
+            Item(id: ItemID(rawValue: 1), level: 1, slot: .weapon, primaryStat: 1, creationSequence: 1),
+            Item(id: ItemID(rawValue: 2), level: 2, slot: .weapon, primaryStat: 2, creationSequence: 2, rarity: .uncommon, affixes: [.init(id: .might, magnitude: 1)]),
+            Item(id: ItemID(rawValue: 3), level: 3, slot: .weapon, primaryStat: 3, creationSequence: 3, rarity: .rare, affixes: [.init(id: .haste, magnitude: 1), .init(id: .might, magnitude: 1)]),
+        ]
+
+        let rows = InventoryQuery(
+            rarities: [.common, .rare],
+            slot: nil,
+            upgradeOnly: false,
+            sort: .newest
+        ).apply(to: InventoryRow.rows(for: state))
+
+        XCTAssertEqual(rows.map(\.id.rawValue), [3, 1])
+    }
+
     func testInventoryRowsIncludeOverflowLocationAndStackQuantity() {
         var state = GameState.newGame(balance: .standard)
         state.overflowInventory = [
