@@ -34,8 +34,21 @@ struct LootSystem {
         guard item.id == itemID, item.creationSequence == rawID else {
             throw SimulationError.invalidState
         }
-        state.inventory.append(item)
         state.lootSequence = rawID
-        return item
+        let insertion = try InventoryResolver().insertDrop(item, into: state)
+        state = insertion.state
+        return Item(
+            id: insertion.entryID,
+            level: item.level,
+            slot: item.slot,
+            primaryStat: item.primaryStat,
+            creationSequence: item.creationSequence,
+            templateID: item.templateID,
+            rarity: item.rarity,
+            affixes: item.affixes,
+            isLocked: item.isLocked,
+            uniqueName: item.uniqueName,
+            quantity: 1
+        )
     }
 }

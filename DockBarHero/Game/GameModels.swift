@@ -64,6 +64,7 @@ struct Item: Identifiable, Codable, Equatable, Sendable {
     let affixes: [ItemAffix]
     var isLocked: Bool
     let uniqueName: String?
+    var quantity: UInt64
 
     init(
         id: ItemID,
@@ -75,7 +76,8 @@ struct Item: Identifiable, Codable, Equatable, Sendable {
         rarity: ItemRarity = .common,
         affixes: [ItemAffix] = [],
         isLocked: Bool = false,
-        uniqueName: String? = nil
+        uniqueName: String? = nil,
+        quantity: UInt64 = 1
     ) {
         self.id = id
         self.level = level
@@ -89,6 +91,7 @@ struct Item: Identifiable, Codable, Equatable, Sendable {
         self.affixes = affixes
         self.isLocked = isLocked
         self.uniqueName = uniqueName
+        self.quantity = quantity
     }
 }
 
@@ -240,6 +243,8 @@ struct GameState: Codable, Equatable, Sendable {
     var inventory: [Item]
     var autoEquipEnabled: Bool
     var lootSequence: UInt64
+    var overflowInventory: [Item] = []
+    var inventoryExpansionPurchases: Int = 0
 
     var hero: CombatantState {
         get { party.heroes[0].combat }

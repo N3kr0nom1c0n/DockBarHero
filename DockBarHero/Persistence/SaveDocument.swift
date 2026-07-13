@@ -231,11 +231,16 @@ struct SaveCodec: Sendable {
 
         var itemIDs = Set<ItemID>()
         var creationSequences = Set<UInt64>()
-        for item in state.inventory {
+        guard state.inventoryExpansionPurchases >= 0,
+              state.inventory.count <= (try InventoryResolver().capacity(for: state)) else {
+            throw SaveValidationError.invalidLootSequence
+        }
+        for item in state.inventory + state.overflowInventory {
             guard item.id.rawValue > 0,
                   item.level > 0,
                   item.primaryStat > 0,
-                  item.creationSequence > 0 else {
+                  item.creationSequence > 0,
+                  item.quantity > 0 else {
                 throw SaveValidationError.invalidItem(item.id)
             }
             do {
@@ -265,6 +270,9 @@ struct SaveCodec: Sendable {
                 guard matches.count == 1, item.slot == slot else {
                     throw SaveValidationError.equipmentSlotMismatch(itemID)
                 }
+                guard item.quantity == 1 else {
+                    throw SaveValidationError.invalidItem(itemID)
+                }
                 let baseStat = slot == .weapon ? heroState.combat.baseAttack : heroState.combat.baseDefense
                 let (_, overflow) = baseStat.addingReportingOverflow(item.primaryStat)
                 guard !overflow else {
@@ -276,6 +284,9 @@ struct SaveCodec: Sendable {
         let (nextItemID, itemIDOverflow) = state.lootSequence.addingReportingOverflow(1)
         guard !itemIDOverflow,
               !state.inventory.contains(where: {
+                  $0.id.rawValue == nextItemID || $0.creationSequence == nextItemID
+              }),
+              !state.overflowInventory.contains(where: {
                   $0.id.rawValue == nextItemID || $0.creationSequence == nextItemID
               }) else {
             throw SaveValidationError.invalidLootSequence
