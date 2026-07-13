@@ -9,7 +9,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - Goal: complete Class Actions and the two-slice Loot Expansion without merging to `main` or starting authored quest rewards.
 - Current checkpoint: Class Actions, Item Depth, Inventory Operations, and the live QA rendering correction are implemented in verified vertical slices on `feature/class-actions-and-loot`.
 - Integration: the owner lifted the internal hold and the feature branch was fast-forwarded and pushed to `main` on 2026-07-12.
-- Remaining: commit the verified QA record and push only the feature branch; this is not release-ready.
+- Remaining: owner review and later tuning of provisional prices; the pushed feature branch remains isolated and is not release-ready.
 
 ## Architecture
 
@@ -61,9 +61,9 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Active Work
 
-- Parent orchestrator: preserve `feature/class-actions-and-loot` without merging or releasing.
+- Parent orchestrator: preserve the pushed `feature/class-actions-and-loot` branch and worktree without merging or releasing.
 - Live QA passed for unlocks, three-class actions, cooldown relaunch, rarity/affixes, auto-equip, capacity/overflow, partial and bulk salvage, locking, remedial farming, pixel sprites, and the DPS scale.
-- Final push remains gated on the verified QA documentation commit and clean worktree.
+- Remote handoff is complete; `main` remains unchanged by this milestone run.
 - Authored quest/boss content that grants specific Unique items remains a later milestone.
 
 ## Last Verified State
@@ -71,6 +71,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - Date: 2026-07-13.
 - Checkout: `/Users/n3kr0/Projects/TBH/.worktrees/heroes-and-party` on `feature/class-actions-and-loot`.
 - Final post-QA gate: 344 arm64 tests passed with zero failures; clean unsigned arm64 build, context guard, and exact-worktree launch succeeded.
+- `feature/class-actions-and-loot` was pushed with upstream tracking and retained in its isolated worktree; no merge or release was performed.
 - Save isolation retained both diagnostic archives and the clean end-to-end save. Primary and backup settings were restored byte-identically to their pre-QA hash.
 - Exact-window QA showed three class-distinct pixel sprites and the centered DPS scale. A stale same-bundle-ID app caused the earlier duplicate process and rectangle-era image; absolute worktree-bundle targeting removed that ambiguity.
 - Victory now restores every defeated party sprite; the regression passed all 15 focused rendering tests before the full suite.

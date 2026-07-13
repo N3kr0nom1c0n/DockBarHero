@@ -63,4 +63,5 @@
 - `./script/build_and_run.sh --verify` rebuilt and launched PID 98411. Process inspection found exactly one DockBarHero executable, at the absolute worktree bundle path.
 - A final exact-window capture from that process showed all three pixel heroes, their action labels and health bars, the enemy, and the centered DPS scale. Both settings files still matched the original SHA-256 `1bd458308cf46a91b10dfe45093bf41993bdd24477626ca80278cf6e981a61a9`.
 - `git diff --check` was clean before the documentation commit.
+- `git push -u origin feature/class-actions-and-loot` created the remote feature branch and configured upstream tracking; the isolated worktree was retained.
 - The branch is not merged or released. Authored Unique reward content and Class Action modifiers remain excluded.
