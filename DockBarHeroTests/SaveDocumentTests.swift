@@ -33,6 +33,23 @@ final class SaveDocumentTests: XCTestCase {
         XCTAssertEqual(document.state, state)
     }
 
+    func testStackedInventoryOverflowAndExpansionRoundTrip() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.inventory = [
+            Item(id: ItemID(rawValue: 1), level: 2, slot: .weapon, primaryStat: 2, creationSequence: 1, quantity: 12),
+        ]
+        state.overflowInventory = [
+            Item(id: ItemID(rawValue: 2), level: 3, slot: .armor, primaryStat: 3, creationSequence: 2, quantity: 99),
+        ]
+        state.inventoryExpansionPurchases = 2
+        state.lootSequence = 2
+
+        let codec = SaveCodec()
+        let decoded = try codec.decode(try codec.encode(state: state, savedAt: savedAt))
+
+        XCTAssertEqual(decoded.state, state)
+    }
+
     func testRevivingStateRoundTripsWithoutChangingEncounterPhase() throws {
         var state = GameState.newGame(balance: .standard)
         state.hero.currentHealth = 0

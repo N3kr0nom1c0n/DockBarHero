@@ -75,6 +75,27 @@ final class InventoryResolverTests: XCTestCase {
         XCTAssertEqual(try InventoryResolver().capacity(for: simulation.state), 60)
     }
 
+    func testCapacityPurchaseRejectsAtCapWithoutMutation() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.party.unlocks = .complete
+        state.inventoryExpansionPurchases = 13
+        state.economy.gold = .max
+        let original = state
+        var simulation = GameSimulation(state: state)
+
+        XCTAssertEqual(try InventoryResolver().capacity(for: state), 200)
+        XCTAssertThrowsError(try simulation.apply(.purchaseInventoryCapacity))
+        XCTAssertEqual(simulation.state, original)
+    }
+
+    func testPurchasePricesRemainConfigurationDataAndOverflowChecked() throws {
+        let configuration = InventoryConfiguration.standard
+        XCTAssertEqual(try configuration.purchasePrice(after: 0), 500)
+        XCTAssertEqual(try configuration.purchasePrice(after: 1), 1_000)
+        XCTAssertEqual(try configuration.purchasePrice(after: 2), 2_000)
+        XCTAssertThrowsError(try configuration.purchasePrice(after: 63))
+    }
+
     func testOverflowMoveMergesAtFullCapacity() throws {
         var state = GameState.newGame(balance: .standard)
         state.inventory = (1...40).map { item(id: UInt64($0), level: $0, quantity: 1) }
@@ -87,6 +108,34 @@ final class InventoryResolverTests: XCTestCase {
 
         XCTAssertEqual(simulation.state.inventory.first(where: { $0.level == 1 })?.quantity, 3)
         XCTAssertEqual(simulation.state.overflowInventory.first?.quantity, 1)
+    }
+
+    func testNonmatchingOverflowMoveAtFullCapacityRollsBack() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.inventory = (1...40).map { item(id: UInt64($0), level: $0, quantity: 1) }
+        state.overflowInventory = [item(id: 41, level: 99, quantity: 2)]
+        state.lootSequence = 41
+        let original = state
+        var simulation = GameSimulation(state: state)
+
+        XCTAssertThrowsError(try simulation.apply(.moveOverflow(
+            itemID: ItemID(rawValue: 41),
+            quantity: 1
+        )))
+        XCTAssertEqual(simulation.state, original)
+    }
+
+    func testStackQuantityOverflowRejectsInsertion() {
+        var state = GameState.newGame(balance: .standard)
+        state.inventory = [item(id: 1, level: 1, quantity: .max)]
+        state.lootSequence = 1
+
+        XCTAssertThrowsError(try InventoryResolver().insertDrop(
+            item(id: 2, level: 1, quantity: 1),
+            into: state
+        )) { error in
+            XCTAssertEqual(error as? SimulationError, .arithmeticOverflow)
+        }
     }
 
     func testEquippingFromStackExtractsExclusiveItemIdentity() throws {
@@ -106,6 +155,25 @@ final class InventoryResolverTests: XCTestCase {
             state: simulation.state,
             savedAt: Date(timeIntervalSince1970: 0)
         ))
+    }
+
+    func testFullInventoryEquipSucceedsWhenReplacedItemReturnsToStack() throws {
+        var state = GameState.newGame(balance: .standard)
+        let equipped = item(id: 1, level: 1, quantity: 1)
+        let source = item(id: 2, level: 1, quantity: 2)
+        state.inventory = [equipped, source] + (3...40).map {
+            item(id: UInt64($0), level: $0, quantity: 1)
+        }
+        state.party.heroes[0].equipment.weaponID = equipped.id
+        state.lootSequence = 40
+        var simulation = GameSimulation(state: state)
+
+        _ = try simulation.apply(.equip(source.id))
+
+        XCTAssertEqual(simulation.state.inventory.count, 40)
+        XCTAssertEqual(simulation.state.inventory.first(where: { $0.id == equipped.id })?.quantity, 2)
+        XCTAssertEqual(simulation.state.party.heroes[0].equipment.weaponID, ItemID(rawValue: 41))
+        XCTAssertNil(simulation.state.inventory.first(where: { $0.id == source.id }))
     }
 
     private func item(id: UInt64, level: Int, quantity: UInt64) -> Item {

@@ -51,6 +51,38 @@ final class SalvageResolverTests: XCTestCase {
         XCTAssertEqual(state.economy.gold, 0)
     }
 
+    func testEquippedSelectionRejectsWholeBatchWithoutMutation() {
+        var state = GameState.newGame(balance: .standard)
+        let good = item(id: 1, level: 2, rarity: .common, quantity: 1)
+        let equipped = item(id: 2, level: 3, rarity: .common, quantity: 1)
+        state.inventory = [good, equipped]
+        state.party.heroes[0].equipment.weaponID = equipped.id
+        state.lootSequence = 2
+        let original = state
+
+        XCTAssertThrowsError(try SalvageResolver().salvage([
+            .init(location: .inventory, itemID: good.id, quantity: 1),
+            .init(location: .inventory, itemID: equipped.id, quantity: 1),
+        ], in: state))
+        XCTAssertEqual(state, original)
+    }
+
+    func testGoldOverflowRejectsWholeBatch() {
+        var state = GameState.newGame(balance: .standard)
+        let item = item(id: 1, level: 1, rarity: .common, quantity: 1)
+        state.inventory = [item]
+        state.economy.gold = .max
+        state.lootSequence = 1
+
+        XCTAssertThrowsError(try SalvageResolver().salvage([
+            .init(location: .inventory, itemID: item.id, quantity: 1),
+        ], in: state)) { error in
+            XCTAssertEqual(error as? SimulationError, .arithmeticOverflow)
+        }
+        XCTAssertEqual(state.inventory, [item])
+        XCTAssertEqual(state.economy.gold, .max)
+    }
+
     private func item(
         id: UInt64,
         level: Int,
