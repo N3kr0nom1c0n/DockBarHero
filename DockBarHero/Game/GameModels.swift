@@ -19,12 +19,77 @@ struct ItemID: RawRepresentable, Codable, Hashable, Sendable {
     let rawValue: UInt64
 }
 
+struct ItemTemplateID: RawRepresentable, Codable, Hashable, Equatable, Sendable {
+    let rawValue: String
+}
+
+enum ItemRarity: String, Codable, CaseIterable, Comparable, Sendable {
+    case common
+    case uncommon
+    case rare
+    case epic
+    case unique
+
+    static func < (lhs: ItemRarity, rhs: ItemRarity) -> Bool {
+        guard let left = allCases.firstIndex(of: lhs),
+              let right = allCases.firstIndex(of: rhs) else { return false }
+        return left < right
+    }
+}
+
+enum AffixID: String, Codable, CaseIterable, Comparable, Hashable, Sendable {
+    case haste
+    case might
+    case vitality
+    case ward
+
+    static func < (lhs: AffixID, rhs: AffixID) -> Bool {
+        lhs.rawValue < rhs.rawValue
+    }
+}
+
+struct ItemAffix: Codable, Equatable, Hashable, Sendable {
+    let id: AffixID
+    let magnitude: Int
+}
+
 struct Item: Identifiable, Codable, Equatable, Sendable {
     let id: ItemID
     let level: Int
     let slot: EquipmentSlot
     let primaryStat: Int
     let creationSequence: UInt64
+    let templateID: ItemTemplateID
+    let rarity: ItemRarity
+    let affixes: [ItemAffix]
+    var isLocked: Bool
+    let uniqueName: String?
+
+    init(
+        id: ItemID,
+        level: Int,
+        slot: EquipmentSlot,
+        primaryStat: Int,
+        creationSequence: UInt64,
+        templateID: ItemTemplateID? = nil,
+        rarity: ItemRarity = .common,
+        affixes: [ItemAffix] = [],
+        isLocked: Bool = false,
+        uniqueName: String? = nil
+    ) {
+        self.id = id
+        self.level = level
+        self.slot = slot
+        self.primaryStat = primaryStat
+        self.creationSequence = creationSequence
+        self.templateID = templateID ?? ItemTemplateID(
+            rawValue: slot == .weapon ? "ordinary.weapon" : "ordinary.armor"
+        )
+        self.rarity = rarity
+        self.affixes = affixes
+        self.isLocked = isLocked
+        self.uniqueName = uniqueName
+    }
 }
 
 struct EquipmentState: Codable, Equatable, Sendable {

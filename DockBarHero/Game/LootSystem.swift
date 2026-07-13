@@ -25,31 +25,15 @@ struct LootSystem {
         }
 
         let slot: EquipmentSlot = sequence.isMultiple(of: 2) ? .weapon : .armor
-        guard let baselineStat = balance.itemPrimaryStat(level: defeatedLevel, slot: slot) else {
-            throw SimulationError.invalidBalance
-        }
-        let primaryStat: Int
-        do {
-            let scaled = try ProgressionConfiguration.standard.applying(
-                ProgressionConfiguration.standard.tierDefinition(for: tier).itemStatRatio,
-                to: Int64(baselineStat),
-                rounding: .up
-            )
-            guard scaled <= Int64(Int.max) else { throw SimulationError.arithmeticOverflow }
-            primaryStat = Int(scaled)
-        } catch let error as SimulationError {
-            throw error
-        } catch {
-            throw SimulationError.arithmeticOverflow
-        }
-
-        let item = Item(
-            id: itemID,
-            level: defeatedLevel,
-            slot: slot,
-            primaryStat: primaryStat,
-            creationSequence: rawID
+        let item = try LootGenerator(balance: balance).generate(
+            defeatedLevel: defeatedLevel,
+            tier: tier,
+            sequence: sequence,
+            slot: slot
         )
+        guard item.id == itemID, item.creationSequence == rawID else {
+            throw SimulationError.invalidState
+        }
         state.inventory.append(item)
         state.lootSequence = rawID
         return item

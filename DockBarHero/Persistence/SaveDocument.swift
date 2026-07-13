@@ -238,6 +238,11 @@ struct SaveCodec: Sendable {
                   item.creationSequence > 0 else {
                 throw SaveValidationError.invalidItem(item.id)
             }
+            do {
+                try LootConfiguration.standard.validate(item)
+            } catch {
+                throw SaveValidationError.invalidItem(item.id)
+            }
             guard itemIDs.insert(item.id).inserted else {
                 throw SaveValidationError.duplicateItemID(item.id)
             }
