@@ -140,6 +140,7 @@ private extension GameEvent {
         case .classActionReady: .other
         case .classActionCast, .guardActivated, .guardIntercepted, .powerStrike, .mended,
              .classActionRejected: .other
+        case .itemLockChanged: .other
         }
     }
 }

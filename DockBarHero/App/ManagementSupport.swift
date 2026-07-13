@@ -16,6 +16,9 @@ enum ManagementIntent {
     static func cast(heroSlot: Int, actionID: ClassActionID) -> GameIntent {
         .castAction(heroSlot: heroSlot, actionID: actionID)
     }
+    static func setItemLocked(itemID: ItemID, isLocked: Bool) -> GameIntent {
+        .setItemLocked(itemID: itemID, isLocked: isLocked)
+    }
 }
 
 enum ManagementFormat {
@@ -52,6 +55,11 @@ struct InventoryRow: Identifiable, Equatable {
     let isEquipped: Bool
     let equippedHeroSlot: Int?
     let equippedHeroClass: HeroClassID?
+    let rarity: ItemRarity
+    let affixLabel: String
+    let isLocked: Bool
+    let comparisonScore: Int64?
+    let comparisonLabel: String
 
     var slotName: String { slot.rawValue.capitalized }
     var equippedLabel: String {
@@ -59,7 +67,9 @@ struct InventoryRow: Identifiable, Equatable {
         return "Hero \(equippedHeroSlot + 1) · \(equippedHeroClass.displayName)"
     }
 
-    static func rows(for state: GameState) -> [InventoryRow] {
+    var rarityName: String { rarity.rawValue.capitalized }
+
+    static func rows(for state: GameState, heroSlot: Int = 0) -> [InventoryRow] {
         state.inventory
             .sorted {
                 if $0.creationSequence != $1.creationSequence {
@@ -71,6 +81,11 @@ struct InventoryRow: Identifiable, Equatable {
                 let owner = state.party.heroes.enumerated().first { _, hero in
                     hero.equipment[item.slot] == item.id
                 }
+                let comparison = try? ItemScoreResolver().compare(
+                    item: item,
+                    heroSlot: heroSlot,
+                    in: state
+                )
                 return InventoryRow(
                     id: item.id,
                     slot: item.slot,
@@ -79,9 +94,23 @@ struct InventoryRow: Identifiable, Equatable {
                     creationSequence: item.creationSequence,
                     isEquipped: owner != nil,
                     equippedHeroSlot: owner?.offset,
-                    equippedHeroClass: owner?.element.classID
+                    equippedHeroClass: owner?.element.classID,
+                    rarity: item.rarity,
+                    affixLabel: item.affixes.map {
+                        "\($0.id.rawValue.capitalized) +\($0.magnitude)"
+                    }.joined(separator: ", "),
+                    isLocked: item.isLocked,
+                    comparisonScore: comparison?.candidateScore,
+                    comparisonLabel: comparison.map {
+                        let marker = $0.isStrictUpgrade ? "Upgrade" : "Sidegrade"
+                        return "\(marker) · A \(signed($0.deltas.attack)) · D \(signed($0.deltas.defense)) · HP \(signed($0.deltas.maximumHealth)) · \(ManagementFormat.interval($0.deltas.attackInterval))"
+                    } ?? "Unavailable"
                 )
             }
+    }
+
+    private static func signed(_ value: Int) -> String {
+        value >= 0 ? "+\(value)" : "\(value)"
     }
 
     static func sorted(

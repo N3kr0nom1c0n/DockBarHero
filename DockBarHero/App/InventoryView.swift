@@ -10,7 +10,10 @@ struct InventoryView: View {
     ]
 
     private var rows: [InventoryRow] {
-        InventoryRow.sorted(InventoryRow.rows(for: model.game.state), using: sortOrder)
+        InventoryRow.sorted(
+            InventoryRow.rows(for: model.game.state, heroSlot: selectedHeroSlot),
+            using: sortOrder
+        )
     }
     private var selectedItemIsOwned: Bool {
         guard let selection else { return false }
@@ -41,14 +44,29 @@ struct InventoryView: View {
                 }
                 .disabled(!selectedItemIsOwned)
                 .accessibilityIdentifier("equip-selected-item")
+                if let selection,
+                   let selected = rows.first(where: { $0.id == selection }) {
+                    Button(selected.isLocked ? "Unlock" : "Lock") {
+                        model.send(ManagementIntent.setItemLocked(
+                            itemID: selection,
+                            isLocked: !selected.isLocked
+                        ))
+                    }
+                    .disabled(selected.rarity == .unique)
+                    .accessibilityIdentifier("lock-selected-item")
+                }
             }
 
             Table(rows, selection: $selection, sortOrder: $sortOrder) {
                 TableColumn("Slot", value: \.slotName)
                 TableColumn("Level", value: \.level) { Text(ManagementFormat.itemLevel($0.level)) }
+                TableColumn("Rarity", value: \.rarityName)
                 TableColumn("Stat", value: \.primaryStat) { Text("\($0.primaryStat)") }
+                TableColumn("Affixes", value: \.affixLabel)
+                TableColumn("Comparison", value: \.comparisonLabel)
                 TableColumn("Created", value: \.creationSequence) { Text("\($0.creationSequence)") }
                 TableColumn("Equipped", value: \.equippedLabel)
+                TableColumn("Locked") { Text($0.isLocked ? "Yes" : "No") }
             }
             .accessibilityIdentifier("inventory-table")
         }

@@ -80,12 +80,13 @@ struct RewardResolver: Sendable {
         events.append(.loot(item))
 
         if result.autoEquipEnabled {
-            let resolver = CombatResolver()
-            let candidates = try result.party.heroes.indices.compactMap { slot -> (slot: Int, amount: Int)? in
-                guard let amount = try resolver.upgradeAmount(for: item, heroIndex: slot, in: result) else {
+            let resolver = ItemScoreResolver()
+            let candidates = try result.party.heroes.indices.compactMap { slot -> (slot: Int, amount: Int64)? in
+                let comparison = try resolver.compare(item: item, heroSlot: slot, in: result)
+                guard comparison.isStrictUpgrade else {
                     return nil
                 }
-                return (slot, amount)
+                return (slot, comparison.improvement)
             }
             if let selected = candidates.sorted(by: {
                 $0.amount != $1.amount ? $0.amount > $1.amount : $0.slot < $1.slot

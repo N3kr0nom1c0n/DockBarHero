@@ -326,7 +326,8 @@ final class GameSession: GameSessionControlling {
         case .victory, .loot, .xpGained, .heroLeveled, .goldGained, .equipped,
              .equippedHero,
              .autoEquipChanged, .destinationQueued, .farmingStarted, .returnedToFrontier,
-             .partyUnlockPending, .classActionCast, .guardActivated, .powerStrike, .mended:
+             .partyUnlockPending, .classActionCast, .guardActivated, .powerStrike, .mended,
+             .itemLockChanged:
             return true
         case .attack, .heroAttack, .enemyAttack, .heroDown, .defeat, .revived,
              .classActionReady, .guardIntercepted, .classActionRejected:

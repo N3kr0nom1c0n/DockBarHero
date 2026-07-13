@@ -126,17 +126,24 @@ struct PartyUnlockResolver: Sendable {
             return EquipmentSlot.allCases.compactMap { hero.equipment[$0] }
         })
         for equipmentSlot in EquipmentSlot.allCases {
-            let selected = state.inventory
+            let candidates = state.inventory
                 .filter { $0.slot == equipmentSlot && !usedIDs.contains($0.id) }
-                .sorted {
-                    if $0.primaryStat != $1.primaryStat { return $0.primaryStat > $1.primaryStat }
-                    if $0.level != $1.level { return $0.level > $1.level }
-                    if $0.creationSequence != $1.creationSequence {
-                        return $0.creationSequence < $1.creationSequence
-                    }
-                    return $0.id.rawValue < $1.id.rawValue
+            let scored = try candidates.map { item in
+                (item: item, score: try ItemScoreResolver().compare(
+                    item: item,
+                    heroSlot: heroSlot,
+                    in: state
+                ).candidateScore)
+            }
+            let selected = scored.sorted {
+                if $0.score != $1.score { return $0.score > $1.score }
+                if $0.item.rarity != $1.item.rarity { return $0.item.rarity > $1.item.rarity }
+                if $0.item.level != $1.item.level { return $0.item.level > $1.item.level }
+                if $0.item.creationSequence != $1.item.creationSequence {
+                    return $0.item.creationSequence < $1.item.creationSequence
                 }
-                .first
+                return $0.item.id.rawValue < $1.item.id.rawValue
+            }.first?.item
             state.party.heroes[heroSlot].equipment[equipmentSlot] = selected?.id
         }
     }

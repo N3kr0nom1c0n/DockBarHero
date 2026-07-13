@@ -123,6 +123,18 @@ struct GameSimulation {
                 try completeVictory(defeatedLevel: state.encounter.enemyLevel, into: &events)
             }
             return events
+
+        case let .setItemLocked(itemID, isLocked):
+            let matches = state.inventory.indices.filter { state.inventory[$0].id == itemID }
+            guard matches.count == 1, let index = matches.first else {
+                throw GameIntentError.itemNotFound
+            }
+            guard state.inventory[index].rarity != .unique || isLocked else {
+                throw SimulationError.invalidState
+            }
+            guard state.inventory[index].isLocked != isLocked else { return [] }
+            state.inventory[index].isLocked = isLocked
+            return [.itemLockChanged(itemID: itemID, isLocked: isLocked)]
         }
     }
 

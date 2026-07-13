@@ -144,6 +144,8 @@ final class PrototypeScene: SKScene {
                  .partyUnlockPending, .classActionReady, .classActionCast, .guardActivated,
                  .guardIntercepted, .powerStrike, .mended, .classActionRejected:
                 break
+            case .itemLockChanged:
+                break
             }
         }
     }
