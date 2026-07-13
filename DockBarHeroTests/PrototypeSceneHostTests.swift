@@ -208,6 +208,41 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertNil(first.action(forKey: "reviveVisibility"))
         XCTAssertNotNil(secondNode.action(forKey: "reviveVisibility"))
     }
+
+    func testRailCreatesActionNodeForEveryHeroAndShowsCooldown() throws {
+        let host = try PrototypeSceneHost()
+        var state = GameState.newGame(classID: .dps, balance: .standard, progression: .standard)
+        let healer = GameState.newGame(classID: .healer, balance: .standard, progression: .standard).party.heroes[0]
+        state.party = PartyState(heroes: [state.party.heroes[0], healer], unlocks: .secondUnlocked)
+        state.party.heroes[0].classAction.cooldownRemaining = try XCTUnwrap(.seconds(6))
+
+        host.render(.active(GameSimulation(state: state).presentation))
+
+        XCTAssertEqual(
+            (host.scene.childNode(withName: "//heroAction") as? SKLabelNode)?.text,
+            "PS 6.0"
+        )
+        XCTAssertEqual(
+            (host.scene.childNode(withName: "//hero-1Action") as? SKLabelNode)?.text,
+            "M READY"
+        )
+    }
+
+    func testPassiveRailDoesNotEmitCastButInteractiveRailDoes() throws {
+        let host = try PrototypeSceneHost()
+        var casts: [(Int, ClassActionID)] = []
+        host.onClassAction = { casts.append(($0, $1)) }
+        host.render(.active(GameSimulation().presentation))
+
+        host.setInteractive(false)
+        host.scene.activateClassActionForTesting(slot: 0)
+        XCTAssertTrue(casts.isEmpty)
+
+        host.setInteractive(true)
+        host.scene.activateClassActionForTesting(slot: 0)
+        XCTAssertEqual(casts.map(\.0), [0])
+        XCTAssertEqual(casts.map(\.1), [.powerStrike])
+    }
 }
 
 @MainActor

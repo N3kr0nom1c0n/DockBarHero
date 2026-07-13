@@ -56,6 +56,9 @@ final class AppModel: ObservableObject {
         self.scene = scene
         self.screen = screen
         self.monitor = monitor
+        scene.setClassActionHandler { [weak self] slot, actionID in
+            self?.send(.castAction(heroSlot: slot, actionID: actionID))
+        }
         if gameplayStarted {
             scene.render(runPresentation)
         }

@@ -7,6 +7,8 @@ final class PrototypeScene: SKScene {
     private let healthBarSize = CGSize(width: 150, height: 5)
     private let spriteCatalog: any SpriteCatalog
     private var renderedHeroClasses: [HeroClassID] = [.dps]
+    private var renderedActions: [ClassActionID] = [.powerStrike]
+    var onClassAction: ((Int, ClassActionID) -> Void)?
 
     init(size: CGSize, spriteCatalog: any SpriteCatalog) {
         self.spriteCatalog = spriteCatalog
@@ -39,9 +41,11 @@ final class PrototypeScene: SKScene {
         addHealthBar(prefix: "enemy", color: .systemRed)
 
         let heroLevel = label(name: "heroLevel", fontSize: 12)
+        let heroAction = label(name: "heroAction", fontSize: 10)
         let enemyLevel = label(name: "enemyLevel", fontSize: 12)
         let rollingDPS = label(name: "rollingDPS", fontSize: 12)
         addChild(heroLevel)
+        addChild(heroAction)
         addChild(enemyLevel)
         addChild(rollingDPS)
         updateLayout()
@@ -74,6 +78,13 @@ final class PrototypeScene: SKScene {
                 maximum: hero.combat.maxHealth
             )
             (childNode(withName: "\(prefix)Level") as? SKLabelNode)?.text = ManagementFormat.heroLevel(hero.level)
+            if let action = childNode(withName: "\(prefix)Action") as? SKLabelNode {
+                let remaining = hero.classAction.cooldownRemaining.timeInterval
+                action.text = remaining > 0
+                    ? "\(actionAbbreviation(hero.classAction.actionID)) \(String(format: "%.1f", remaining))"
+                    : "\(actionAbbreviation(hero.classAction.actionID)) READY"
+                action.alpha = hero.combat.currentHealth > 0 && remaining == 0 ? 1 : 0.55
+            }
         }
         setHealthFraction(for: "enemyHealthFill", current: enemy.currentHealth, maximum: enemy.maxHealth)
         let tier = presentation.state.encounter.tier.rawValue.capitalized
@@ -155,6 +166,7 @@ final class PrototypeScene: SKScene {
             childNode(withName: prefix)?.position = CGPoint(x: x, y: 32)
             positionHealthBar(prefix: prefix, x: x, y: 59)
             (childNode(withName: "\(prefix)Level") as? SKLabelNode)?.position = CGPoint(x: x, y: 70)
+            (childNode(withName: "\(prefix)Action") as? SKLabelNode)?.position = CGPoint(x: x, y: 82)
         }
         childNode(withName: "enemy")?.position = CGPoint(x: enemyX, y: 32)
         positionHealthBar(prefix: "enemy", x: enemyX, y: 59)
@@ -165,6 +177,12 @@ final class PrototypeScene: SKScene {
     override func mouseDown(with event: NSEvent) {
         guard isUserInteractionEnabled else { return }
         let point = event.location(in: self)
+        if let slot = renderedActions.indices.first(where: { slot in
+            nodes(at: point).contains(where: { $0.name == "\(heroPrefix(slot))Action" })
+        }) {
+            activateClassActionForTesting(slot: slot)
+            return
+        }
         guard let actor = nodes(at: point).first(where: {
             $0.name == "enemy" || $0.name?.hasPrefix("hero") == true
         }) else {
@@ -266,7 +284,7 @@ final class PrototypeScene: SKScene {
         var names = ["enemy", "enemyHealthBackground", "enemyHealthFill", "enemyLevel", "rollingDPS"]
         for slot in renderedHeroClasses.indices {
             let prefix = heroPrefix(slot)
-            names += [prefix, "\(prefix)HealthBackground", "\(prefix)HealthFill", "\(prefix)Level"]
+            names += [prefix, "\(prefix)HealthBackground", "\(prefix)HealthFill", "\(prefix)Level", "\(prefix)Action"]
         }
         names.forEach { childNode(withName: $0)?.isHidden = isHidden }
     }
@@ -332,17 +350,19 @@ final class PrototypeScene: SKScene {
         guard !heroes.isEmpty else { return }
         let oldCount = renderedHeroClasses.count
         renderedHeroClasses = heroes.map(\.classID)
+        renderedActions = heroes.map { $0.classAction.actionID }
         if heroes.count > oldCount {
             for slot in oldCount..<heroes.count {
                 let prefix = heroPrefix(slot)
                 addChild(actor(name: prefix, token: spriteToken(for: heroes[slot].classID), x: 0))
                 addHealthBar(prefix: prefix, color: .systemGreen)
                 addChild(label(name: "\(prefix)Level", fontSize: 12))
+                addChild(label(name: "\(prefix)Action", fontSize: 10))
             }
         } else if heroes.count < oldCount {
             for slot in heroes.count..<oldCount {
                 let prefix = heroPrefix(slot)
-                [prefix, "\(prefix)HealthBackground", "\(prefix)HealthFill", "\(prefix)Level"]
+                [prefix, "\(prefix)HealthBackground", "\(prefix)HealthFill", "\(prefix)Level", "\(prefix)Action"]
                     .forEach { childNode(withName: $0)?.removeFromParent() }
             }
         }
@@ -361,6 +381,19 @@ final class PrototypeScene: SKScene {
         case .tank: .tank
         case .dps: .dps
         case .healer: .healer
+        }
+    }
+
+    func activateClassActionForTesting(slot: Int) {
+        guard isUserInteractionEnabled, renderedActions.indices.contains(slot) else { return }
+        onClassAction?(slot, renderedActions[slot])
+    }
+
+    private func actionAbbreviation(_ actionID: ClassActionID) -> String {
+        switch actionID {
+        case .guardAction: "G"
+        case .powerStrike: "PS"
+        case .mend: "M"
         }
     }
 
