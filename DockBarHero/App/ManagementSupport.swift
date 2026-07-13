@@ -13,6 +13,9 @@ enum ManagementIntent {
 
     static func selectLevel(_ level: Int) -> GameIntent { .selectLevel(level) }
     static var returnToFrontier: GameIntent { .returnToFrontier }
+    static func cast(heroSlot: Int, actionID: ClassActionID) -> GameIntent {
+        .castAction(heroSlot: heroSlot, actionID: actionID)
+    }
 }
 
 enum ManagementFormat {

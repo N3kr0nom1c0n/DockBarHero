@@ -28,10 +28,7 @@ struct ManagementRootView: View {
             case .inventory:
                 InventoryView(model: model)
             case .abilities:
-                DeferredFeatureView(
-                    title: "Abilities",
-                    message: "Class Actions arrive in a later milestone."
-                )
+                ClassActionsView(model: model)
             case .skills:
                 DeferredFeatureView(
                     title: "Skills",
