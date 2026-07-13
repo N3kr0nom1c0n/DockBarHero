@@ -148,7 +148,24 @@ struct GameSimulation {
             }
         }
         guard !isUsedByAnotherHero else { throw GameIntentError.itemInUse }
+        let priorStats = try ItemStatResolver().stats(heroSlot: heroSlot, in: state)
         state.party.heroes[heroSlot].equipment[item.slot] = item.id
+        let nextStats = try ItemStatResolver().stats(heroSlot: heroSlot, in: state)
+        let priorHealth = state.party.heroes[heroSlot].combat.currentHealth
+        let (missingHealth, missingOverflow) = priorStats.maximumHealth.subtractingReportingOverflow(priorHealth)
+        guard !missingOverflow else { throw SimulationError.arithmeticOverflow }
+        state.party.heroes[heroSlot].combat.maxHealth = nextStats.maximumHealth
+        if priorHealth == 0 {
+            state.party.heroes[heroSlot].combat.currentHealth = 0
+        } else {
+            let (adjusted, adjustedOverflow) = nextStats.maximumHealth.subtractingReportingOverflow(missingHealth)
+            guard !adjustedOverflow else { throw SimulationError.arithmeticOverflow }
+            state.party.heroes[heroSlot].combat.currentHealth = max(1, min(nextStats.maximumHealth, adjusted))
+        }
+        state.party.heroes[heroSlot].combat.timeUntilNextAttack = min(
+            state.party.heroes[heroSlot].combat.timeUntilNextAttack,
+            nextStats.attackInterval
+        )
         if legacyEvent, state.party.heroes.count == 1 {
             return [.equipped(slot: item.slot, itemID: item.id)]
         }
@@ -237,7 +254,9 @@ struct GameSimulation {
             guard !damageOverflow else { throw SimulationError.arithmeticOverflow }
             let heroDamage = try adding(actualDamage, to: state.encounter.heroDamage)
             state.enemy.currentHealth = enemyHealth
-            state.party.heroes[slot].combat.timeUntilNextAttack = state.party.heroes[slot].combat.attackInterval
+            state.party.heroes[slot].combat.timeUntilNextAttack = try ItemStatResolver()
+                .stats(heroSlot: slot, in: state)
+                .attackInterval
             state.encounter.heroDamage = heroDamage
             damageMetrics.record(damage: actualDamage, at: simulationTime)
             if state.party.heroes.count == 1 {

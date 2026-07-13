@@ -207,7 +207,7 @@ struct EncounterDirector: Sendable {
             result.party.heroes[slot].wasDownThisEncounter = false
         }
         result.enemy = enemy
-        resetEncounter(in: &result, phase: .active, reviveRemaining: .zero)
+        try resetEncounter(in: &result, phase: .active, reviveRemaining: .zero)
         return result
     }
 
@@ -215,13 +215,15 @@ struct EncounterDirector: Sendable {
         in state: inout GameState,
         phase: EncounterPhase,
         reviveRemaining: SimulationDuration
-    ) {
+    ) throws {
         state.encounter.phase = phase
         state.encounter.activeElapsed = .zero
         state.encounter.heroDamage = 0
         state.encounter.reviveRemaining = reviveRemaining
         for slot in state.party.heroes.indices {
-            state.party.heroes[slot].combat.timeUntilNextAttack = state.party.heroes[slot].combat.attackInterval
+            state.party.heroes[slot].combat.timeUntilNextAttack = try ItemStatResolver()
+                .stats(heroSlot: slot, in: state)
+                .attackInterval
         }
         state.enemy.timeUntilNextAttack = state.enemy.attackInterval
     }

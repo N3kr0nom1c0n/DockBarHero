@@ -213,7 +213,7 @@ struct EconomyState: Codable, Equatable, Sendable {
 struct CombatantState: Codable, Equatable, Sendable {
     let id: CombatantID
     var currentHealth: Int
-    let maxHealth: Int
+    var maxHealth: Int
     let baseAttack: Int
     let baseDefense: Int
     let attackInterval: SimulationDuration

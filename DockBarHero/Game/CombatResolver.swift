@@ -14,29 +14,11 @@ struct CombatResolver: Sendable {
     }
 
     func effectiveAttack(forHeroAt index: Int, in state: GameState) throws -> Int {
-        let hero = try validatedHero(at: index, in: state)
-        let weapon = try equippedItem(in: .weapon, heroIndex: index, state: state)
-        let rawAttack = try addingEffectiveStat(weapon?.primaryStat ?? 0, to: hero.combat.baseAttack)
-        return try scaledStat(
-            raw: rawAttack,
-            level: hero.level,
-            growthBasisPoints: ProgressionConfiguration.standard
-                .classDefinition(for: hero.classID)
-                .attackGrowthBasisPoints
-        )
+        try ItemStatResolver().stats(heroSlot: index, in: state).attack
     }
 
     func effectiveDefense(forHeroAt index: Int, in state: GameState) throws -> Int {
-        let hero = try validatedHero(at: index, in: state)
-        let armor = try equippedItem(in: .armor, heroIndex: index, state: state)
-        let rawDefense = try addingEffectiveStat(armor?.primaryStat ?? 0, to: hero.combat.baseDefense)
-        return try scaledStat(
-            raw: rawDefense,
-            level: hero.level,
-            growthBasisPoints: ProgressionConfiguration.standard
-                .classDefinition(for: hero.classID)
-                .defenseGrowthBasisPoints
-        )
+        try ItemStatResolver().stats(heroSlot: index, in: state).defense
     }
 
     func damage(attacker: CombatantID, defender: CombatantID, in state: GameState) throws -> Int {
