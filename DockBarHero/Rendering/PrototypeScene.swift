@@ -130,7 +130,8 @@ final class PrototypeScene: SKScene {
                 }
             case .loot, .xpGained, .heroLeveled, .goldGained, .equipped, .equippedHero,
                  .autoEquipChanged, .destinationQueued, .farmingStarted, .returnedToFrontier,
-                 .partyUnlockPending, .classActionReady:
+                 .partyUnlockPending, .classActionReady, .classActionCast, .guardActivated,
+                 .guardIntercepted, .powerStrike, .mended, .classActionRejected:
                 break
             }
         }

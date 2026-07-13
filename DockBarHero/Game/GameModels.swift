@@ -193,6 +193,17 @@ enum GameIntent: Equatable, Sendable {
     case equipHero(slot: Int, itemID: ItemID)
     case selectLevel(Int)
     case returnToFrontier
+    case castAction(heroSlot: Int, actionID: ClassActionID)
+}
+
+enum ClassActionRejection: String, Equatable, Sendable {
+    case invalidSlot
+    case wrongClass
+    case casterDown
+    case encounterInactive
+    case cooldown
+    case alreadyActive
+    case noValidTarget
 }
 
 enum GameEvent: Equatable, Sendable {
@@ -215,6 +226,12 @@ enum GameEvent: Equatable, Sendable {
     case returnedToFrontier(Int)
     case partyUnlockPending(PartyUnlockMilestone)
     case classActionReady(heroSlot: Int, actionID: ClassActionID)
+    case classActionCast(heroSlot: Int, actionID: ClassActionID)
+    case guardActivated(heroSlot: Int)
+    case guardIntercepted(heroSlot: Int, damage: Int)
+    case powerStrike(heroSlot: Int, damage: Int)
+    case mended(casterSlot: Int, targetSlot: Int, amount: Int)
+    case classActionRejected(heroSlot: Int, actionID: ClassActionID, reason: ClassActionRejection)
 }
 
 struct GamePresentation: Equatable, Sendable {

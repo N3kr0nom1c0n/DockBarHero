@@ -138,6 +138,8 @@ private extension GameEvent {
         case .heroAttack, .enemyAttack, .heroDown, .defeat, .revived, .autoEquipChanged, .destinationQueued,
              .farmingStarted, .returnedToFrontier, .partyUnlockPending: .other
         case .classActionReady: .other
+        case .classActionCast, .guardActivated, .guardIntercepted, .powerStrike, .mended,
+             .classActionRejected: .other
         }
     }
 }

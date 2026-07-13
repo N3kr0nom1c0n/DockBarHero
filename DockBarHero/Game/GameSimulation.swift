@@ -19,6 +19,7 @@ struct GameSimulation {
     private let combatResolver: CombatResolver
     private let encounterDirector: EncounterDirector
     private let rewardResolver: RewardResolver
+    private let abilityResolver: AbilityResolver
     private var simulationTime: SimulationDuration = .zero
     private var damageMetrics = DamageMetrics()
 
@@ -29,6 +30,7 @@ struct GameSimulation {
         self.combatResolver = CombatResolver()
         self.encounterDirector = EncounterDirector()
         self.rewardResolver = RewardResolver()
+        self.abilityResolver = AbilityResolver()
     }
 
     init(state: GameState, balance: BalanceConfiguration = .standard, policy: any ActionPolicy = BasicAttackPolicy()) {
@@ -38,6 +40,7 @@ struct GameSimulation {
         self.combatResolver = CombatResolver()
         self.encounterDirector = EncounterDirector()
         self.rewardResolver = RewardResolver()
+        self.abilityResolver = AbilityResolver()
     }
 
     var presentation: GamePresentation {
@@ -104,6 +107,22 @@ struct GameSimulation {
         case .returnToFrontier:
             state = try encounterDirector.queueFrontier(in: state)
             return [.destinationQueued(state.campaign.highestUnlockedLevel)]
+
+        case let .castAction(heroSlot, actionID):
+            let resolution = try abilityResolver.resolve(
+                heroSlot: heroSlot,
+                actionID: actionID,
+                in: state
+            )
+            state = resolution.state
+            var events = resolution.events
+            if resolution.damageDealt > 0 {
+                damageMetrics.record(damage: resolution.damageDealt, at: simulationTime)
+            }
+            if resolution.enemyDefeated {
+                try completeVictory(defeatedLevel: state.encounter.enemyLevel, into: &events)
+            }
+            return events
         }
     }
 
@@ -228,33 +247,7 @@ struct GameSimulation {
             }
 
             guard state.enemy.currentHealth == 0 else { return false }
-            let defeatedLevel = state.encounter.enemyLevel
-            events.append(.victory(defeatedLevel: defeatedLevel))
-            let reward = try rewardResolver.applyVictory(
-                defeatedLevel: defeatedLevel,
-                to: state,
-                balance: balance
-            )
-            state = reward.state
-            events.append(contentsOf: reward.events)
-            if defeatedLevel == 25, state.party.unlocks == .locked {
-                state = try PartyUnlockResolver().beginSecondUnlock(
-                    afterDefeating: defeatedLevel,
-                    in: state
-                )
-                events.append(.partyUnlockPending(.boss25))
-                damageMetrics.reset()
-                return true
-            }
-            state = try PartyUnlockResolver().addFinalHeroIfEarned(
-                afterDefeating: defeatedLevel,
-                in: state,
-                balance: balance
-            )
-            let priorCampaign = state.campaign
-            state = try encounterDirector.completeVictory(in: state, balance: balance)
-            appendCampaignTransition(from: priorCampaign, into: &events)
-            damageMetrics.reset()
+            try completeVictory(defeatedLevel: state.encounter.enemyLevel, into: &events)
             return true
         }
     }
@@ -262,20 +255,47 @@ struct GameSimulation {
     private mutating func resolveEnemyAction(into events: inout [GameEvent]) throws {
         switch policy.action(for: .enemy, in: state) {
         case .basicAttack:
-            guard let targetSlot = state.party.heroes.firstIndex(where: { $0.combat.currentHealth > 0 }) else {
+            let guardSlot = state.party.heroes.firstIndex(where: {
+                $0.combat.currentHealth > 0 && $0.classAction.guardActive
+            })
+            guard let targetSlot = guardSlot ?? state.party.heroes.firstIndex(where: {
+                $0.combat.currentHealth > 0
+            }) else {
                 throw SimulationError.invalidState
             }
-            let damage = try combatResolver.enemyDamage(
+            let normalDamage = try combatResolver.enemyDamage(
                 targetingHeroAt: targetSlot,
                 in: state,
                 tier: state.encounter.tier
             )
+            let damage: Int
+            if guardSlot != nil {
+                let definition = try ClassActionConfiguration.standard.definition(for: .guardAction)
+                let scaled: Int64
+                do {
+                    scaled = try ProgressionConfiguration.standard.applying(
+                        Ratio(numerator: definition.powerBasisPoints, denominator: 10_000),
+                        to: Int64(normalDamage),
+                        rounding: .down
+                    )
+                } catch {
+                    throw SimulationError.arithmeticOverflow
+                }
+                guard scaled <= Int64(Int.max) else { throw SimulationError.arithmeticOverflow }
+                damage = max(1, Int(scaled))
+                state.party.heroes[targetSlot].classAction.guardActive = false
+            } else {
+                damage = normalDamage
+            }
             let heroHealth = try combatResolver.health(
                 afterTaking: damage,
                 from: state.party.heroes[targetSlot].combat.currentHealth
             )
             state.party.heroes[targetSlot].combat.currentHealth = heroHealth
             state.enemy.timeUntilNextAttack = state.enemy.attackInterval
+            if guardSlot != nil {
+                events.append(.guardIntercepted(heroSlot: targetSlot, damage: damage))
+            }
             if state.party.heroes.count == 1 {
                 events.append(.attack(attacker: .enemy, defender: .hero, damage: damage))
             } else {
@@ -291,8 +311,46 @@ struct GameSimulation {
             let enemyLevel = state.encounter.enemyLevel
             events.append(.defeat(enemyLevel: enemyLevel))
             state = try encounterDirector.beginDefeat(in: state, balance: balance)
+            for slot in state.party.heroes.indices {
+                state.party.heroes[slot].classAction.guardActive = false
+            }
             damageMetrics.reset()
         }
+    }
+
+    private mutating func completeVictory(
+        defeatedLevel: Int,
+        into events: inout [GameEvent]
+    ) throws {
+        events.append(.victory(defeatedLevel: defeatedLevel))
+        let reward = try rewardResolver.applyVictory(
+            defeatedLevel: defeatedLevel,
+            to: state,
+            balance: balance
+        )
+        state = reward.state
+        events.append(contentsOf: reward.events)
+        for slot in state.party.heroes.indices {
+            state.party.heroes[slot].classAction.guardActive = false
+        }
+        if defeatedLevel == 25, state.party.unlocks == .locked {
+            state = try PartyUnlockResolver().beginSecondUnlock(
+                afterDefeating: defeatedLevel,
+                in: state
+            )
+            events.append(.partyUnlockPending(.boss25))
+            damageMetrics.reset()
+            return
+        }
+        state = try PartyUnlockResolver().addFinalHeroIfEarned(
+            afterDefeating: defeatedLevel,
+            in: state,
+            balance: balance
+        )
+        let priorCampaign = state.campaign
+        state = try encounterDirector.completeVictory(in: state, balance: balance)
+        appendCampaignTransition(from: priorCampaign, into: &events)
+        damageMetrics.reset()
     }
 
     private mutating func consumeActiveTime(
