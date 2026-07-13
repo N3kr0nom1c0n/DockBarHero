@@ -135,7 +135,7 @@ private extension GameEvent {
         case .loot: .loot
         case .equipped: .equipped
         case .defeat, .revived, .autoEquipChanged, .destinationQueued,
-             .farmingStarted, .returnedToFrontier: .other
+             .farmingStarted, .returnedToFrontier, .partyUnlockPending: .other
         }
     }
 }

@@ -64,6 +64,16 @@ struct EncounterDirector: Sendable {
         }
     }
 
+    func completeDeferredVictory(in state: GameState, balance: BalanceConfiguration) throws -> GameState {
+        guard state.party.unlocks == .secondUnlocked,
+              state.party.heroes.count == 2,
+              state.encounter.enemyLevel == 25,
+              state.enemy.currentHealth == 0 else {
+            throw SimulationError.invalidState
+        }
+        return try completeVictory(in: state, balance: balance)
+    }
+
     func beginDefeat(in state: GameState, balance: BalanceConfiguration) throws -> GameState {
         var result = state
         let (streak, overflow) = result.campaign.consecutiveDefeats.addingReportingOverflow(1)

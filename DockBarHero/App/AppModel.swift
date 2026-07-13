@@ -126,6 +126,10 @@ final class AppModel: ObservableObject {
         try await gameSession?.chooseStartingClass(classID)
     }
 
+    func choosePartyClass(_ classID: HeroClassID) async throws {
+        try await gameSession?.choosePartyClass(classID)
+    }
+
     func startNewGame() async throws {
         try await gameSession?.startNewGame()
     }
@@ -189,6 +193,9 @@ final class AppModel: ObservableObject {
         runPresentation = run
         switch run {
         case .classSelection:
+            scene?.render(run)
+            onManagementWindowRequest?()
+        case .partySelection:
             scene?.render(run)
             onManagementWindowRequest?()
         case let .active(presentation):

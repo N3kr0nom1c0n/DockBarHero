@@ -49,6 +49,7 @@
 		7EA69C9E879356121B98FD2A /* DeferredFeatureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAF751D9037251AB30034F99 /* DeferredFeatureView.swift */; };
 		82E7EAAA8217716805FDAC9F /* DamageMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0047DBA6B2CCA397CC178D1B /* DamageMetricsTests.swift */; };
 		8674F689C5F772CB5950B8A1 /* DockBarHeroApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E17FEA9F1C03CFF1875E99D /* DockBarHeroApp.swift */; };
+		892938F9B2EAB86273C6507D /* PartyUnlockResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7F34075827F8BA826D583DC /* PartyUnlockResolver.swift */; };
 		8D5F1A9C4F5DC0743CD1D534 /* EncounterScheduleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E77E891B1F9FE294748A196 /* EncounterScheduleTests.swift */; };
 		91B2505FE7F5AC43E2E34B9E /* BalanceConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C6867E3AC329AA6C53A38E /* BalanceConfiguration.swift */; };
 		9320F70620705E5BC5DCA006 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19DCA1BD64EDDBC8E7EF627F /* AppSettings.swift */; };
@@ -77,6 +78,7 @@
 		DD2EC3B0BDD67958CF1C9357 /* SettingsSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0927F25F81CB58218B0B6F2 /* SettingsSession.swift */; };
 		DFFC0FB551A2996C7A691872 /* OverlayPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70160FF019FFD009FA1DFF7F /* OverlayPlacement.swift */; };
 		E0F406C8C78C69FA07260E71 /* AppKitScreenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50E5986E66736133E5E7924 /* AppKitScreenProvider.swift */; };
+		E236953935B3C01552837C5B /* PartySelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F51D738CA8F9F9A5F971EC /* PartySelectionView.swift */; };
 		E27A1FA17198466ECF6F5A3C /* GameSimulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC12B1C4B82A58431E39CF96 /* GameSimulation.swift */; };
 		E41CD49F4FCF1D1C97BA1272 /* ClassSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AA8D918588D2009FC89BACE /* ClassSelectionView.swift */; };
 		E631EFADE9270DBED7CF818D /* ProgressionConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C614BC4DA34D639B48B1D67 /* ProgressionConfigurationTests.swift */; };
@@ -159,6 +161,7 @@
 		CC5266035A79A6B8511E1D8A /* BuiltinPixelSprites.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuiltinPixelSprites.swift; sourceTree = "<group>"; };
 		CDD14FF849F64AD2F250E89F /* PrototypeScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeScene.swift; sourceTree = "<group>"; };
 		D65C97EC8232A20141D45BB9 /* SaveMigrationRegistryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveMigrationRegistryTests.swift; sourceTree = "<group>"; };
+		D7F34075827F8BA826D583DC /* PartyUnlockResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartyUnlockResolver.swift; sourceTree = "<group>"; };
 		DE4C396608E15CDFE23EC464 /* EncounterSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterSchedule.swift; sourceTree = "<group>"; };
 		DEA2AF257AB993F0C2CB0C09 /* ManagementSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagementSupport.swift; sourceTree = "<group>"; };
 		E043207E2BD7ACD2F4C89799 /* FullscreenWindowClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenWindowClassifier.swift; sourceTree = "<group>"; };
@@ -171,6 +174,7 @@
 		ED225C09286EACC435FC3A1C /* PixelSpriteDefinition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PixelSpriteDefinition.swift; sourceTree = "<group>"; };
 		ED2CF71E3855222237A52A24 /* ManagementRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagementRoute.swift; sourceTree = "<group>"; };
 		F0DC1D5CB56FCA8F90F01260 /* ManagementRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagementRootView.swift; sourceTree = "<group>"; };
+		F1F51D738CA8F9F9A5F971EC /* PartySelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartySelectionView.swift; sourceTree = "<group>"; };
 		F97A36783977BA1422D08114 /* BalanceConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceConfigurationTests.swift; sourceTree = "<group>"; };
 		FC6ED814FDE7272DED6E5248 /* DamageMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DamageMetrics.swift; sourceTree = "<group>"; };
 		FF357C4A8AD1952FDF98EA0D /* SaveStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveStoreTests.swift; sourceTree = "<group>"; };
@@ -263,6 +267,7 @@
 				E4DFF5B6EFBC15E042B1A1FC /* GameSession.swift */,
 				EC12B1C4B82A58431E39CF96 /* GameSimulation.swift */,
 				01DE3A7CF2C6E82A95957389 /* LootSystem.swift */,
+				D7F34075827F8BA826D583DC /* PartyUnlockResolver.swift */,
 				C7AF396794E525A68FB81CE8 /* ProgressionConfiguration.swift */,
 				46EC0A023F1BDE7B989940D1 /* RewardResolver.swift */,
 				BEB06A577225C8CFC2CC8287 /* SimulationDriver.swift */,
@@ -314,6 +319,7 @@
 				DEA2AF257AB993F0C2CB0C09 /* ManagementSupport.swift */,
 				25A8CCEBA359DCE30C12AD27 /* MenuBarContent.swift */,
 				06912AA3A46E473DF25D9BBF /* OverviewView.swift */,
+				F1F51D738CA8F9F9A5F971EC /* PartySelectionView.swift */,
 				6B90A438265DB89B7E94E759 /* SettingsView.swift */,
 			);
 			path = App;
@@ -507,6 +513,8 @@
 				C0435BD6F1CFAEEE8DE56D68 /* OverlayState.swift in Sources */,
 				30042DDB93F9720D2380F412 /* OverlayWindowController.swift in Sources */,
 				31439E31FCD667ACC815DF57 /* OverviewView.swift in Sources */,
+				E236953935B3C01552837C5B /* PartySelectionView.swift in Sources */,
+				892938F9B2EAB86273C6507D /* PartyUnlockResolver.swift in Sources */,
 				198546C7FB44F567A4AE3727 /* PixelSpriteDefinition.swift in Sources */,
 				37C31EFE34DA0B5FD610A268 /* ProgressionConfiguration.swift in Sources */,
 				99B85F8360961389079F6AAE /* PrototypeScene.swift in Sources */,

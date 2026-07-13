@@ -188,6 +188,20 @@ struct GameSimulation {
             )
             state = reward.state
             events.append(contentsOf: reward.events)
+            if defeatedLevel == 25, state.party.unlocks == .locked {
+                state = try PartyUnlockResolver().beginSecondUnlock(
+                    afterDefeating: defeatedLevel,
+                    in: state
+                )
+                events.append(.partyUnlockPending(.boss25))
+                damageMetrics.reset()
+                return true
+            }
+            state = try PartyUnlockResolver().addFinalHeroIfEarned(
+                afterDefeating: defeatedLevel,
+                in: state,
+                balance: balance
+            )
             let priorCampaign = state.campaign
             state = try encounterDirector.completeVictory(in: state, balance: balance)
             appendCampaignTransition(from: priorCampaign, into: &events)

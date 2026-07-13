@@ -266,6 +266,26 @@ final class SaveDocumentTests: XCTestCase {
         XCTAssertNoThrow(try codec.decode(try codec.encode(state: state, savedAt: savedAt)))
     }
 
+    func testPendingBoss25ChoiceRoundTripsAtDefeatedEncounterBoundary() throws {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        state.campaign.highestUnlockedLevel = 25
+        state.campaign.selectedLevel = 25
+        state.encounter.enemyLevel = 25
+        state.encounter.tier = .boss
+        state.encounter.phase = .awaitingPartyChoice
+        state.enemy = try XCTUnwrap(BalanceConfiguration.standard.enemy(level: 25, tier: .boss, progression: .standard))
+        state.enemy.currentHealth = 0
+        state.party.unlocks = .pendingSecond(PendingPartyUnlock(
+            milestone: .boss25,
+            choices: [.dps, .healer]
+        ))
+
+        let codec = SaveCodec()
+        let decoded = try codec.decode(try codec.encode(state: state, savedAt: savedAt))
+
+        XCTAssertEqual(decoded.state, state)
+    }
+
     func testDuplicatePartyClassesAreRejected() {
         var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
         state.party = PartyState(heroes: [state.party.heroes[0], state.party.heroes[0]], unlocks: .secondUnlocked)

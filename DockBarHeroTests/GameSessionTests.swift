@@ -23,6 +23,70 @@ final class GameSessionTests: XCTestCase {
         XCTAssertEqual(replacements, [.active(driver.currentState)])
     }
 
+    func testLoadedPendingPartyChoicePublishesChoiceWithoutStartingCombat() async {
+        let pending = pendingPartyState()
+        let store = RunLifecycleStore(initial: .active(pending))
+        let driver = SessionDriverFake()
+        let coordinator = SessionSaveCoordinatorFake()
+        let session = makeSession(store: store, driver: driver, coordinator: coordinator)
+        var runs: [RunPresentation] = []
+        session.onRunState = { runs.append($0) }
+
+        session.start()
+        await waitUntil { runs.contains(where: { run in
+            if case .partySelection = run { return true }
+            return false
+        }) }
+
+        XCTAssertEqual(driver.startCount, 0)
+        XCTAssertEqual(driver.currentState, pending)
+    }
+
+    func testRuntimePendingChoiceFlushesBeforePublishingChoice() async {
+        let active = state(autoEquip: true)
+        let pending = pendingPartyState()
+        let store = RunLifecycleStore(initial: .active(active))
+        let driver = SessionDriverFake()
+        let coordinator = SessionSaveCoordinatorFake()
+        let session = makeSession(store: store, driver: driver, coordinator: coordinator)
+        var runs: [RunPresentation] = []
+        session.onRunState = { runs.append($0) }
+        session.start()
+        await waitUntil { driver.startCount == 1 }
+
+        driver.currentState = pending
+        driver.emit([.partyUnlockPending(.boss25)])
+        await waitUntil { runs.contains(where: { run in
+            if case .partySelection = run { return true }
+            return false
+        }) }
+
+        XCTAssertEqual(driver.stopCount, 1)
+        let flushedStates = await coordinator.flushedStates()
+        XCTAssertEqual(flushedStates, [pending])
+    }
+
+    func testChoosingPendingPartyClassReplacesRunBeforeCombatResumes() async throws {
+        let pending = pendingPartyState()
+        let store = RunLifecycleStore(initial: .active(pending))
+        let driver = SessionDriverFake()
+        let session = makeSession(
+            store: store,
+            driver: driver,
+            coordinator: SessionSaveCoordinatorFake()
+        )
+        session.start()
+        await waitUntil { driver.currentState == pending }
+
+        try await session.choosePartyClass(.healer)
+
+        XCTAssertEqual(driver.startCount, 1)
+        XCTAssertEqual(driver.currentState.party.heroes.map(\.classID), [.tank, .healer])
+        XCTAssertEqual(driver.currentState.encounter.enemyLevel, 26)
+        let replacements = await store.replacements()
+        XCTAssertEqual(replacements.last, .active(driver.currentState))
+    }
+
     func testSuccessfulNewGamePublishesSelectionAfterDurableReplacement() async throws {
         let active = state(autoEquip: false)
         let store = RunLifecycleStore(initial: .active(active))
@@ -426,6 +490,22 @@ final class GameSessionTests: XCTestCase {
     private func state(autoEquip: Bool) -> GameState {
         var state = GameState.newGame(balance: .standard)
         state.autoEquipEnabled = autoEquip
+        return state
+    }
+
+    private func pendingPartyState() -> GameState {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        state.campaign.highestUnlockedLevel = 25
+        state.campaign.selectedLevel = 25
+        state.encounter.enemyLevel = 25
+        state.encounter.tier = .boss
+        state.encounter.phase = .awaitingPartyChoice
+        state.enemy = BalanceConfiguration.standard.enemy(level: 25, tier: .boss, progression: .standard)!
+        state.enemy.currentHealth = 0
+        state.party.unlocks = .pendingSecond(PendingPartyUnlock(
+            milestone: .boss25,
+            choices: [.dps, .healer]
+        ))
         return state
     }
 

@@ -33,6 +33,21 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(requestCount, 1)
     }
 
+    func testPendingPartySelectionRequestsManagementWindow() {
+        let session = FakeGameSession()
+        let model = AppModel(gameSession: session)
+        var requestCount = 0
+        model.onManagementWindowRequest = { requestCount += 1 }
+        model.start()
+        let presentation = GameSimulation().presentation
+        let pending = PendingPartyUnlock(milestone: .boss25, choices: [.tank, .healer])
+
+        session.emit(.partySelection(pending, presentation))
+
+        XCTAssertEqual(requestCount, 1)
+        XCTAssertEqual(model.runPresentation, .partySelection(pending, presentation))
+    }
+
     func testStartPlacesButKeepsRailHiddenAndPausedUntilEnvironmentResolves() {
         let dependencies = TestDependencies()
         let model = dependencies.makeModel()

@@ -163,6 +163,50 @@ final class EncounterDirectorTests: XCTestCase {
         }
     }
 
+    func testCompletingSecondUnlockSeedsHighestLevelAndResumesDeferredVictory() throws {
+        var state = try fixture(frontier: 25, selected: 25, mode: .push)
+        state.party.heroes[0].level = 7
+        state.enemy.currentHealth = 0
+        state.encounter.phase = .awaitingPartyChoice
+        state.party.unlocks = .pendingSecond(PendingPartyUnlock(
+            milestone: .boss25,
+            choices: [.tank, .healer]
+        ))
+
+        let result = try PartyUnlockResolver().completeSecondUnlock(
+            classID: .healer,
+            in: state,
+            balance: .standard
+        )
+
+        XCTAssertEqual(result.party.heroes.map(\.classID), [.dps, .healer])
+        XCTAssertEqual(result.party.heroes[1].level, 7)
+        XCTAssertEqual(result.party.heroes[1].currentXP, 0)
+        XCTAssertEqual(result.party.unlocks, .secondUnlocked)
+        XCTAssertEqual(result.encounter.phase, .active)
+        XCTAssertEqual(result.encounter.enemyLevel, 26)
+    }
+
+    func testBoss100AutomaticallyAddsFinalMissingClassOnce() throws {
+        var state = try fixture(frontier: 100, selected: 100, mode: .push)
+        let tank = GameState.newGame(classID: .tank, balance: .standard, progression: .standard).party.heroes[0]
+        state.party = PartyState(heroes: [state.party.heroes[0], tank], unlocks: .secondUnlocked)
+
+        let result = try PartyUnlockResolver().addFinalHeroIfEarned(
+            afterDefeating: 100,
+            in: state,
+            balance: .standard
+        )
+
+        XCTAssertEqual(result.party.heroes.map(\.classID), [.dps, .tank, .healer])
+        XCTAssertEqual(result.party.unlocks, .complete)
+        XCTAssertEqual(try PartyUnlockResolver().addFinalHeroIfEarned(
+            afterDefeating: 100,
+            in: result,
+            balance: .standard
+        ), result)
+    }
+
     private func fixture(
         frontier: Int,
         selected: Int,

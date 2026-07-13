@@ -181,6 +181,7 @@ enum GameEvent: Equatable, Sendable {
     case destinationQueued(Int)
     case farmingStarted(Int)
     case returnedToFrontier(Int)
+    case partyUnlockPending(PartyUnlockMilestone)
 }
 
 struct GamePresentation: Equatable, Sendable {

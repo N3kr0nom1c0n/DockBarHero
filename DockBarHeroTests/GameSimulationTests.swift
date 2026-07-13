@@ -513,6 +513,30 @@ final class GameSimulationTests: XCTestCase {
         XCTAssertEqual(simulation.state, original)
     }
 
+    func testBoss25VictoryCommitsRewardsThenPausesForSecondHero() throws {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        state.campaign.highestUnlockedLevel = 25
+        state.campaign.selectedLevel = 25
+        state.encounter.enemyLevel = 25
+        state.encounter.tier = .boss
+        state.encounter.activeElapsed = try duration(seconds: 1)
+        state.party.heroes[0].encounterAliveDuration = try duration(seconds: 1)
+        state.enemy = try XCTUnwrap(BalanceConfiguration.standard.enemy(level: 25, tier: .boss, progression: .standard))
+        state.enemy.currentHealth = 1
+        state.hero.timeUntilNextAttack = .zero
+        var simulation = GameSimulation(state: state)
+
+        let events = try simulation.advance(by: .zero)
+
+        XCTAssertTrue(events.contains(.partyUnlockPending(.boss25)))
+        XCTAssertEqual(simulation.state.encounter.phase, .awaitingPartyChoice)
+        XCTAssertEqual(simulation.state.party.unlocks.pendingUnlock?.choices, [.dps, .healer])
+        XCTAssertGreaterThan(simulation.state.economy.gold, 0)
+        XCTAssertEqual(simulation.state.encounter.enemyLevel, 25)
+        XCTAssertEqual(try simulation.advance(by: try duration(seconds: 1)), [])
+        XCTAssertEqual(simulation.state.encounter.enemyLevel, 25)
+    }
+
     private func duration(milliseconds: Int64) throws -> SimulationDuration {
         try XCTUnwrap(SimulationDuration.milliseconds(milliseconds))
     }

@@ -82,6 +82,8 @@ final class PrototypeScene: SKScene {
         switch run {
         case .classSelection:
             setCombatHidden(true)
+        case .partySelection:
+            setCombatHidden(true)
         case let .active(presentation):
             render(presentation)
         }
@@ -105,7 +107,8 @@ final class PrototypeScene: SKScene {
                 setIdleTexture(for: .hero)
                 restoreHeroAfterRevive()
             case .loot, .xpGained, .heroLeveled, .goldGained, .equipped,
-                 .autoEquipChanged, .destinationQueued, .farmingStarted, .returnedToFrontier:
+                 .autoEquipChanged, .destinationQueued, .farmingStarted, .returnedToFrontier,
+                 .partyUnlockPending:
                 break
             }
         }

@@ -16,8 +16,9 @@ protocol SceneControlling: AnyObject {
 
 extension SceneControlling {
     func render(_ run: RunPresentation) {
-        guard case let .active(presentation) = run else { return }
-        render(presentation)
+        if case let .active(presentation) = run {
+            render(presentation)
+        }
     }
 }
 
