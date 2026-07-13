@@ -7,8 +7,8 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 ## Current Milestone
 
 - Goal: accept the internal schema-v2 Progression Safety gate on the Foundation branch.
-- Current checkpoint: implementation and automated gate are complete; incremental Terra review repaired the one-hero decode invariant.
-- Remaining: Terra integration review, Sol final review, and manual interaction QA; then separately plan Heroes and Party and the three class abilities.
+- Current checkpoint: implementation and automated gate are complete; Terra review findings for one-hero decode safety and latest-run flushing are repaired and cleared on re-review.
+- Remaining: Sol final review and manual interaction QA; then separately plan Heroes and Party and the three class abilities.
 - Acceptance hold: do not merge, push, release, or call schema v2 complete until the later Heroes and Party and Class Actions gates pass.
 
 ## Architecture
@@ -58,7 +58,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 - Date: 2026-07-12.
 - Worktree: /Users/n3kr0/Projects/TBH/.worktrees/foundation-upgrade on `feature/foundation-upgrade`.
-- Progression gate: 249 tests passed with zero failures on 2026-07-12.
+- Progression gate: 251 tests passed with zero failures on 2026-07-12 after the final Terra repair.
 - Clean unsigned Apple Silicon Debug build succeeded; `./script/build_and_run.sh --verify` launched DockBarHero.
 - Manual interaction QA and final reviews remain pending; automated evidence is not treated as manual evidence.
 
