@@ -7,9 +7,9 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 ## Current Milestone
 
 - Goal: verify and push Heroes and Party on the integrated Foundation and schema-v2 Progression Safety systems without merging to `main`.
-- Current checkpoint: Heroes and Party is implemented and verified in six vertical slices on `feature/heroes-and-party`; push is pending.
+- Current checkpoint: Heroes and Party is implemented, verified, and pushed in six vertical slices on `feature/heroes-and-party`.
 - Integration: the owner lifted the internal hold and the feature branch was fast-forwarded and pushed to `main` on 2026-07-12.
-- Remaining: push the feature branch for owner review; Class Actions remain a later milestone and this is not release-ready.
+- Remaining: owner review of the pushed feature branch; Class Actions remain a later milestone and this is not release-ready.
 
 ## Architecture
 
@@ -53,7 +53,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Active Work
 
-- Parent orchestrator: finish the Heroes and Party gates and push its feature branch without merging.
+- Parent orchestrator: preserve the pushed Heroes and Party worktree for owner review without merging.
 - Next design work after owner review: Tank, DPS, and Healer actions.
 - Manual QA items not explicitly exercised remain open in the Progression Safety review packet.
 

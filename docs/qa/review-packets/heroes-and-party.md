@@ -51,3 +51,4 @@
 - `xcodebuild clean build` with `platform=macOS,arch=arm64`, `.build/HeroesBuild`, and `CODE_SIGNING_ALLOWED=NO` reported both `** CLEAN SUCCEEDED **` and `** BUILD SUCCEEDED **`.
 - The project context guard reported `project context is valid`; `AGENTS.md` is 28 lines and `PROJECT.md` remains below 150 lines.
 - `./script/build_and_run.sh --verify` built and launched PID 23405 from `.worktrees/heroes-and-party/.build/RunDerivedData/Build/Products/Debug/DockBarHero.app`.
+- `git push -u origin feature/heroes-and-party` created the remote feature branch and configured upstream tracking; `main` was not merged or modified.
