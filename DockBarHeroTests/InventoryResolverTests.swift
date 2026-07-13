@@ -40,6 +40,55 @@ final class InventoryResolverTests: XCTestCase {
         XCTAssertTrue(InventoryResolver().canStack(unlocked, with: locked))
     }
 
+    func testCapacityPurchaseDeductsDoublingPriceAndAddsSlots() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.economy.gold = 2_000
+        var simulation = GameSimulation(state: state)
+
+        _ = try simulation.apply(.purchaseInventoryCapacity)
+        XCTAssertEqual(simulation.state.economy.gold, 1_500)
+        XCTAssertEqual(simulation.state.inventoryExpansionPurchases, 1)
+        XCTAssertEqual(try InventoryResolver().capacity(for: simulation.state), 50)
+
+        _ = try simulation.apply(.purchaseInventoryCapacity)
+        XCTAssertEqual(simulation.state.economy.gold, 500)
+        XCTAssertEqual(simulation.state.inventoryExpansionPurchases, 2)
+        XCTAssertEqual(try InventoryResolver().capacity(for: simulation.state), 60)
+    }
+
+    func testOverflowMoveMergesAtFullCapacity() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.inventory = (1...40).map { item(id: UInt64($0), level: $0, quantity: 1) }
+        let overflow = item(id: 41, level: 1, quantity: 3)
+        state.overflowInventory = [overflow]
+        state.lootSequence = 41
+        var simulation = GameSimulation(state: state)
+
+        _ = try simulation.apply(.moveOverflow(itemID: overflow.id, quantity: 2))
+
+        XCTAssertEqual(simulation.state.inventory.first(where: { $0.level == 1 })?.quantity, 3)
+        XCTAssertEqual(simulation.state.overflowInventory.first?.quantity, 1)
+    }
+
+    func testEquippingFromStackExtractsExclusiveItemIdentity() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.inventory = [item(id: 1, level: 3, quantity: 2)]
+        state.lootSequence = 1
+        var simulation = GameSimulation(state: state)
+
+        _ = try simulation.apply(.equip(ItemID(rawValue: 1)))
+
+        XCTAssertEqual(simulation.state.inventory.count, 2)
+        XCTAssertEqual(simulation.state.inventory.first(where: { $0.id.rawValue == 1 })?.quantity, 1)
+        XCTAssertEqual(simulation.state.party.heroes[0].equipment[.weapon], ItemID(rawValue: 2))
+        XCTAssertEqual(simulation.state.inventory.first(where: { $0.id.rawValue == 2 })?.quantity, 1)
+        XCTAssertEqual(simulation.state.lootSequence, 2)
+        XCTAssertNoThrow(try SaveCodec().encode(
+            state: simulation.state,
+            savedAt: Date(timeIntervalSince1970: 0)
+        ))
+    }
+
     private func item(id: UInt64, level: Int, quantity: UInt64) -> Item {
         Item(
             id: ItemID(rawValue: id),

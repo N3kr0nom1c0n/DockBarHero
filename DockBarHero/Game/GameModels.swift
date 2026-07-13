@@ -265,6 +265,9 @@ enum GameIntent: Equatable, Sendable {
     case returnToFrontier
     case castAction(heroSlot: Int, actionID: ClassActionID)
     case setItemLocked(itemID: ItemID, isLocked: Bool)
+    case purchaseInventoryCapacity
+    case moveOverflow(itemID: ItemID, quantity: UInt64)
+    case salvage([SalvageSelection])
 }
 
 enum ClassActionRejection: String, Equatable, Sendable {
@@ -304,6 +307,9 @@ enum GameEvent: Equatable, Sendable {
     case mended(casterSlot: Int, targetSlot: Int, amount: Int)
     case classActionRejected(heroSlot: Int, actionID: ClassActionID, reason: ClassActionRejection)
     case itemLockChanged(itemID: ItemID, isLocked: Bool)
+    case inventoryCapacityPurchased(capacity: Int, cost: Int64)
+    case overflowMoved(itemID: ItemID, quantity: UInt64)
+    case itemsSalvaged(quantity: UInt64, gold: Int64)
 }
 
 struct GamePresentation: Equatable, Sendable {

@@ -127,7 +127,9 @@ struct PartyUnlockResolver: Sendable {
         })
         for equipmentSlot in EquipmentSlot.allCases {
             let candidates = state.inventory
-                .filter { $0.slot == equipmentSlot && !usedIDs.contains($0.id) }
+                .filter {
+                    $0.slot == equipmentSlot && $0.quantity == 1 && !usedIDs.contains($0.id)
+                }
             let scored = try candidates.map { item in
                 (item: item, score: try ItemScoreResolver().compare(
                     item: item,

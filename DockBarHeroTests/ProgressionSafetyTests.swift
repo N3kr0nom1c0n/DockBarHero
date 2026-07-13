@@ -141,6 +141,7 @@ private extension GameEvent {
         case .classActionCast, .guardActivated, .guardIntercepted, .powerStrike, .mended,
              .classActionRejected: .other
         case .itemLockChanged: .other
+        case .inventoryCapacityPurchased, .overflowMoved, .itemsSalvaged: .other
         }
     }
 }

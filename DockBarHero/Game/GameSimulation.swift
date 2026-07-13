@@ -135,6 +135,24 @@ struct GameSimulation {
             guard state.inventory[index].isLocked != isLocked else { return [] }
             state.inventory[index].isLocked = isLocked
             return [.itemLockChanged(itemID: itemID, isLocked: isLocked)]
+
+        case .purchaseInventoryCapacity:
+            let purchase = try InventoryResolver().purchaseCapacity(in: state)
+            state = purchase.state
+            return [.inventoryCapacityPurchased(capacity: purchase.capacity, cost: purchase.cost)]
+
+        case let .moveOverflow(itemID, quantity):
+            state = try InventoryResolver().moveOverflow(
+                itemID: itemID,
+                quantity: quantity,
+                in: state
+            )
+            return [.overflowMoved(itemID: itemID, quantity: quantity)]
+
+        case let .salvage(selections):
+            let result = try SalvageResolver().salvage(selections, in: state)
+            state = result.state
+            return [.itemsSalvaged(quantity: result.quantity, gold: result.goldGranted)]
         }
     }
 
@@ -146,11 +164,12 @@ struct GameSimulation {
         guard state.party.heroes.indices.contains(heroSlot) else {
             throw GameIntentError.slotMismatch
         }
-        let matchingItems = state.inventory.filter { $0.id == itemID }
-        guard matchingItems.count == 1, let item = matchingItems.first else {
-            if matchingItems.count > 1 { throw GameIntentError.slotMismatch }
+        let matchingIndices = state.inventory.indices.filter { state.inventory[$0].id == itemID }
+        guard matchingIndices.count == 1, let itemIndex = matchingIndices.first else {
+            if matchingIndices.count > 1 { throw GameIntentError.slotMismatch }
             throw GameIntentError.itemNotFound
         }
+        var item = state.inventory[itemIndex]
         guard item.level >= 1, item.primaryStat >= 0 else {
             throw GameIntentError.slotMismatch
         }
@@ -160,6 +179,29 @@ struct GameSimulation {
             }
         }
         guard !isUsedByAnotherHero else { throw GameIntentError.itemInUse }
+        if item.quantity > 1 {
+            guard state.inventory.count < (try InventoryResolver().capacity(for: state)) else {
+                throw SimulationError.invalidState
+            }
+            let (rawID, idOverflow) = state.lootSequence.addingReportingOverflow(1)
+            guard !idOverflow else { throw SimulationError.arithmeticOverflow }
+            state.lootSequence = rawID
+            state.inventory[itemIndex].quantity -= 1
+            item = Item(
+                id: ItemID(rawValue: rawID),
+                level: item.level,
+                slot: item.slot,
+                primaryStat: item.primaryStat,
+                creationSequence: rawID,
+                templateID: item.templateID,
+                rarity: item.rarity,
+                affixes: item.affixes,
+                isLocked: item.isLocked,
+                uniqueName: item.uniqueName,
+                quantity: 1
+            )
+            state.inventory.append(item)
+        }
         let priorStats = try ItemStatResolver().stats(heroSlot: heroSlot, in: state)
         state.party.heroes[heroSlot].equipment[item.slot] = item.id
         let nextStats = try ItemStatResolver().stats(heroSlot: heroSlot, in: state)

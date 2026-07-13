@@ -80,7 +80,7 @@ struct RewardResolver: Sendable {
         events.append(.loot(item))
 
         if result.autoEquipEnabled,
-           result.inventory.contains(where: { $0.id == item.id }) {
+           result.inventory.contains(where: { $0.id == item.id && $0.quantity == 1 }) {
             let resolver = ItemScoreResolver()
             let candidates = try result.party.heroes.indices.compactMap { slot -> (slot: Int, amount: Int64)? in
                 let comparison = try resolver.compare(item: item, heroSlot: slot, in: result)

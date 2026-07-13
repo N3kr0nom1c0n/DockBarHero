@@ -582,7 +582,8 @@ private final class SessionDriverFake: SimulationDriving {
         case .setAutoEquip(let enabled):
             currentState.autoEquipEnabled = enabled
             onEvents?([.autoEquipChanged(enabled)])
-        case .equip, .equipHero, .selectLevel, .returnToFrontier, .castAction, .setItemLocked:
+        case .equip, .equipHero, .selectLevel, .returnToFrontier, .castAction, .setItemLocked,
+             .purchaseInventoryCapacity, .moveOverflow, .salvage:
             break
         }
         onPresentation?(GameSimulation(state: currentState).presentation)

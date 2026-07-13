@@ -4,7 +4,7 @@ struct InventoryInsertion: Equatable, Sendable {
     let location: InventoryLocation
 }
 
-enum InventoryLocation: String, Codable, Equatable, Sendable {
+enum InventoryLocation: String, Codable, Equatable, Hashable, Sendable {
     case inventory
     case overflow
 }
@@ -88,6 +88,73 @@ struct InventoryResolver: Sendable {
         }
         result.overflowInventory.append(item)
         return InventoryInsertion(state: result, entryID: item.id, location: .overflow)
+    }
+
+    func purchaseCapacity(in state: GameState) throws -> (state: GameState, cost: Int64, capacity: Int) {
+        let currentCapacity = try capacity(for: state)
+        guard currentCapacity < configuration.maximumCapacity else {
+            throw SimulationError.invalidState
+        }
+        let cost = try configuration.purchasePrice(after: state.inventoryExpansionPurchases)
+        guard state.economy.gold >= cost else { throw SimulationError.invalidState }
+        let (gold, goldOverflow) = state.economy.gold.subtractingReportingOverflow(cost)
+        let (purchases, purchaseOverflow) = state.inventoryExpansionPurchases.addingReportingOverflow(1)
+        guard !goldOverflow, !purchaseOverflow else { throw SimulationError.arithmeticOverflow }
+        var result = state
+        result.economy.gold = gold
+        result.inventoryExpansionPurchases = purchases
+        return (result, cost, try capacity(for: result))
+    }
+
+    func moveOverflow(itemID: ItemID, quantity: UInt64, in state: GameState) throws -> GameState {
+        guard quantity > 0,
+              let sourceIndex = state.overflowInventory.firstIndex(where: { $0.id == itemID }),
+              state.overflowInventory[sourceIndex].quantity >= quantity else {
+            throw SimulationError.invalidState
+        }
+        let source = state.overflowInventory[sourceIndex]
+        var result = state
+        if source.rarity != .unique,
+           let destination = result.inventory.firstIndex(where: {
+               canStack($0, with: source)
+           }) {
+            result.inventory[destination].quantity = try add(
+                result.inventory[destination].quantity,
+                quantity
+            )
+        } else {
+            guard result.inventory.count < (try capacity(for: result)) else {
+                throw SimulationError.invalidState
+            }
+            let moved: Item
+            if quantity == source.quantity {
+                moved = source
+            } else {
+                let (newID, overflow) = result.lootSequence.addingReportingOverflow(1)
+                guard !overflow else { throw SimulationError.arithmeticOverflow }
+                result.lootSequence = newID
+                moved = Item(
+                    id: ItemID(rawValue: newID),
+                    level: source.level,
+                    slot: source.slot,
+                    primaryStat: source.primaryStat,
+                    creationSequence: newID,
+                    templateID: source.templateID,
+                    rarity: source.rarity,
+                    affixes: source.affixes,
+                    isLocked: source.isLocked,
+                    uniqueName: source.uniqueName,
+                    quantity: quantity
+                )
+            }
+            result.inventory.append(moved)
+        }
+        if quantity == source.quantity {
+            result.overflowInventory.remove(at: sourceIndex)
+        } else {
+            result.overflowInventory[sourceIndex].quantity -= quantity
+        }
+        return result
     }
 
     private func add(_ lhs: UInt64, _ rhs: UInt64) throws -> UInt64 {

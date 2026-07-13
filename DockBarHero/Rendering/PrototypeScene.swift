@@ -146,6 +146,8 @@ final class PrototypeScene: SKScene {
                 break
             case .itemLockChanged:
                 break
+            case .inventoryCapacityPurchased, .overflowMoved, .itemsSalvaged:
+                break
             }
         }
     }

@@ -329,6 +329,8 @@ final class GameSession: GameSessionControlling {
              .partyUnlockPending, .classActionCast, .guardActivated, .powerStrike, .mended,
              .itemLockChanged:
             return true
+        case .inventoryCapacityPurchased, .overflowMoved, .itemsSalvaged:
+            return true
         case .attack, .heroAttack, .enemyAttack, .heroDown, .defeat, .revived,
              .classActionReady, .guardIntercepted, .classActionRejected:
             return false
