@@ -1,6 +1,6 @@
 # DockBarHero Loot Expansion Design
 
-**Status:** Approved in conversation; written-spec review pending
+**Status:** Approved
 
 **Date:** 2026-07-12
 
