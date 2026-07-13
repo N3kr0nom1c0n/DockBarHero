@@ -128,7 +128,7 @@ final class GameSession: GameSessionControlling {
 
     func startNewGame() async throws {
         guard hasStarted, !isStopping, !hasStopped else { return }
-        let oldState = currentRunState
+        let oldState: RunState = isRunning ? .active(driver.currentState) : currentRunState
         autosaveTask?.cancel()
         autosaveTask = nil
         isRunning = false
@@ -158,6 +158,7 @@ final class GameSession: GameSessionControlling {
             return
         }
 
+        let runStateBeforeStop: RunState = isRunning ? .active(driver.currentState) : currentRunState
         isStopping = true
         hasStarted = false
         isRunning = false
@@ -171,7 +172,7 @@ final class GameSession: GameSessionControlling {
 
         let startupResult = await pendingStartupTask?.value
         await waitForSaveSubmissions()
-        let finalRunState = startupResult?.runState ?? currentRunState
+        let finalRunState = startupResult?.runState ?? runStateBeforeStop
         await coordinator.flush(finalRunState)
         await statusObserver?.setStatusHandler(nil)
 

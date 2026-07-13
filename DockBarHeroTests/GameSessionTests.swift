@@ -68,6 +68,45 @@ final class GameSessionTests: XCTestCase {
         XCTAssertEqual(driver.currentState, active)
     }
 
+    func testFailedNewGameRestartsLatestUnpublishedDriverState() async {
+        let active = state(autoEquip: true)
+        let store = RunLifecycleStore(initial: .active(active))
+        let driver = SessionDriverFake()
+        let session = makeSession(
+            store: store,
+            driver: driver,
+            coordinator: SessionSaveCoordinatorFake()
+        )
+        session.start()
+        await waitUntil { driver.startCount == 1 }
+        driver.currentState.autoEquipEnabled = false
+        await store.failNextReplacement()
+
+        do {
+            try await session.startNewGame()
+            XCTFail("Expected replacement failure")
+        } catch { }
+
+        XCTAssertFalse(driver.currentState.autoEquipEnabled)
+    }
+
+    func testStopFlushesLatestUnpublishedDriverState() async {
+        let active = state(autoEquip: true)
+        let store = SessionStoreFake(result: SaveLoadResult(state: active, source: .primary))
+        let driver = SessionDriverFake()
+        let coordinator = SessionSaveCoordinatorFake()
+        let session = makeSession(store: store, driver: driver, coordinator: coordinator)
+        session.start()
+        await waitUntil { driver.startCount == 1 }
+        driver.currentState.autoEquipEnabled = false
+
+        await session.stopAndSave()
+
+        let flushed = await coordinator.flushedStates()
+        XCTAssertEqual(flushed.last?.autoEquipEnabled, false)
+    }
+
+
     func testLoadFinishesBeforeDriverStartsAndDuplicateStartsAreIgnored() async {
         let loaded = state(autoEquip: false)
         let store = SessionStoreFake(result: SaveLoadResult(state: loaded, source: .primary), blockLoad: true)
