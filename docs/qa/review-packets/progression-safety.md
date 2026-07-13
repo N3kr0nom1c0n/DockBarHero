@@ -6,11 +6,12 @@ Internal schema-v2 Progression Safety gate only. This checkpoint is not release-
 
 ## Automated Evidence
 
-- Full suite: 251 tests, 0 failures on 2026-07-12 after the final Terra repair.
+- Full suite: 254 tests, 0 failures on 2026-07-12 after all Terra and Sol repairs.
 - Clean build: arm64 macOS Debug build succeeded with signing disabled.
 - Launch verification: `./script/build_and_run.sh --verify` built and launched DockBarHero successfully.
 - Regression coverage includes XP thresholds and penalties, tier scheduling and rewards, farming repeat, queued destination changes, 174 to 149 retreat, v2 save validation and replacement safety, first-run class selection, exact reset phrase, management routes, and rail labels.
 - Terra integration review found one stale final-flush/reset snapshot race; commit `f5fdb24` repaired it and Terra re-review returned no findings.
+- Sol final review found three persistence-boundary issues; commit `aac04cc` repaired reset/save serialization, backup-only recovery, and Push/frontier validation. Sol re-review returned no findings.
 
 ## Implemented Gate
 
