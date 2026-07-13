@@ -36,4 +36,4 @@ Internal schema-v2 Progression Safety gate only. This checkpoint is not release-
 
 ## Hold
 
-The owner lifted the internal merge/push hold and authorized integration to `main` on 2026-07-12. This checkpoint remains non-release-eligible until Heroes and Party and Class Actions are implemented and accepted.
+The owner lifted the internal hold; this checkpoint was fast-forwarded and pushed to `main` on 2026-07-12. It remains non-release-eligible until Heroes and Party and Class Actions are implemented and accepted.

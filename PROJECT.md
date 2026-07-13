@@ -6,9 +6,9 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Current Milestone
 
-- Goal: integrate the accepted Foundation and schema-v2 Progression Safety work, then plan Heroes and Party.
-- Current checkpoint: implementation, review repair, automated verification, launch-window recovery, and visible New Game confirmation are complete.
-- Integration: the owner lifted the internal merge/push hold on 2026-07-12 and requested integration to `main`.
+- Goal: build Heroes and Party on the integrated Foundation and schema-v2 Progression Safety systems.
+- Current checkpoint: Foundation and Progression Safety are integrated to `main`; review repair, automated verification, launch-window recovery, and visible New Game confirmation are complete.
+- Integration: the owner lifted the internal hold and the feature branch was fast-forwarded and pushed to `main` on 2026-07-12.
 - Remaining: unchecked manual interaction QA, Heroes and Party, and the three class actions; this is not a release-ready milestone.
 
 ## Architecture
@@ -50,14 +50,14 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Active Work
 
-- Parent orchestrator: integrate `feature/foundation-upgrade` to `main` as owner-authorized.
-- Next design work: Heroes and Party plan, then Tank, DPS, and Healer actions.
+- Parent orchestrator: begin the Heroes and Party design/plan from `main` when requested.
+- Next design work: Heroes and Party, then Tank, DPS, and Healer actions.
 - Manual QA items not explicitly exercised remain open in the Progression Safety review packet.
 
 ## Last Verified State
 
 - Date: 2026-07-12.
-- Worktree: /Users/n3kr0/Projects/TBH/.worktrees/foundation-upgrade on `feature/foundation-upgrade`.
+- Checkout: /Users/n3kr0/Projects/TBH on `main`.
 - Progression gate: 255 tests passed with zero failures on 2026-07-12 after launch-window and Danger Zone repairs.
 - Clean unsigned Apple Silicon Debug build succeeded; `./script/build_and_run.sh --verify` launched DockBarHero.
 - Owner visually accepted the rounded New Game confirmation field; other unchecked manual QA remains pending.
