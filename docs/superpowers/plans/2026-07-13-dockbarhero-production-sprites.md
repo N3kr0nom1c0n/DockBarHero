@@ -178,19 +178,19 @@ git commit -m "feat: load bundled sprite animation clips"
 **Interfaces:**
 - Produces: `EnemySpriteResolver.token(level: Int, tier: EnemyTierID) -> SpriteToken`.
 
-- [ ] **Step 1: Write failing resolver tests**
+- [x] **Step 1: Write failing resolver tests**
 
 Assert the exact normal sequence, exact elite sequence, boss 25/50/75/100 identities, stable cycling after level 100, and generic fallback for invalid levels.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run only `DockBarHeroTests/EnemySpriteResolverTests`; expect compile failure because the resolver is absent.
 
-- [ ] **Step 3: Implement the minimal pure resolver**
+- [x] **Step 3: Implement the minimal pure resolver**
 
 Use immutable ordered token arrays. Normal index is `(level - 1) % 14`, elite index is `((level / 5) - 1) % 8`, and boss index is `((level / 25) - 1) % 4`. Invalid levels return `.enemy`.
 
-- [ ] **Step 4: Verify GREEN and commit**
+- [x] **Step 4: Verify GREEN and commit**
 
 ```bash
 git add DockBarHero/Rendering/EnemySpriteResolver.swift DockBarHeroTests/EnemySpriteResolverTests.swift
