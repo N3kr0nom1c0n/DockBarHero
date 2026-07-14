@@ -29,8 +29,35 @@ final class PrototypeSceneHostTests: XCTestCase {
         )
         XCTAssertEqual(
             (host.scene.childNode(withName: "//enemyLevel") as? SKLabelNode)?.text,
-            "Boss · Enemy Lv. 25"
+            "Unknown Guardian · Boss · Enemy Lv. 25"
         )
+    }
+
+    func testLongAuthoredEnemyIdentityFitsOutsideNarrowAreaTitleLane() throws {
+        let host = try PrototypeSceneHost(size: CGSize(width: 400, height: 96))
+        var state = GameState.newGame(balance: .standard)
+        state.encounter.enemyLevel = 15
+        state.encounter.tier = .elite
+        var presentation = GameSimulation(state: state).presentation
+        presentation.campaign = CampaignPresentation(
+            areaID: .forgottenShallowDepths,
+            areaFullName: "The Forgotten Shallow Depths That Were Remembered",
+            areaShortName: "Shallow Depths",
+            enemyID: .poisonNagaQueen,
+            enemyName: "Poison Naga Queen",
+            enemySpriteID: .poisonNagaQueen,
+            tier: .elite,
+            level: 15
+        )
+
+        host.render(.active(presentation))
+
+        let label = try XCTUnwrap(
+            host.scene.childNode(withName: "//enemyLevel") as? SKLabelNode
+        )
+        XCTAssertEqual(label.text, "Poison Naga Queen · Elite · Enemy Lv. 15")
+        XCTAssertGreaterThanOrEqual(label.frame.minX, 297.5)
+        XCTAssertLessThanOrEqual(label.frame.maxX, 392.5)
     }
 
     func testFarmingStatusShowsFrontierAndTracksModeTransitions() throws {
@@ -58,7 +85,7 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertEqual(status.position.y, 82, accuracy: 0.001)
         XCTAssertEqual(
             (host.scene.childNode(withName: "//enemyLevel") as? SKLabelNode)?.text,
-            "Normal · Enemy Lv. 1"
+            "Slime · Normal · Enemy Lv. 1"
         )
 
         let originalStatus = status

@@ -49,7 +49,7 @@ final class PrototypeScene: SKScene {
 
         let heroLevel = label(name: "heroLevel", fontSize: 12)
         let heroAction = label(name: "heroAction", fontSize: 10)
-        let enemyLevel = label(name: "enemyLevel", fontSize: 12)
+        let enemyLevel = label(name: "enemyLevel", fontSize: 10)
         let farmingStatus = label(name: "farmingStatus", fontSize: 10)
         farmingStatus.fontColor = .systemOrange
         farmingStatus.isUserInteractionEnabled = false
@@ -119,7 +119,10 @@ final class PrototypeScene: SKScene {
         }
         setHealthFraction(for: "enemyHealthFill", current: enemy.currentHealth, maximum: enemy.maxHealth)
         let tier = presentation.state.encounter.tier.rawValue.capitalized
-        (childNode(withName: "enemyLevel") as? SKLabelNode)?.text = "\(tier) · \(ManagementFormat.enemyLevel(presentation.state.encounter.enemyLevel))"
+        let enemyCopy = presentation.campaign.map { "\($0.enemyName) · " } ?? ""
+        (childNode(withName: "enemyLevel") as? SKLabelNode)?.text =
+            "\(enemyCopy)\(tier) · \(ManagementFormat.enemyLevel(presentation.state.encounter.enemyLevel))"
+        layoutEnemyLabel()
         if let farmingStatus = childNode(withName: "farmingStatus") as? SKLabelNode {
             switch presentation.state.campaign.mode {
             case .farming:
@@ -229,7 +232,7 @@ final class PrototypeScene: SKScene {
         }
         childNode(withName: "enemy")?.position = CGPoint(x: enemyX, y: 32)
         positionHealthBar(prefix: "enemy", x: enemyX, y: 59)
-        (childNode(withName: "enemyLevel") as? SKLabelNode)?.position = CGPoint(x: enemyX, y: 70)
+        layoutEnemyLabel()
         (childNode(withName: "farmingStatus") as? SKLabelNode)?.position = CGPoint(x: enemyX, y: 82)
         (childNode(withName: "rollingDPS") as? SKLabelNode)?.position = CGPoint(x: size.width / 2, y: 70)
         let laneWidth = areaTitleLaneWidth
@@ -242,6 +245,35 @@ final class PrototypeScene: SKScene {
                 )
             }
         }
+    }
+
+    private func layoutEnemyLabel() {
+        guard let node = childNode(withName: "enemyLevel") as? SKLabelNode else { return }
+        let enemyX = size.width * 0.78
+        let laneRight = size.width / 2 + areaTitleLaneWidth / 2
+        let leftBoundary = laneRight + 8
+        let rightBoundary = size.width - 8
+        guard rightBoundary > leftBoundary else {
+            node.fontSize = 10
+            node.position = CGPoint(x: enemyX, y: 70)
+            return
+        }
+
+        node.fontSize = 10
+        let availableWidth = rightBoundary - leftBoundary
+        if node.frame.width > availableWidth, node.frame.width > 0 {
+            node.fontSize = max(3, node.fontSize * (availableWidth - 8) / node.frame.width)
+        }
+        if node.frame.width > availableWidth, node.frame.width > 0 {
+            node.fontSize = max(3, node.fontSize * availableWidth / node.frame.width)
+        }
+        let halfWidth = min(availableWidth, node.frame.width) / 2
+        let minimumX = leftBoundary + halfWidth
+        let maximumX = rightBoundary - halfWidth
+        node.position = CGPoint(
+            x: min(max(enemyX, minimumX), maximumX),
+            y: 70
+        )
     }
 
     override func update(_ currentTime: TimeInterval) {
