@@ -158,7 +158,7 @@
     },
     {
       "action": "idle",
-      "frameCount": 2,
+      "frameCount": 1,
       "repeats": true,
       "resource": "bat/idle.png",
       "secondsPerFrame": 0.2,
@@ -198,7 +198,7 @@
     },
     {
       "action": "idle",
-      "frameCount": 2,
+      "frameCount": 1,
       "repeats": true,
       "resource": "darkMage/idle.png",
       "secondsPerFrame": 0.2,
@@ -590,7 +590,7 @@
     },
     {
       "action": "idle",
-      "frameCount": 3,
+      "frameCount": 2,
       "repeats": true,
       "resource": "frostWraith/idle.png",
       "secondsPerFrame": 0.2,
@@ -902,7 +902,7 @@
     },
     {
       "action": "idle",
-      "frameCount": 3,
+      "frameCount": 2,
       "repeats": true,
       "resource": "infernalBrute/idle.png",
       "secondsPerFrame": 0.2,
@@ -982,7 +982,7 @@
     },
     {
       "action": "idle",
-      "frameCount": 2,
+      "frameCount": 1,
       "repeats": true,
       "resource": "mimic/idle.png",
       "secondsPerFrame": 0.2,
@@ -1142,7 +1142,7 @@
     },
     {
       "action": "idle",
-      "frameCount": 3,
+      "frameCount": 2,
       "repeats": true,
       "resource": "poisonNaga/idle.png",
       "secondsPerFrame": 0.2,
@@ -1270,7 +1270,7 @@
     },
     {
       "action": "idle",
-      "frameCount": 3,
+      "frameCount": 2,
       "repeats": true,
       "resource": "stormLich/idle.png",
       "secondsPerFrame": 0.2,

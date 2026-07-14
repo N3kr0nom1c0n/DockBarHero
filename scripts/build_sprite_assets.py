@@ -111,6 +111,9 @@ def _alpha_extrema(path: Path) -> tuple[float, float]:
 def _build_frame(
     source_path: Path,
     background: str,
+    edge_connected_background: bool,
+    background_fuzz: float,
+    component_area_threshold: int,
     crop: list[int],
     scale: float,
     destination: Path,
@@ -122,7 +125,20 @@ def _build_frame(
         raise AssetBuildError(f"invalid crop rectangle: {crop}")
     percent = max(1, round(scale * 100))
     trimmed = destination.with_suffix(".trimmed.png")
-    _run(
+    if edge_connected_background:
+        background_removal = [
+            "-bordercolor",
+            background,
+            "-border",
+            "1",
+            "-fill",
+            "none",
+            "-draw",
+            "color 0,0 floodfill",
+        ]
+    else:
+        background_removal = ["-transparent", background]
+    crop_arguments = [
         str(source_path),
         "-crop",
         f"{width}x{height}+{x}+{y}",
@@ -130,9 +146,47 @@ def _build_frame(
         "-alpha",
         "on",
         "-fuzz",
-        "18%",
-        "-transparent",
-        background,
+        f"{background_fuzz}%",
+        *background_removal,
+    ]
+    cleanup_paths: list[Path] = []
+    if component_area_threshold > 0:
+        extracted = destination.with_suffix(".extracted.png")
+        mask = destination.with_suffix(".mask.png")
+        cleaned = destination.with_suffix(".cleaned.png")
+        cleanup_paths = [extracted, mask, cleaned]
+        _run(*crop_arguments, str(extracted))
+        _run(
+            str(extracted),
+            "-alpha",
+            "extract",
+            "-threshold",
+            "0",
+            "-define",
+            f"connected-components:area-threshold={component_area_threshold}",
+            "-define",
+            "connected-components:mean-color=true",
+            "-connected-components",
+            "8",
+            str(mask),
+        )
+        _run(
+            str(extracted),
+            "(",
+            str(mask),
+            "-alpha",
+            "copy",
+            ")",
+            "-compose",
+            "DstIn",
+            "-composite",
+            str(cleaned),
+        )
+        frame_input = [str(cleaned)]
+    else:
+        frame_input = crop_arguments
+    _run(
+        *frame_input,
         "-bordercolor",
         "none",
         "-border",
@@ -164,6 +218,8 @@ def _build_frame(
         str(destination),
     )
     trimmed.unlink(missing_ok=True)
+    for cleanup_path in cleanup_paths:
+        cleanup_path.unlink(missing_ok=True)
 
 
 def _frame_crops(clip: dict) -> list[list[int]]:
@@ -313,11 +369,19 @@ def _expanded_clips(manifest: dict) -> list[dict]:
                     region[2],
                     region[3],
                 ]
-                if "frames" in action:
+                actor_frames = actor.get("actionFrames", {}).get(action["action"])
+                if actor_frames:
+                    clip["frameCount"] = len(actor_frames)
+                    clip["autoFrames"] = False
+                    clip["frames"] = [
+                        [origin[0] + frame[0], origin[1] + frame[1], frame[2], frame[3]]
+                        for frame in actor_frames
+                    ]
+                elif "frames" in action:
                     clip["frames"] = [
                         [origin[0] + frame[0], origin[1] + frame[1], frame[2], frame[3]]
                         for frame in action["frames"]
-                    ]
+                    ][:clip["frameCount"]]
                 clips.append(clip)
     return clips
 
@@ -365,6 +429,9 @@ def build_assets(manifest_path: Path, output_root: Path) -> dict:
                 _build_frame(
                     sources[source_id],
                     source["background"],
+                    bool(source.get("edgeConnectedBackground", False)),
+                    float(source.get("backgroundFuzz", 18)),
+                    int(source.get("componentAreaThreshold", 0)),
                     crop,
                     scale,
                     frame_path,

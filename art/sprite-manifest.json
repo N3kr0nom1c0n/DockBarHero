@@ -23,12 +23,18 @@
     "standard-enemies": {
       "path": "sprite-boards/standard-enemies-reference.png",
       "sha256": "78022cd5929034704aca0b63c309be69942545172c298f727cea54c5fbb2e2aa",
-      "background": "#091218"
+      "background": "#091218",
+      "edgeConnectedBackground": true,
+      "backgroundFuzz": 2,
+      "componentAreaThreshold": 4
     },
     "elite-enemies": {
       "path": "sprite-boards/elite-enemies-reference.png",
       "sha256": "5e7ff01b808396d510dfce2c19a4637bf10e63184a4ec0c4cb101df9a464df0d",
-      "background": "#070e15"
+      "background": "#070e15",
+      "edgeConnectedBackground": true,
+      "backgroundFuzz": 2,
+      "componentAreaThreshold": 4
     },
     "ironroot-warchief": {
       "path": "sprite-boards/ironroot-warchief-reference.png",
@@ -140,14 +146,14 @@
         {"token": "bandit", "origin": [0, 245]},
         {"token": "orc", "origin": [0, 390]},
         {"token": "slime", "origin": [0, 535]},
-        {"token": "mimic", "origin": [0, 680]},
-        {"token": "darkMage", "origin": [0, 825]},
+        {"token": "mimic", "origin": [0, 680], "frameCounts": {"idle": 1}},
+        {"token": "darkMage", "origin": [0, 815], "frameCounts": {"idle": 1}},
         {"token": "skeleton", "origin": [700, 90]},
         {"token": "wolf", "origin": [700, 245]},
-        {"token": "bat", "origin": [700, 390]},
+        {"token": "bat", "origin": [700, 390], "frameCounts": {"idle": 1}},
         {"token": "harpy", "origin": [700, 535]},
         {"token": "ghost", "origin": [700, 680]},
-        {"token": "zombie", "origin": [700, 825]}
+        {"token": "zombie", "origin": [700, 815]}
       ],
       "actions": [
         {"action": "idle", "region": [15, 35, 135, 90], "frames": [[15, 65, 60, 70], [80, 65, 60, 70]], "frameCount": 2, "secondsPerFrame": 0.20, "repeats": true},
@@ -174,10 +180,10 @@
       "actors": [
         {"token": "eliteKnight", "origin": [0, 80]},
         {"token": "dreadSkeleton", "origin": [0, 210]},
-        {"token": "infernalBrute", "origin": [0, 330], "frameCounts": {"walk": 3, "attack": 3, "classAction": 2, "defeated": 2}},
-        {"token": "frostWraith", "origin": [0, 445], "frameCounts": {"walk": 3, "attack": 3, "classAction": 2, "defeated": 2}},
-        {"token": "poisonNaga", "origin": [0, 560], "frameCounts": {"walk": 3, "attack": 3, "classAction": 2, "defeated": 2}},
-        {"token": "stormLich", "origin": [0, 675], "frameCounts": {"walk": 3, "attack": 2, "hit": 2, "defeated": 2}}
+        {"token": "infernalBrute", "origin": [0, 330], "frameCounts": {"walk": 3, "attack": 3, "classAction": 2, "defeated": 2}, "actionFrames": {"idle": [[15, 20, 100, 90], [120, 20, 100, 90]]}},
+        {"token": "frostWraith", "origin": [0, 445], "frameCounts": {"walk": 3, "attack": 3, "classAction": 2, "defeated": 2}, "actionFrames": {"idle": [[15, 20, 70, 90], [95, 20, 70, 90]]}},
+        {"token": "poisonNaga", "origin": [0, 560], "frameCounts": {"walk": 3, "attack": 3, "classAction": 2, "defeated": 2}, "actionFrames": {"idle": [[15, 20, 80, 90], [115, 20, 80, 90]]}},
+        {"token": "stormLich", "origin": [0, 675], "frameCounts": {"walk": 3, "attack": 2, "hit": 2, "defeated": 2}, "actionFrames": {"idle": [[15, 20, 70, 90], [95, 20, 70, 90]]}}
       ],
       "actions": [
         {"action": "idle", "region": [15, 20, 255, 90], "frameCount": 3, "secondsPerFrame": 0.20, "repeats": true},
@@ -191,7 +197,7 @@
     {
       "source": "elite-enemies",
       "scale": 0.58,
-      "actors": [{"token": "dragonWhelp", "origin": [0, 790], "scale": 0.50}],
+      "actors": [{"token": "dragonWhelp", "origin": [0, 790], "scale": 0.50, "actionFrames": {"idle": [[15, 25, 90, 75], [105, 25, 105, 75], [220, 25, 100, 75], [320, 25, 95, 75], [415, 25, 90, 75]]}}],
       "actions": [
         {"action": "idle", "region": [15, 20, 510, 90], "frameCount": 5, "secondsPerFrame": 0.18, "repeats": true},
         {"action": "attack", "region": [535, 20, 150, 90], "frameCount": 2, "autoFrames": false, "topInsetRatio": 0.20, "secondsPerFrame": 0.11, "repeats": false},
@@ -203,7 +209,7 @@
     {
       "source": "elite-enemies",
       "scale": 0.58,
-      "actors": [{"token": "ancientGolem", "origin": [0, 900]}],
+      "actors": [{"token": "ancientGolem", "origin": [0, 890]}],
       "actions": [
         {"action": "idle", "region": [15, 20, 190, 90], "frameCount": 2, "secondsPerFrame": 0.20, "repeats": true},
         {"action": "walk", "region": [210, 20, 260, 90], "frameCount": 4, "secondsPerFrame": 0.12, "repeats": true},
@@ -235,11 +241,11 @@
     {"token": "astralWyrm", "action": "classAction", "source": "astral-wyrm", "frames": [[794, 0, 397, 793]], "scale": 0.11, "secondsPerFrame": 0.12, "repeats": false},
     {"token": "astralWyrm", "action": "hit", "source": "astral-wyrm", "frames": [[1191, 0, 397, 793]], "scale": 0.11, "secondsPerFrame": 0.10, "repeats": false},
     {"token": "astralWyrm", "action": "defeated", "source": "astral-wyrm", "frames": [[1588, 0, 395, 793]], "scale": 0.11, "secondsPerFrame": 0.14, "repeats": false},
-    {"token": "elementalSlimeNormal", "action": "idle", "source": "standard-enemies", "frames": [[20, 1000, 95, 110]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true},
-    {"token": "elementalSlimeFire", "action": "idle", "source": "standard-enemies", "frames": [[115, 1000, 95, 110]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true},
-    {"token": "elementalSlimeIce", "action": "idle", "source": "standard-enemies", "frames": [[210, 1000, 95, 110]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true},
-    {"token": "elementalSlimeElectric", "action": "idle", "source": "standard-enemies", "frames": [[305, 1000, 95, 110]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true},
-    {"token": "elementalSlimePoison", "action": "idle", "source": "standard-enemies", "frames": [[400, 1000, 95, 110]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true},
-    {"token": "elementalSlimeEarth", "action": "idle", "source": "standard-enemies", "frames": [[495, 1000, 115, 110]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true}
+    {"token": "elementalSlimeNormal", "action": "idle", "source": "standard-enemies", "frames": [[20, 1000, 95, 75]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true},
+    {"token": "elementalSlimeFire", "action": "idle", "source": "standard-enemies", "frames": [[115, 1000, 95, 75]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true},
+    {"token": "elementalSlimeIce", "action": "idle", "source": "standard-enemies", "frames": [[210, 1000, 95, 75]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true},
+    {"token": "elementalSlimeElectric", "action": "idle", "source": "standard-enemies", "frames": [[305, 1000, 95, 75]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true},
+    {"token": "elementalSlimePoison", "action": "idle", "source": "standard-enemies", "frames": [[400, 1000, 95, 75]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true},
+    {"token": "elementalSlimeEarth", "action": "idle", "source": "standard-enemies", "frames": [[495, 1000, 115, 75]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true}
   ]
 }

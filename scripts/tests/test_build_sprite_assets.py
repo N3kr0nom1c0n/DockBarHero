@@ -91,6 +91,198 @@ class BuildSpriteAssetsTests(unittest.TestCase):
             runtime,
         )
 
+    def test_preserves_enclosed_pixels_that_match_dark_board_background(self):
+        dark_actor = self.root / "dark-actor.png"
+        subprocess.run(
+            [
+                "magick",
+                "-size",
+                "16x16",
+                "xc:#101820",
+                "-fill",
+                "#ff3b30",
+                "-draw",
+                "rectangle 3,3 12,14",
+                "-fill",
+                "#101820",
+                "-draw",
+                "rectangle 6,7 9,10",
+                str(dark_actor),
+            ],
+            check=True,
+        )
+        payload = {
+            "version": 1,
+            "cell": {"width": 96, "height": 64},
+            "sources": {
+                "board": {
+                    "path": str(dark_actor),
+                    "sha256": self._sha256(dark_actor),
+                    "background": "#101820",
+                    "edgeConnectedBackground": True,
+                }
+            },
+            "clips": [{
+                "token": "test-hero",
+                "action": "idle",
+                "source": "board",
+                "frames": [[0, 0, 16, 16]],
+                "frameCount": 1,
+                "scale": 1,
+                "secondsPerFrame": 0.125,
+                "repeats": True,
+            }],
+        }
+        self.manifest.write_text(json.dumps(payload))
+
+        build_assets(self.manifest, self.output)
+
+        strip = self.output / "test-hero" / "idle.png"
+        opaque_pixel_count = subprocess.run(
+            [
+                "magick",
+                str(strip),
+                "-alpha",
+                "extract",
+                "-format",
+                "%[fx:mean*w*h]",
+                "info:",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout
+        self.assertEqual(float(opaque_pixel_count), 120)
+
+    def test_edge_connected_background_uses_source_specific_fuzz(self):
+        low_contrast_actor = self.root / "low-contrast-actor.png"
+        subprocess.run(
+            [
+                "magick",
+                "-size",
+                "16x16",
+                "xc:#101820",
+                "-fill",
+                "#303840",
+                "-draw",
+                "rectangle 3,3 12,14",
+                "-fill",
+                "#ffffff",
+                "-draw",
+                "rectangle 7,8 8,9",
+                str(low_contrast_actor),
+            ],
+            check=True,
+        )
+        payload = {
+            "version": 1,
+            "cell": {"width": 96, "height": 64},
+            "sources": {
+                "board": {
+                    "path": str(low_contrast_actor),
+                    "sha256": self._sha256(low_contrast_actor),
+                    "background": "#101820",
+                    "edgeConnectedBackground": True,
+                    "backgroundFuzz": 2,
+                }
+            },
+            "clips": [{
+                "token": "test-hero",
+                "action": "idle",
+                "source": "board",
+                "frames": [[0, 0, 16, 16]],
+                "frameCount": 1,
+                "scale": 1,
+                "secondsPerFrame": 0.125,
+                "repeats": True,
+            }],
+        }
+        self.manifest.write_text(json.dumps(payload))
+
+        build_assets(self.manifest, self.output)
+
+        strip = self.output / "test-hero" / "idle.png"
+        opaque_pixel_count = subprocess.run(
+            [
+                "magick",
+                str(strip),
+                "-alpha",
+                "extract",
+                "-format",
+                "%[fx:mean*w*h]",
+                "info:",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout
+        self.assertEqual(float(opaque_pixel_count), 120)
+
+    def test_edge_connected_background_removes_tiny_disconnected_artifacts(self):
+        actor_with_artifact = self.root / "actor-with-artifact.png"
+        subprocess.run(
+            [
+                "magick",
+                "-size",
+                "16x16",
+                "xc:#101820",
+                "-fill",
+                "#ff3b30",
+                "-draw",
+                "rectangle 3,3 12,14",
+                "-fill",
+                "#ffffff",
+                "-draw",
+                "point 14,1",
+                str(actor_with_artifact),
+            ],
+            check=True,
+        )
+        payload = {
+            "version": 1,
+            "cell": {"width": 96, "height": 64},
+            "sources": {
+                "board": {
+                    "path": str(actor_with_artifact),
+                    "sha256": self._sha256(actor_with_artifact),
+                    "background": "#101820",
+                    "edgeConnectedBackground": True,
+                    "backgroundFuzz": 2,
+                    "componentAreaThreshold": 4,
+                }
+            },
+            "clips": [{
+                "token": "test-hero",
+                "action": "idle",
+                "source": "board",
+                "frames": [[0, 0, 16, 16]],
+                "frameCount": 1,
+                "scale": 1,
+                "secondsPerFrame": 0.125,
+                "repeats": True,
+            }],
+        }
+        self.manifest.write_text(json.dumps(payload))
+
+        build_assets(self.manifest, self.output)
+
+        strip = self.output / "test-hero" / "idle.png"
+        opaque_pixel_count = subprocess.run(
+            [
+                "magick",
+                str(strip),
+                "-alpha",
+                "extract",
+                "-format",
+                "%[fx:mean*w*h]",
+                "info:",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout
+        self.assertEqual(float(opaque_pixel_count), 120)
+
     def test_expands_actor_action_groups_into_clips(self):
         payload = {
             "version": 1,
@@ -269,6 +461,54 @@ class BuildSpriteAssetsTests(unittest.TestCase):
         clips = _expanded_clips(manifest)
 
         self.assertEqual(clips[0]["frameCount"], 1)
+
+    def test_grouped_actor_frame_count_limits_explicit_frames(self):
+        manifest = {
+            "clipGroups": [{
+                "source": "board",
+                "actors": [{
+                    "token": "test-hero",
+                    "origin": [0, 0],
+                    "frameCounts": {"idle": 1},
+                }],
+                "actions": [{
+                    "action": "idle",
+                    "region": [0, 0, 24, 16],
+                    "frames": [[1, 2, 3, 4], [5, 6, 7, 8]],
+                    "frameCount": 2,
+                    "secondsPerFrame": 0.1,
+                    "repeats": True,
+                }],
+            }],
+        }
+
+        clips = _expanded_clips(manifest)
+
+        self.assertEqual(clips[0]["frames"], [[1, 2, 3, 4]])
+
+    def test_grouped_actor_can_override_action_frames(self):
+        manifest = {
+            "clipGroups": [{
+                "source": "board",
+                "actors": [{
+                    "token": "test-hero",
+                    "origin": [100, 200],
+                    "actionFrames": {"idle": [[1, 2, 3, 4]]},
+                }],
+                "actions": [{
+                    "action": "idle",
+                    "region": [0, 0, 24, 16],
+                    "frameCount": 2,
+                    "secondsPerFrame": 0.1,
+                    "repeats": True,
+                }],
+            }],
+        }
+
+        clips = _expanded_clips(manifest)
+
+        self.assertEqual(clips[0]["frameCount"], 1)
+        self.assertEqual(clips[0]["frames"], [[101, 202, 3, 4]])
 
     def test_grouped_frames_are_relative_to_actor_origin(self):
         manifest = {
