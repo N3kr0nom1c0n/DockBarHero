@@ -258,7 +258,7 @@ Use `slot1...slot7`, sequential reading orders from zero, and context names endi
 
 | Page | Visible overlays |
 |---|---|
-| Prologue | `LEVEL 100,000: THE FINALER ENDING`; `The moon filed for divorce. Kevin unionized Heaven.`; `Somehow, this was your fault.`; unfiltered `Hey, American jackass! This is manga! You're reading it backwards, ya fuckwad!` / clean `Hey, confused hamburger enthusiast! This is manga! You're reading it backward!`; `Slander. The arrow has always pointed left.` |
+| Prologue | `LEVEL 100,000: THE FINALER ENDING`; `The moon filed for divorce. Kevin unionized Heaven.`; `Somehow, this was your fault.`; unfiltered `Hey, American jackass! This is a manga! You're reading it backwards, ya fuckwad!` / clean `Hey, confused hamburger enthusiast! This is manga! You're reading it backward!`; `Slander. The arrow has always pointed left.` |
 | Level 1 | `FOUR MINUTES EARLIER`; `Four minutes earlier, I requested a qualified hero. The universe clicked Show Similar Results.`; unfiltered `I'm not Kevin. Kevin died. This mustache is hereditary.` / clean replacing `died` with `departed` |
 | Level 5 | `KEVIN'S SUPERVISOR`; `Behold Kevin's supervisor: Kevin, but larger and legally a separate workplace incident.`; `Initial here to acknowledge your replacement Kevin.`; `My name is Kévin. The accent mark makes this airtight.` |
 | Level 10 | `THE DOUBLE MIMIC`; `The chest was a mimic. Inside it was another mimic pretending to be loot. Both have tenure.`; `Don't laugh.`; `You first.`; `hnk—` |
