@@ -1,0 +1,245 @@
+{
+  "version": 1,
+  "cell": {
+    "width": 96,
+    "height": 64
+  },
+  "sources": {
+    "dps": {
+      "path": "sprite-boards/dps-reference.png",
+      "sha256": "fc43a019203daa866cca3566da6c8995ffac0cc5f8c171bd94b81b161824e00d",
+      "background": "#0e1218"
+    },
+    "tank": {
+      "path": "sprite-boards/tank-reference.png",
+      "sha256": "2949a94a44da7a6661822bfe5758195d85360dd22b5469fcb674179a783095b6",
+      "background": "#090f14"
+    },
+    "healer": {
+      "path": "sprite-boards/healer-reference.png",
+      "sha256": "56f6fafe84ca6c0d00e20cfb3967598f73bcde893eb532318114a318fd9d5b1f",
+      "background": "#040b10"
+    },
+    "standard-enemies": {
+      "path": "sprite-boards/standard-enemies-reference.png",
+      "sha256": "78022cd5929034704aca0b63c309be69942545172c298f727cea54c5fbb2e2aa",
+      "background": "#091218"
+    },
+    "elite-enemies": {
+      "path": "sprite-boards/elite-enemies-reference.png",
+      "sha256": "5e7ff01b808396d510dfce2c19a4637bf10e63184a4ec0c4cb101df9a464df0d",
+      "background": "#070e15"
+    },
+    "ironroot-warchief": {
+      "path": "sprite-boards/ironroot-warchief-reference.png",
+      "sha256": "a52a4ea041e428f8835b2a30dac953e91deceaec87427aa260ee427df8895339",
+      "background": "#ef0bee"
+    },
+    "ossuary-sovereign": {
+      "path": "sprite-boards/ossuary-sovereign-reference.png",
+      "sha256": "624ae81ee9501e5916456ddb0fc9b5d8037aac662936332332b760658a0fbfad",
+      "background": "#13f10c"
+    },
+    "embermaw-colossus": {
+      "path": "sprite-boards/embermaw-colossus-reference.png",
+      "sha256": "189c626534c086b18f2b93e814579e472b216f68705fd910bbc3482092047c7e",
+      "background": "#10f211"
+    },
+    "astral-wyrm": {
+      "path": "sprite-boards/astral-wyrm-reference.png",
+      "sha256": "de518d9f1061e49bb06a34002a2532c92e13bcfaf935eb58531e9626622abcc8",
+      "background": "#11f210"
+    }
+  },
+  "exclusions": [
+    "palette swatches",
+    "scale references",
+    "direction reference turnarounds",
+    "weapon, staff, and equipment examples"
+  ],
+  "clipGroups": [
+    {
+      "source": "dps",
+      "scale": 0.48,
+      "topInsetRatio": 0.20,
+      "actors": [{"token": "dps", "origin": [0, 0]}],
+      "actions": [
+        {"action": "idle", "region": [25, 105, 360, 125], "frameCount": 4, "topInsetRatio": 0.30, "secondsPerFrame": 0.18, "repeats": true},
+        {"action": "walk", "region": [390, 105, 500, 125], "frameCount": 5, "topInsetRatio": 0.30, "secondsPerFrame": 0.10, "repeats": true},
+        {"action": "run", "region": [895, 105, 480, 125], "frameCount": 6, "autoFrames": false, "frames": [[900, 130, 92, 100], [992, 130, 78, 100], [1070, 130, 78, 100], [1148, 130, 76, 100], [1224, 130, 71, 100], [1295, 130, 75, 100]], "secondsPerFrame": 0.08, "repeats": true},
+        {"action": "jump", "region": [25, 275, 460, 125], "frameCount": 5, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "fall", "region": [495, 275, 395, 125], "frameCount": 4, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "land", "region": [900, 275, 475, 125], "frameCount": 4, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "attack", "region": [25, 455, 460, 120], "frameCount": 5, "autoFrames": false, "frames": [[32, 479, 77, 96], [109, 479, 87, 96], [196, 479, 79, 96], [275, 479, 82, 96], [357, 479, 110, 96]], "secondsPerFrame": 0.08, "repeats": false},
+        {"action": "attack2", "region": [500, 455, 390, 120], "frameCount": 4, "secondsPerFrame": 0.08, "repeats": false},
+        {"action": "attack3", "region": [905, 455, 470, 120], "frameCount": 6, "secondsPerFrame": 0.08, "repeats": false},
+        {"action": "classAction", "region": [25, 625, 465, 110], "frameCount": 5, "secondsPerFrame": 0.09, "repeats": false},
+        {"action": "hit", "region": [500, 625, 395, 110], "frameCount": 4, "secondsPerFrame": 0.09, "repeats": false},
+        {"action": "defeated", "region": [910, 625, 465, 110], "frameCount": 4, "secondsPerFrame": 0.12, "repeats": false},
+        {"action": "block", "region": [25, 785, 360, 105], "frameCount": 4, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "dodge", "region": [400, 785, 555, 105], "frameCount": 5, "secondsPerFrame": 0.08, "repeats": false},
+        {"action": "victory", "region": [975, 785, 400, 105], "frameCount": 3, "secondsPerFrame": 0.14, "repeats": false}
+      ]
+    },
+    {
+      "source": "tank",
+      "scale": 0.48,
+      "topInsetRatio": 0.20,
+      "actors": [{"token": "tank", "origin": [0, 0]}],
+      "actions": [
+        {"action": "idle", "region": [25, 105, 395, 125], "frameCount": 4, "topInsetRatio": 0.30, "secondsPerFrame": 0.18, "repeats": true},
+        {"action": "walk", "region": [430, 105, 480, 125], "frameCount": 5, "topInsetRatio": 0.30, "secondsPerFrame": 0.10, "repeats": true},
+        {"action": "run", "region": [920, 105, 455, 125], "frameCount": 5, "topInsetRatio": 0.30, "secondsPerFrame": 0.08, "repeats": true},
+        {"action": "jump", "region": [25, 275, 460, 125], "frameCount": 5, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "fall", "region": [495, 275, 420, 125], "frameCount": 4, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "land", "region": [925, 275, 450, 125], "frameCount": 4, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "attack", "region": [25, 455, 480, 120], "frameCount": 5, "autoFrames": false, "frames": [[28, 479, 76, 96], [104, 479, 95, 96], [199, 479, 83, 96], [282, 479, 90, 96], [372, 479, 102, 96]], "secondsPerFrame": 0.08, "repeats": false},
+        {"action": "attack2", "region": [515, 455, 415, 120], "frameCount": 4, "secondsPerFrame": 0.08, "repeats": false},
+        {"action": "attack3", "region": [940, 455, 435, 120], "frameCount": 4, "secondsPerFrame": 0.09, "repeats": false},
+        {"action": "classAction", "region": [25, 625, 305, 100], "frameCount": 2, "secondsPerFrame": 0.12, "repeats": false},
+        {"action": "block", "region": [350, 625, 355, 100], "frameCount": 4, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "hit", "region": [720, 625, 225, 100], "frameCount": 2, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "defeated", "region": [955, 625, 420, 100], "frameCount": 4, "secondsPerFrame": 0.12, "repeats": false},
+        {"action": "dodge", "region": [25, 755, 460, 130], "frameCount": 5, "autoFrames": false, "frames": [[28, 781, 64, 104], [92, 781, 93, 104], [185, 781, 100, 104], [285, 781, 95, 104], [380, 781, 70, 104]], "secondsPerFrame": 0.08, "repeats": false},
+        {"action": "defend", "region": [500, 755, 465, 130], "frameCount": 5, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "victory", "region": [980, 755, 395, 130], "frameCount": 3, "secondsPerFrame": 0.14, "repeats": false}
+      ]
+    },
+    {
+      "source": "healer",
+      "scale": 0.48,
+      "topInsetRatio": 0.20,
+      "actors": [{"token": "healer", "origin": [0, 0]}],
+      "actions": [
+        {"action": "idle", "region": [25, 115, 375, 125], "frameCount": 4, "topInsetRatio": 0.30, "secondsPerFrame": 0.18, "repeats": true},
+        {"action": "walk", "region": [410, 115, 480, 125], "frameCount": 5, "topInsetRatio": 0.30, "secondsPerFrame": 0.10, "repeats": true},
+        {"action": "run", "region": [900, 115, 475, 125], "frameCount": 5, "topInsetRatio": 0.30, "secondsPerFrame": 0.08, "repeats": true},
+        {"action": "jump", "region": [25, 285, 455, 105], "frameCount": 5, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "fall", "region": [490, 285, 395, 105], "frameCount": 4, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "land", "region": [900, 285, 475, 105], "frameCount": 5, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "attack", "region": [25, 445, 445, 100], "frameCount": 5, "autoFrames": false, "frames": [[27, 465, 84, 80], [111, 465, 82, 80], [193, 465, 79, 80], [272, 465, 92, 80], [364, 465, 104, 80]], "secondsPerFrame": 0.08, "repeats": false},
+        {"action": "attack2", "region": [480, 445, 405, 100], "frameCount": 4, "secondsPerFrame": 0.09, "repeats": false},
+        {"action": "attack3", "region": [900, 445, 475, 100], "frameCount": 5, "secondsPerFrame": 0.09, "repeats": false},
+        {"action": "classAction", "region": [25, 595, 445, 100], "frameCount": 4, "secondsPerFrame": 0.11, "repeats": false},
+        {"action": "groupHeal", "region": [480, 595, 420, 100], "frameCount": 3, "autoFrames": false, "frames": [[500, 615, 110, 80], [610, 615, 95, 80], [705, 615, 155, 80]], "secondsPerFrame": 0.12, "repeats": false},
+        {"action": "revive", "region": [910, 595, 465, 100], "frameCount": 3, "secondsPerFrame": 0.12, "repeats": false},
+        {"action": "blessing", "region": [25, 745, 375, 90], "frameCount": 3, "secondsPerFrame": 0.12, "repeats": false},
+        {"action": "defend", "region": [410, 745, 270, 90], "frameCount": 3, "autoFrames": false, "frames": [[408, 763, 92, 72], [500, 763, 80, 72], [580, 763, 75, 72]], "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "hit", "region": [700, 745, 245, 90], "frameCount": 2, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "defeated", "region": [955, 745, 420, 90], "frameCount": 3, "secondsPerFrame": 0.12, "repeats": false},
+        {"action": "dodge", "region": [25, 865, 480, 80], "frameCount": 4, "secondsPerFrame": 0.09, "repeats": false},
+        {"action": "victory", "region": [780, 865, 330, 80], "frameCount": 3, "secondsPerFrame": 0.14, "repeats": false}
+      ]
+    },
+    {
+      "source": "standard-enemies",
+      "scale": 0.65,
+      "autoFrames": false,
+      "actors": [
+        {"token": "goblin", "origin": [0, 90]},
+        {"token": "bandit", "origin": [0, 245]},
+        {"token": "orc", "origin": [0, 390]},
+        {"token": "slime", "origin": [0, 535]},
+        {"token": "mimic", "origin": [0, 680]},
+        {"token": "darkMage", "origin": [0, 825]},
+        {"token": "skeleton", "origin": [700, 90]},
+        {"token": "wolf", "origin": [700, 245]},
+        {"token": "bat", "origin": [700, 390]},
+        {"token": "harpy", "origin": [700, 535]},
+        {"token": "ghost", "origin": [700, 680]},
+        {"token": "zombie", "origin": [700, 825]}
+      ],
+      "actions": [
+        {"action": "idle", "region": [15, 35, 145, 90], "frames": [[15, 65, 65, 70], [80, 65, 70, 70]], "frameCount": 2, "secondsPerFrame": 0.20, "repeats": true},
+        {"action": "walk", "region": [145, 35, 160, 90], "frames": [[145, 65, 75, 70], [220, 65, 70, 70]], "frameCount": 2, "secondsPerFrame": 0.13, "repeats": true},
+        {"action": "attack", "region": [270, 35, 200, 90], "frames": [[270, 65, 75, 70], [345, 65, 125, 70]], "frameCount": 2, "secondsPerFrame": 0.11, "repeats": false},
+        {"action": "hit", "region": [430, 35, 160, 90], "frames": [[430, 65, 80, 70], [510, 65, 80, 70]], "frameCount": 2, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "defeated", "region": [570, 35, 120, 90], "frames": [[570, 65, 120, 70]], "frameCount": 1, "secondsPerFrame": 0.14, "repeats": false}
+      ]
+    },
+    {
+      "source": "standard-enemies",
+      "scale": 0.55,
+      "actors": [{"token": "plantMonster", "origin": [700, 965]}],
+      "actions": [
+        {"action": "idle", "region": [0, 35, 120, 105], "frameCount": 1, "secondsPerFrame": 0.20, "repeats": true},
+        {"action": "attack", "region": [120, 35, 170, 105], "frameCount": 1, "secondsPerFrame": 0.12, "repeats": false},
+        {"action": "hit", "region": [290, 35, 150, 105], "frameCount": 1, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "defeated", "region": [440, 35, 140, 105], "frameCount": 1, "secondsPerFrame": 0.14, "repeats": false}
+      ]
+    },
+    {
+      "source": "elite-enemies",
+      "scale": 0.58,
+      "actors": [
+        {"token": "eliteKnight", "origin": [0, 80]},
+        {"token": "dreadSkeleton", "origin": [0, 210]},
+        {"token": "infernalBrute", "origin": [0, 330], "frameCounts": {"walk": 3, "attack": 3, "classAction": 2, "defeated": 2}},
+        {"token": "frostWraith", "origin": [0, 445], "frameCounts": {"walk": 3, "attack": 3, "classAction": 2, "defeated": 2}},
+        {"token": "poisonNaga", "origin": [0, 560], "frameCounts": {"walk": 3, "attack": 3, "classAction": 2, "defeated": 2}},
+        {"token": "stormLich", "origin": [0, 675], "frameCounts": {"walk": 3, "attack": 2, "hit": 2, "defeated": 2}}
+      ],
+      "actions": [
+        {"action": "idle", "region": [15, 20, 255, 90], "frameCount": 3, "secondsPerFrame": 0.20, "repeats": true},
+        {"action": "walk", "region": [275, 20, 255, 90], "frameCount": 4, "secondsPerFrame": 0.12, "repeats": true},
+        {"action": "attack", "region": [535, 20, 255, 90], "frameCount": 4, "autoFrames": false, "topInsetRatio": 0.20, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "classAction", "region": [795, 20, 210, 90], "frameCount": 3, "autoFrames": false, "topInsetRatio": 0.20, "secondsPerFrame": 0.11, "repeats": false},
+        {"action": "hit", "region": [1010, 20, 185, 90], "frameCount": 3, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "defeated", "region": [1200, 20, 185, 90], "frameCount": 3, "secondsPerFrame": 0.14, "repeats": false}
+      ]
+    },
+    {
+      "source": "elite-enemies",
+      "scale": 0.58,
+      "actors": [{"token": "dragonWhelp", "origin": [0, 790], "scale": 0.50}],
+      "actions": [
+        {"action": "idle", "region": [15, 20, 510, 90], "frameCount": 5, "secondsPerFrame": 0.18, "repeats": true},
+        {"action": "attack", "region": [535, 20, 150, 90], "frameCount": 2, "autoFrames": false, "topInsetRatio": 0.20, "secondsPerFrame": 0.11, "repeats": false},
+        {"action": "classAction", "region": [690, 20, 310, 90], "frameCount": 2, "autoFrames": false, "topInsetRatio": 0.20, "scale": 0.45, "secondsPerFrame": 0.12, "repeats": false},
+        {"action": "hit", "region": [1005, 20, 190, 90], "frameCount": 2, "scale": 0.55, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "defeated", "region": [1200, 20, 185, 90], "frameCount": 2, "scale": 0.55, "secondsPerFrame": 0.14, "repeats": false}
+      ]
+    },
+    {
+      "source": "elite-enemies",
+      "scale": 0.58,
+      "actors": [{"token": "ancientGolem", "origin": [0, 900]}],
+      "actions": [
+        {"action": "idle", "region": [15, 20, 190, 90], "frameCount": 2, "secondsPerFrame": 0.20, "repeats": true},
+        {"action": "walk", "region": [210, 20, 260, 90], "frameCount": 4, "secondsPerFrame": 0.12, "repeats": true},
+        {"action": "attack", "region": [475, 20, 190, 90], "frameCount": 2, "secondsPerFrame": 0.11, "repeats": false},
+        {"action": "classAction", "region": [670, 20, 335, 90], "frameCount": 3, "autoFrames": false, "secondsPerFrame": 0.12, "repeats": false},
+        {"action": "hit", "region": [1010, 20, 185, 90], "frameCount": 2, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "defeated", "region": [1200, 20, 185, 90], "frameCount": 3, "secondsPerFrame": 0.14, "repeats": false}
+      ]
+    }
+  ],
+  "clips": [
+    {"token": "ironrootWarchief", "action": "idle", "source": "ironroot-warchief", "frames": [[0, 0, 434, 724]], "scale": 0.12, "secondsPerFrame": 0.20, "repeats": true},
+    {"token": "ironrootWarchief", "action": "attack", "source": "ironroot-warchief", "frames": [[434, 0, 434, 724]], "scale": 0.12, "secondsPerFrame": 0.11, "repeats": false},
+    {"token": "ironrootWarchief", "action": "classAction", "source": "ironroot-warchief", "frames": [[868, 0, 434, 724]], "scale": 0.12, "secondsPerFrame": 0.12, "repeats": false},
+    {"token": "ironrootWarchief", "action": "hit", "source": "ironroot-warchief", "frames": [[1302, 0, 434, 724]], "scale": 0.12, "secondsPerFrame": 0.10, "repeats": false},
+    {"token": "ironrootWarchief", "action": "defeated", "source": "ironroot-warchief", "frames": [[1736, 0, 436, 724]], "scale": 0.12, "secondsPerFrame": 0.14, "repeats": false},
+    {"token": "ossuarySovereign", "action": "idle", "source": "ossuary-sovereign", "frames": [[0, 0, 397, 793]], "scale": 0.11, "secondsPerFrame": 0.20, "repeats": true},
+    {"token": "ossuarySovereign", "action": "attack", "source": "ossuary-sovereign", "frames": [[397, 0, 397, 793]], "scale": 0.11, "secondsPerFrame": 0.11, "repeats": false},
+    {"token": "ossuarySovereign", "action": "classAction", "source": "ossuary-sovereign", "frames": [[794, 0, 397, 793]], "scale": 0.11, "secondsPerFrame": 0.12, "repeats": false},
+    {"token": "ossuarySovereign", "action": "hit", "source": "ossuary-sovereign", "frames": [[1191, 0, 397, 793]], "scale": 0.11, "secondsPerFrame": 0.10, "repeats": false},
+    {"token": "ossuarySovereign", "action": "defeated", "source": "ossuary-sovereign", "frames": [[1588, 0, 395, 793]], "scale": 0.11, "secondsPerFrame": 0.14, "repeats": false},
+    {"token": "embermawColossus", "action": "idle", "source": "embermaw-colossus", "frames": [[0, 0, 434, 724]], "scale": 0.12, "secondsPerFrame": 0.20, "repeats": true},
+    {"token": "embermawColossus", "action": "attack", "source": "embermaw-colossus", "frames": [[434, 0, 434, 724]], "scale": 0.12, "secondsPerFrame": 0.11, "repeats": false},
+    {"token": "embermawColossus", "action": "classAction", "source": "embermaw-colossus", "frames": [[868, 0, 434, 724]], "scale": 0.12, "secondsPerFrame": 0.12, "repeats": false},
+    {"token": "embermawColossus", "action": "hit", "source": "embermaw-colossus", "frames": [[1302, 0, 434, 724]], "scale": 0.12, "secondsPerFrame": 0.10, "repeats": false},
+    {"token": "embermawColossus", "action": "defeated", "source": "embermaw-colossus", "frames": [[1736, 0, 436, 724]], "scale": 0.12, "secondsPerFrame": 0.14, "repeats": false},
+    {"token": "astralWyrm", "action": "idle", "source": "astral-wyrm", "frames": [[0, 0, 397, 793]], "scale": 0.11, "secondsPerFrame": 0.20, "repeats": true},
+    {"token": "astralWyrm", "action": "attack", "source": "astral-wyrm", "frames": [[397, 0, 397, 793]], "scale": 0.11, "secondsPerFrame": 0.11, "repeats": false},
+    {"token": "astralWyrm", "action": "classAction", "source": "astral-wyrm", "frames": [[794, 0, 397, 793]], "scale": 0.11, "secondsPerFrame": 0.12, "repeats": false},
+    {"token": "astralWyrm", "action": "hit", "source": "astral-wyrm", "frames": [[1191, 0, 397, 793]], "scale": 0.11, "secondsPerFrame": 0.10, "repeats": false},
+    {"token": "astralWyrm", "action": "defeated", "source": "astral-wyrm", "frames": [[1588, 0, 395, 793]], "scale": 0.11, "secondsPerFrame": 0.14, "repeats": false},
+    {"token": "elementalSlimeNormal", "action": "idle", "source": "standard-enemies", "frames": [[20, 1000, 95, 110]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true},
+    {"token": "elementalSlimeFire", "action": "idle", "source": "standard-enemies", "frames": [[115, 1000, 95, 110]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true},
+    {"token": "elementalSlimeIce", "action": "idle", "source": "standard-enemies", "frames": [[210, 1000, 95, 110]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true},
+    {"token": "elementalSlimeElectric", "action": "idle", "source": "standard-enemies", "frames": [[305, 1000, 95, 110]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true},
+    {"token": "elementalSlimePoison", "action": "idle", "source": "standard-enemies", "frames": [[400, 1000, 95, 110]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true},
+    {"token": "elementalSlimeEarth", "action": "idle", "source": "standard-enemies", "frames": [[495, 1000, 115, 110]], "scale": 0.65, "secondsPerFrame": 0.20, "repeats": true}
+  ]
+}

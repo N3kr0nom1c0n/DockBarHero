@@ -1,0 +1,1497 @@
+{
+  "cell": {
+    "height": 64,
+    "width": 96
+  },
+  "clips": [
+    {
+      "action": "attack",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "ancientGolem/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "ancientGolem"
+    },
+    {
+      "action": "classAction",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "ancientGolem/classAction.png",
+      "secondsPerFrame": 0.12,
+      "token": "ancientGolem"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "ancientGolem/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "ancientGolem"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "ancientGolem/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "ancientGolem"
+    },
+    {
+      "action": "idle",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "ancientGolem/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "ancientGolem"
+    },
+    {
+      "action": "walk",
+      "frameCount": 4,
+      "repeats": true,
+      "resource": "ancientGolem/walk.png",
+      "secondsPerFrame": 0.12,
+      "token": "ancientGolem"
+    },
+    {
+      "action": "attack",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "astralWyrm/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "astralWyrm"
+    },
+    {
+      "action": "classAction",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "astralWyrm/classAction.png",
+      "secondsPerFrame": 0.12,
+      "token": "astralWyrm"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "astralWyrm/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "astralWyrm"
+    },
+    {
+      "action": "hit",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "astralWyrm/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "astralWyrm"
+    },
+    {
+      "action": "idle",
+      "frameCount": 1,
+      "repeats": true,
+      "resource": "astralWyrm/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "astralWyrm"
+    },
+    {
+      "action": "attack",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "bandit/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "bandit"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "bandit/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "bandit"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "bandit/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "bandit"
+    },
+    {
+      "action": "idle",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "bandit/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "bandit"
+    },
+    {
+      "action": "walk",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "bandit/walk.png",
+      "secondsPerFrame": 0.13,
+      "token": "bandit"
+    },
+    {
+      "action": "attack",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "bat/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "bat"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "bat/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "bat"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "bat/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "bat"
+    },
+    {
+      "action": "idle",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "bat/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "bat"
+    },
+    {
+      "action": "walk",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "bat/walk.png",
+      "secondsPerFrame": 0.13,
+      "token": "bat"
+    },
+    {
+      "action": "attack",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "darkMage/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "darkMage"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "darkMage/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "darkMage"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "darkMage/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "darkMage"
+    },
+    {
+      "action": "idle",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "darkMage/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "darkMage"
+    },
+    {
+      "action": "walk",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "darkMage/walk.png",
+      "secondsPerFrame": 0.13,
+      "token": "darkMage"
+    },
+    {
+      "action": "attack",
+      "frameCount": 5,
+      "repeats": false,
+      "resource": "dps/attack.png",
+      "secondsPerFrame": 0.08,
+      "token": "dps"
+    },
+    {
+      "action": "attack2",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "dps/attack2.png",
+      "secondsPerFrame": 0.08,
+      "token": "dps"
+    },
+    {
+      "action": "attack3",
+      "frameCount": 6,
+      "repeats": false,
+      "resource": "dps/attack3.png",
+      "secondsPerFrame": 0.08,
+      "token": "dps"
+    },
+    {
+      "action": "block",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "dps/block.png",
+      "secondsPerFrame": 0.1,
+      "token": "dps"
+    },
+    {
+      "action": "classAction",
+      "frameCount": 5,
+      "repeats": false,
+      "resource": "dps/classAction.png",
+      "secondsPerFrame": 0.09,
+      "token": "dps"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "dps/defeated.png",
+      "secondsPerFrame": 0.12,
+      "token": "dps"
+    },
+    {
+      "action": "dodge",
+      "frameCount": 5,
+      "repeats": false,
+      "resource": "dps/dodge.png",
+      "secondsPerFrame": 0.08,
+      "token": "dps"
+    },
+    {
+      "action": "fall",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "dps/fall.png",
+      "secondsPerFrame": 0.1,
+      "token": "dps"
+    },
+    {
+      "action": "hit",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "dps/hit.png",
+      "secondsPerFrame": 0.09,
+      "token": "dps"
+    },
+    {
+      "action": "idle",
+      "frameCount": 4,
+      "repeats": true,
+      "resource": "dps/idle.png",
+      "secondsPerFrame": 0.18,
+      "token": "dps"
+    },
+    {
+      "action": "jump",
+      "frameCount": 5,
+      "repeats": false,
+      "resource": "dps/jump.png",
+      "secondsPerFrame": 0.1,
+      "token": "dps"
+    },
+    {
+      "action": "land",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "dps/land.png",
+      "secondsPerFrame": 0.1,
+      "token": "dps"
+    },
+    {
+      "action": "run",
+      "frameCount": 6,
+      "repeats": true,
+      "resource": "dps/run.png",
+      "secondsPerFrame": 0.08,
+      "token": "dps"
+    },
+    {
+      "action": "victory",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "dps/victory.png",
+      "secondsPerFrame": 0.14,
+      "token": "dps"
+    },
+    {
+      "action": "walk",
+      "frameCount": 5,
+      "repeats": true,
+      "resource": "dps/walk.png",
+      "secondsPerFrame": 0.1,
+      "token": "dps"
+    },
+    {
+      "action": "attack",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "dragonWhelp/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "dragonWhelp"
+    },
+    {
+      "action": "classAction",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "dragonWhelp/classAction.png",
+      "secondsPerFrame": 0.12,
+      "token": "dragonWhelp"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "dragonWhelp/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "dragonWhelp"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "dragonWhelp/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "dragonWhelp"
+    },
+    {
+      "action": "idle",
+      "frameCount": 5,
+      "repeats": true,
+      "resource": "dragonWhelp/idle.png",
+      "secondsPerFrame": 0.18,
+      "token": "dragonWhelp"
+    },
+    {
+      "action": "attack",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "dreadSkeleton/attack.png",
+      "secondsPerFrame": 0.1,
+      "token": "dreadSkeleton"
+    },
+    {
+      "action": "classAction",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "dreadSkeleton/classAction.png",
+      "secondsPerFrame": 0.11,
+      "token": "dreadSkeleton"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "dreadSkeleton/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "dreadSkeleton"
+    },
+    {
+      "action": "hit",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "dreadSkeleton/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "dreadSkeleton"
+    },
+    {
+      "action": "idle",
+      "frameCount": 3,
+      "repeats": true,
+      "resource": "dreadSkeleton/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "dreadSkeleton"
+    },
+    {
+      "action": "walk",
+      "frameCount": 4,
+      "repeats": true,
+      "resource": "dreadSkeleton/walk.png",
+      "secondsPerFrame": 0.12,
+      "token": "dreadSkeleton"
+    },
+    {
+      "action": "idle",
+      "frameCount": 1,
+      "repeats": true,
+      "resource": "elementalSlimeEarth/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "elementalSlimeEarth"
+    },
+    {
+      "action": "idle",
+      "frameCount": 1,
+      "repeats": true,
+      "resource": "elementalSlimeElectric/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "elementalSlimeElectric"
+    },
+    {
+      "action": "idle",
+      "frameCount": 1,
+      "repeats": true,
+      "resource": "elementalSlimeFire/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "elementalSlimeFire"
+    },
+    {
+      "action": "idle",
+      "frameCount": 1,
+      "repeats": true,
+      "resource": "elementalSlimeIce/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "elementalSlimeIce"
+    },
+    {
+      "action": "idle",
+      "frameCount": 1,
+      "repeats": true,
+      "resource": "elementalSlimeNormal/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "elementalSlimeNormal"
+    },
+    {
+      "action": "idle",
+      "frameCount": 1,
+      "repeats": true,
+      "resource": "elementalSlimePoison/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "elementalSlimePoison"
+    },
+    {
+      "action": "attack",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "eliteKnight/attack.png",
+      "secondsPerFrame": 0.1,
+      "token": "eliteKnight"
+    },
+    {
+      "action": "classAction",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "eliteKnight/classAction.png",
+      "secondsPerFrame": 0.11,
+      "token": "eliteKnight"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "eliteKnight/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "eliteKnight"
+    },
+    {
+      "action": "hit",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "eliteKnight/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "eliteKnight"
+    },
+    {
+      "action": "idle",
+      "frameCount": 3,
+      "repeats": true,
+      "resource": "eliteKnight/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "eliteKnight"
+    },
+    {
+      "action": "walk",
+      "frameCount": 4,
+      "repeats": true,
+      "resource": "eliteKnight/walk.png",
+      "secondsPerFrame": 0.12,
+      "token": "eliteKnight"
+    },
+    {
+      "action": "attack",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "embermawColossus/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "embermawColossus"
+    },
+    {
+      "action": "classAction",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "embermawColossus/classAction.png",
+      "secondsPerFrame": 0.12,
+      "token": "embermawColossus"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "embermawColossus/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "embermawColossus"
+    },
+    {
+      "action": "hit",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "embermawColossus/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "embermawColossus"
+    },
+    {
+      "action": "idle",
+      "frameCount": 1,
+      "repeats": true,
+      "resource": "embermawColossus/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "embermawColossus"
+    },
+    {
+      "action": "attack",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "frostWraith/attack.png",
+      "secondsPerFrame": 0.1,
+      "token": "frostWraith"
+    },
+    {
+      "action": "classAction",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "frostWraith/classAction.png",
+      "secondsPerFrame": 0.11,
+      "token": "frostWraith"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "frostWraith/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "frostWraith"
+    },
+    {
+      "action": "hit",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "frostWraith/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "frostWraith"
+    },
+    {
+      "action": "idle",
+      "frameCount": 3,
+      "repeats": true,
+      "resource": "frostWraith/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "frostWraith"
+    },
+    {
+      "action": "walk",
+      "frameCount": 3,
+      "repeats": true,
+      "resource": "frostWraith/walk.png",
+      "secondsPerFrame": 0.12,
+      "token": "frostWraith"
+    },
+    {
+      "action": "attack",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "ghost/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "ghost"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "ghost/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "ghost"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "ghost/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "ghost"
+    },
+    {
+      "action": "idle",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "ghost/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "ghost"
+    },
+    {
+      "action": "walk",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "ghost/walk.png",
+      "secondsPerFrame": 0.13,
+      "token": "ghost"
+    },
+    {
+      "action": "attack",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "goblin/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "goblin"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "goblin/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "goblin"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "goblin/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "goblin"
+    },
+    {
+      "action": "idle",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "goblin/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "goblin"
+    },
+    {
+      "action": "walk",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "goblin/walk.png",
+      "secondsPerFrame": 0.13,
+      "token": "goblin"
+    },
+    {
+      "action": "attack",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "harpy/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "harpy"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "harpy/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "harpy"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "harpy/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "harpy"
+    },
+    {
+      "action": "idle",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "harpy/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "harpy"
+    },
+    {
+      "action": "walk",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "harpy/walk.png",
+      "secondsPerFrame": 0.13,
+      "token": "harpy"
+    },
+    {
+      "action": "attack",
+      "frameCount": 5,
+      "repeats": false,
+      "resource": "healer/attack.png",
+      "secondsPerFrame": 0.08,
+      "token": "healer"
+    },
+    {
+      "action": "attack2",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "healer/attack2.png",
+      "secondsPerFrame": 0.09,
+      "token": "healer"
+    },
+    {
+      "action": "attack3",
+      "frameCount": 5,
+      "repeats": false,
+      "resource": "healer/attack3.png",
+      "secondsPerFrame": 0.09,
+      "token": "healer"
+    },
+    {
+      "action": "blessing",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "healer/blessing.png",
+      "secondsPerFrame": 0.12,
+      "token": "healer"
+    },
+    {
+      "action": "classAction",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "healer/classAction.png",
+      "secondsPerFrame": 0.11,
+      "token": "healer"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "healer/defeated.png",
+      "secondsPerFrame": 0.12,
+      "token": "healer"
+    },
+    {
+      "action": "defend",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "healer/defend.png",
+      "secondsPerFrame": 0.1,
+      "token": "healer"
+    },
+    {
+      "action": "dodge",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "healer/dodge.png",
+      "secondsPerFrame": 0.09,
+      "token": "healer"
+    },
+    {
+      "action": "fall",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "healer/fall.png",
+      "secondsPerFrame": 0.1,
+      "token": "healer"
+    },
+    {
+      "action": "groupHeal",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "healer/groupHeal.png",
+      "secondsPerFrame": 0.12,
+      "token": "healer"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "healer/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "healer"
+    },
+    {
+      "action": "idle",
+      "frameCount": 4,
+      "repeats": true,
+      "resource": "healer/idle.png",
+      "secondsPerFrame": 0.18,
+      "token": "healer"
+    },
+    {
+      "action": "jump",
+      "frameCount": 5,
+      "repeats": false,
+      "resource": "healer/jump.png",
+      "secondsPerFrame": 0.1,
+      "token": "healer"
+    },
+    {
+      "action": "land",
+      "frameCount": 5,
+      "repeats": false,
+      "resource": "healer/land.png",
+      "secondsPerFrame": 0.1,
+      "token": "healer"
+    },
+    {
+      "action": "revive",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "healer/revive.png",
+      "secondsPerFrame": 0.12,
+      "token": "healer"
+    },
+    {
+      "action": "run",
+      "frameCount": 5,
+      "repeats": true,
+      "resource": "healer/run.png",
+      "secondsPerFrame": 0.08,
+      "token": "healer"
+    },
+    {
+      "action": "victory",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "healer/victory.png",
+      "secondsPerFrame": 0.14,
+      "token": "healer"
+    },
+    {
+      "action": "walk",
+      "frameCount": 5,
+      "repeats": true,
+      "resource": "healer/walk.png",
+      "secondsPerFrame": 0.1,
+      "token": "healer"
+    },
+    {
+      "action": "attack",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "infernalBrute/attack.png",
+      "secondsPerFrame": 0.1,
+      "token": "infernalBrute"
+    },
+    {
+      "action": "classAction",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "infernalBrute/classAction.png",
+      "secondsPerFrame": 0.11,
+      "token": "infernalBrute"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "infernalBrute/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "infernalBrute"
+    },
+    {
+      "action": "hit",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "infernalBrute/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "infernalBrute"
+    },
+    {
+      "action": "idle",
+      "frameCount": 3,
+      "repeats": true,
+      "resource": "infernalBrute/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "infernalBrute"
+    },
+    {
+      "action": "walk",
+      "frameCount": 3,
+      "repeats": true,
+      "resource": "infernalBrute/walk.png",
+      "secondsPerFrame": 0.12,
+      "token": "infernalBrute"
+    },
+    {
+      "action": "attack",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "ironrootWarchief/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "ironrootWarchief"
+    },
+    {
+      "action": "classAction",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "ironrootWarchief/classAction.png",
+      "secondsPerFrame": 0.12,
+      "token": "ironrootWarchief"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "ironrootWarchief/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "ironrootWarchief"
+    },
+    {
+      "action": "hit",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "ironrootWarchief/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "ironrootWarchief"
+    },
+    {
+      "action": "idle",
+      "frameCount": 1,
+      "repeats": true,
+      "resource": "ironrootWarchief/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "ironrootWarchief"
+    },
+    {
+      "action": "attack",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "mimic/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "mimic"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "mimic/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "mimic"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "mimic/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "mimic"
+    },
+    {
+      "action": "idle",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "mimic/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "mimic"
+    },
+    {
+      "action": "walk",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "mimic/walk.png",
+      "secondsPerFrame": 0.13,
+      "token": "mimic"
+    },
+    {
+      "action": "attack",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "orc/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "orc"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "orc/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "orc"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "orc/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "orc"
+    },
+    {
+      "action": "idle",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "orc/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "orc"
+    },
+    {
+      "action": "walk",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "orc/walk.png",
+      "secondsPerFrame": 0.13,
+      "token": "orc"
+    },
+    {
+      "action": "attack",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "ossuarySovereign/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "ossuarySovereign"
+    },
+    {
+      "action": "classAction",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "ossuarySovereign/classAction.png",
+      "secondsPerFrame": 0.12,
+      "token": "ossuarySovereign"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "ossuarySovereign/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "ossuarySovereign"
+    },
+    {
+      "action": "hit",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "ossuarySovereign/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "ossuarySovereign"
+    },
+    {
+      "action": "idle",
+      "frameCount": 1,
+      "repeats": true,
+      "resource": "ossuarySovereign/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "ossuarySovereign"
+    },
+    {
+      "action": "attack",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "plantMonster/attack.png",
+      "secondsPerFrame": 0.12,
+      "token": "plantMonster"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "plantMonster/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "plantMonster"
+    },
+    {
+      "action": "hit",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "plantMonster/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "plantMonster"
+    },
+    {
+      "action": "idle",
+      "frameCount": 1,
+      "repeats": true,
+      "resource": "plantMonster/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "plantMonster"
+    },
+    {
+      "action": "attack",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "poisonNaga/attack.png",
+      "secondsPerFrame": 0.1,
+      "token": "poisonNaga"
+    },
+    {
+      "action": "classAction",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "poisonNaga/classAction.png",
+      "secondsPerFrame": 0.11,
+      "token": "poisonNaga"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "poisonNaga/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "poisonNaga"
+    },
+    {
+      "action": "hit",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "poisonNaga/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "poisonNaga"
+    },
+    {
+      "action": "idle",
+      "frameCount": 3,
+      "repeats": true,
+      "resource": "poisonNaga/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "poisonNaga"
+    },
+    {
+      "action": "walk",
+      "frameCount": 3,
+      "repeats": true,
+      "resource": "poisonNaga/walk.png",
+      "secondsPerFrame": 0.12,
+      "token": "poisonNaga"
+    },
+    {
+      "action": "attack",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "skeleton/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "skeleton"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "skeleton/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "skeleton"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "skeleton/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "skeleton"
+    },
+    {
+      "action": "idle",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "skeleton/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "skeleton"
+    },
+    {
+      "action": "walk",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "skeleton/walk.png",
+      "secondsPerFrame": 0.13,
+      "token": "skeleton"
+    },
+    {
+      "action": "attack",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "slime/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "slime"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "slime/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "slime"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "slime/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "slime"
+    },
+    {
+      "action": "idle",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "slime/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "slime"
+    },
+    {
+      "action": "walk",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "slime/walk.png",
+      "secondsPerFrame": 0.13,
+      "token": "slime"
+    },
+    {
+      "action": "attack",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "stormLich/attack.png",
+      "secondsPerFrame": 0.1,
+      "token": "stormLich"
+    },
+    {
+      "action": "classAction",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "stormLich/classAction.png",
+      "secondsPerFrame": 0.11,
+      "token": "stormLich"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "stormLich/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "stormLich"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "stormLich/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "stormLich"
+    },
+    {
+      "action": "idle",
+      "frameCount": 3,
+      "repeats": true,
+      "resource": "stormLich/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "stormLich"
+    },
+    {
+      "action": "walk",
+      "frameCount": 3,
+      "repeats": true,
+      "resource": "stormLich/walk.png",
+      "secondsPerFrame": 0.12,
+      "token": "stormLich"
+    },
+    {
+      "action": "attack",
+      "frameCount": 5,
+      "repeats": false,
+      "resource": "tank/attack.png",
+      "secondsPerFrame": 0.08,
+      "token": "tank"
+    },
+    {
+      "action": "attack2",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "tank/attack2.png",
+      "secondsPerFrame": 0.08,
+      "token": "tank"
+    },
+    {
+      "action": "attack3",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "tank/attack3.png",
+      "secondsPerFrame": 0.09,
+      "token": "tank"
+    },
+    {
+      "action": "block",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "tank/block.png",
+      "secondsPerFrame": 0.1,
+      "token": "tank"
+    },
+    {
+      "action": "classAction",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "tank/classAction.png",
+      "secondsPerFrame": 0.12,
+      "token": "tank"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "tank/defeated.png",
+      "secondsPerFrame": 0.12,
+      "token": "tank"
+    },
+    {
+      "action": "defend",
+      "frameCount": 5,
+      "repeats": false,
+      "resource": "tank/defend.png",
+      "secondsPerFrame": 0.1,
+      "token": "tank"
+    },
+    {
+      "action": "dodge",
+      "frameCount": 5,
+      "repeats": false,
+      "resource": "tank/dodge.png",
+      "secondsPerFrame": 0.08,
+      "token": "tank"
+    },
+    {
+      "action": "fall",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "tank/fall.png",
+      "secondsPerFrame": 0.1,
+      "token": "tank"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "tank/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "tank"
+    },
+    {
+      "action": "idle",
+      "frameCount": 4,
+      "repeats": true,
+      "resource": "tank/idle.png",
+      "secondsPerFrame": 0.18,
+      "token": "tank"
+    },
+    {
+      "action": "jump",
+      "frameCount": 5,
+      "repeats": false,
+      "resource": "tank/jump.png",
+      "secondsPerFrame": 0.1,
+      "token": "tank"
+    },
+    {
+      "action": "land",
+      "frameCount": 4,
+      "repeats": false,
+      "resource": "tank/land.png",
+      "secondsPerFrame": 0.1,
+      "token": "tank"
+    },
+    {
+      "action": "run",
+      "frameCount": 5,
+      "repeats": true,
+      "resource": "tank/run.png",
+      "secondsPerFrame": 0.08,
+      "token": "tank"
+    },
+    {
+      "action": "victory",
+      "frameCount": 3,
+      "repeats": false,
+      "resource": "tank/victory.png",
+      "secondsPerFrame": 0.14,
+      "token": "tank"
+    },
+    {
+      "action": "walk",
+      "frameCount": 5,
+      "repeats": true,
+      "resource": "tank/walk.png",
+      "secondsPerFrame": 0.1,
+      "token": "tank"
+    },
+    {
+      "action": "attack",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "wolf/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "wolf"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "wolf/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "wolf"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "wolf/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "wolf"
+    },
+    {
+      "action": "idle",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "wolf/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "wolf"
+    },
+    {
+      "action": "walk",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "wolf/walk.png",
+      "secondsPerFrame": 0.13,
+      "token": "wolf"
+    },
+    {
+      "action": "attack",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "zombie/attack.png",
+      "secondsPerFrame": 0.11,
+      "token": "zombie"
+    },
+    {
+      "action": "defeated",
+      "frameCount": 1,
+      "repeats": false,
+      "resource": "zombie/defeated.png",
+      "secondsPerFrame": 0.14,
+      "token": "zombie"
+    },
+    {
+      "action": "hit",
+      "frameCount": 2,
+      "repeats": false,
+      "resource": "zombie/hit.png",
+      "secondsPerFrame": 0.1,
+      "token": "zombie"
+    },
+    {
+      "action": "idle",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "zombie/idle.png",
+      "secondsPerFrame": 0.2,
+      "token": "zombie"
+    },
+    {
+      "action": "walk",
+      "frameCount": 2,
+      "repeats": true,
+      "resource": "zombie/walk.png",
+      "secondsPerFrame": 0.13,
+      "token": "zombie"
+    }
+  ],
+  "version": 1
+}

@@ -53,11 +53,11 @@
 - Consumes: manifest JSON with `sources`, `actors`, `actions`, `frames`, and crop rectangles `[x, y, width, height]`.
 - Produces: `build_assets(manifest_path: Path, output_root: Path) -> dict` and a generated runtime `manifest.json`.
 
-- [ ] **Step 1: Write failing pipeline tests**
+- [x] **Step 1: Write failing pipeline tests**
 
 Tests create a synthetic RGB board with two colored actors on a dark background and assert that `build_assets` rejects the wrong source hash, emits two transparent 96×64 frames in one strip, retains nonempty alpha, and writes exact frame count/duration/loop metadata.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -67,11 +67,11 @@ python3 -m unittest scripts.tests.test_build_sprite_assets -v
 
 Expected: import failure because `scripts.build_sprite_assets` does not exist.
 
-- [ ] **Step 3: Implement the minimal pipeline**
+- [x] **Step 3: Implement the minimal pipeline**
 
 Use only Python's standard library for orchestration and `subprocess.run(..., check=True)` for ImageMagick. Verify SHA-256 before processing. For each crop, remove the edge-connected board color, trim, scale the actor union once per clip, composite each frame bottom-center into 96×64 transparent cells, and append cells horizontally. Validate output with `magick identify` and emit sorted deterministic JSON.
 
-- [ ] **Step 4: Verify GREEN and source hashes**
+- [x] **Step 4: Verify GREEN and source hashes**
 
 Run:
 
@@ -82,7 +82,7 @@ shasum -a 256 art/sprite-boards/*.png
 
 Expected: all pipeline tests pass and every archived source matches the design SHA.
 
-- [ ] **Step 5: Commit the pipeline slice**
+- [x] **Step 5: Commit the pipeline slice**
 
 ```bash
 git add art/sprite-boards art/sprite-manifest.json scripts/build_sprite_assets.py scripts/tests/test_build_sprite_assets.py
@@ -100,11 +100,11 @@ git commit -m "feat: add deterministic sprite asset pipeline"
 - Consumes: Task 1's `build_assets` contract and five archived sources.
 - Produces: production strips named `<actor>/<action>.png` plus runtime entries `{token, action, resource, frameCount, secondsPerFrame, repeats}`.
 
-- [ ] **Step 1: Add every supplied actor/action crop to the manifest**
+- [x] **Step 1: Add every supplied actor/action crop to the manifest**
 
 Record DPS, Tank, Healer, fourteen normal identities, eight elite identities, and every available action frame. Mark reference-only direction/equipment/palette examples as excluded with an explicit reason rather than emitting misleading clips.
 
-- [ ] **Step 2: Generate the supplied library**
+- [x] **Step 2: Generate the supplied library**
 
 Run:
 
@@ -114,11 +114,11 @@ python3 scripts/build_sprite_assets.py --manifest art/sprite-manifest.json --out
 
 Expected: deterministic strips and a manifest with no missing requested action.
 
-- [ ] **Step 3: Create four original boss sheets**
+- [x] **Step 3: Create four original boss sheets**
 
 Using the approved boards as style references, create Ironroot Warchief, Ossuary Sovereign, Embermaw Colossus, and Astral Wyrm with idle, attack, signature, hit, and defeat sequences. Normalize them through the same 96×64 pipeline and record source/provenance metadata without modifying gameplay.
 
-- [ ] **Step 4: Validate every generated artifact**
+- [x] **Step 4: Validate every generated artifact**
 
 Run the builder with `--check`, verify every PNG is RGBA, every width is a positive multiple of 96, every height is 64, every cell has nonzero alpha, and generate contact sheets under `.build/SpritePreviews/` for visual inspection.
 
