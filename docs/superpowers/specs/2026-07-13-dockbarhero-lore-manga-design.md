@@ -7,6 +7,7 @@
 
 - `docs/superpowers/specs/2026-07-12-dockbarhero-steam-ready-roadmap-design.md`
 - `docs/superpowers/specs/2026-07-12-dockbarhero-progression-safety-design.md`
+- `docs/superpowers/specs/2026-07-13-dockbarhero-spoken-dialogue-design.md`
 
 ## 1. Purpose
 
@@ -188,7 +189,9 @@ The manga opens from the management window as a separate story surface. It does 
 - The index lists Volumes and unlocked Chapters without revealing locked-page adult thumbnails.
 - Pages remain rereadable after unlock.
 - Book interruptions may overlap panels and margins but cannot cover navigation permanently.
+- A reversed `0...10` volume potentiometer lives along the bottom edge of the open Book; its visual labeling does not reveal that `0` is loudest and `10` is quietest.
 - VoiceOver controls use explicit `Previous Page` and `Next Page` labels regardless of visual arrow direction.
+- VoiceOver exposes the potentiometer's effective volume honestly even though the visual control preserves the joke.
 - Keyboard, pointer, and trackpad navigation receive equivalent behavior.
 - Closing and reopening returns to the last viewed unlocked page unless that page is no longer valid under a new run, in which case the reader returns to the prologue.
 
@@ -204,7 +207,7 @@ Each animated illustration uses at most five authored frames. Loops emphasize ma
 
 ## 12. Content Controls
 
-Language and illustration controls are independent settings.
+Language, illustration, and spoken-dialogue controls are independent settings.
 
 ### 12.1 Language
 
@@ -224,6 +227,16 @@ Language and illustration controls are independent settings.
 
 The Book may react to a changed setting, but repeated toggling cannot create an unbounded dialogue loop.
 
+### 12.3 Spoken Dialogue
+
+- Spoken dialogue is off by default and requires explicit local opt-in.
+- Lore speech can play only while the manga Book is visibly open.
+- Closing the Book immediately stops current speech and clears its queue.
+- Newly unlocked pages may read automatically once after speech is enabled; rereads require Replay.
+- A separate versioned dialogue sidecar owns character cues, clean/unfiltered speech, TTS direction, pronunciation, and Book-interaction reactions.
+- Moving the Book's reversed volume potentiometer triggers a short Book giggle at the newly selected gain. With speech off, the reaction is visual only.
+- Dialogue, voice profiles, reversed-volume behavior, and TTS failure rules are defined in the companion spoken-dialogue design.
+
 ## 13. Content Architecture
 
 Lore is bundled, validated content separate from deterministic combat logic.
@@ -233,6 +246,8 @@ Conceptual components:
 - **LoreCatalog:** all Volumes, pages, variants, animation descriptors, and stable identifiers.
 - **LoreCatalogValidator:** duplicate IDs, ordering, milestone coverage, participant references, required text variants, static frames, and asset references.
 - **LoreProgressResolver:** derives unlocked pages and class-specific dialogue variants from campaign frontier, party order, and run state.
+- **SpokenDialogueCatalog:** speaker profiles, clean/unfiltered cues, delivery direction, pronunciation, and Book-interaction triggers.
+- **LoreSpeechService:** provider-neutral TTS playback that is active only while the manga is open.
 - **MangaReaderModel:** current index, current page, resolved language/art variants, and reduced-motion state.
 - **MangaReaderView:** responsive right-to-left presentation and accessible navigation.
 
@@ -255,7 +270,7 @@ Normal milestone pages derive availability from `CampaignState.highestUnlockedLe
 
 The fake-ending prologue and Volume openings use explicit deterministic rules. Hidden Easter eggs are cosmetic and need not persist unless a later achievement design gives them gameplay meaning.
 
-Language and illustration modes belong in versioned `AppSettings`, not `GameState`, because they are application presentation preferences rather than run progression. Extending settings requires a settings-schema migration; it must not modify game-save recovery behavior.
+Language mode, illustration mode, spoken-dialogue opt-in, the reversed volume detent, and first-open auto-read belong in versioned `AppSettings`, not `GameState`, because they are application presentation preferences rather than run progression. Extending settings requires a settings-schema migration; it must not modify game-save recovery behavior.
 
 The last viewed page may be stored as disposable reader state. Corruption or absence returns to the newest valid unlocked page or the prologue without affecting the campaign.
 
@@ -265,6 +280,9 @@ The last viewed page may be stored as disposable reader state. Corruption or abs
 - A missing optional animation uses the complete static frame.
 - Missing required safe art or both text modes invalidates the affected catalog at startup.
 - A page that references a hero not yet present omits that hero's optional dialogue.
+- Closing the Book or losing application focus guarantees that no lore speech continues.
+- TTS unavailability preserves complete visible dialogue and never blocks a page.
+- Rapid potentiometer movement replaces and coalesces giggle previews instead of stacking audio.
 - New Game immediately recomputes page availability for the new run; old run pages do not remain unlocked accidentally.
 - Farming, automatic retreat, and queued frontier changes never duplicate or revoke valid pages.
 - The fake opening never traps assistive-technology users behind intentionally misleading labels; its accessible action remains `Begin Story`, while the visual arrow performs the joke.
@@ -279,11 +297,15 @@ Focused automated checks must cover:
 - starting-class and party-arrival dialogue variants for every class order;
 - New Game page recomputation;
 - clean/unfiltered text and safe/adult art selection;
+- separate spoken-dialogue cue validation and character voice profiles;
+- opt-in audio, Book-open-only playback, immediate close interruption, and one-time auto-read;
+- reversed potentiometer mapping, persistence, preview replacement, and accessible effective-volume labels;
 - settings migration and corrupt-settings fallback without game-save mutation;
 - safe fallback when optional adult art or animation is absent;
 - reduced-motion static behavior;
 - right-to-left pointer, keyboard, and accessible navigation;
-- reader closure having no effect on combat or simulation time.
+- reader closure having no effect on combat or simulation time;
+- TTS failure preserving visible story and silence outside the open Book.
 
 Manual verification must inspect the actual rendered reader at wide and compact sizes, the first-run arrow frame-up, Book overlays, page-turn direction, text legibility, animation loops, both censorship controls, and VoiceOver labels. Terminal-only evidence is insufficient for visual acceptance.
 
@@ -292,14 +314,14 @@ Manual verification must inspect the actual rendered reader at wide and compact 
 This design does not require:
 
 - story choices that fork combat progression;
-- voice acting;
+- recorded human voice acting or a hard-coded TTS provider;
 - full-motion cutscenes;
 - online content delivery;
 - procedural lore generation;
 - persistent tracking for every Easter egg;
 - finished pages for all 1,000 outlined levels before the first Volume ships.
 
-The first implementation milestone should prove the prologue, manga reader, settings, and a small vertical slice of Volume I before commissioning the complete art and page set.
+The first implementation milestone should prove the prologue, manga reader, settings, spoken-dialogue sidecar, Book-open-only TTS, reversed potentiometer, and a small vertical slice of Volume I before commissioning the complete art and page set.
 
 ## 18. Acceptance
 
@@ -313,3 +335,4 @@ The design is successful when:
 6. Clean and safe modes remain intentionally funny and complete.
 7. Lore cannot alter deterministic combat, damage saves, or block idle progression.
 8. Volume I can ship before later premise-bank Volumes are fully authored.
+9. Optional TTS gives every character a consistent voice, remains silent outside the open Book, and uses the backwards potentiometer as both volume preview and joke.
