@@ -130,7 +130,9 @@ final class CampaignAreaOneIntegrationTests: XCTestCase {
         )
         var simulation = GameSimulation(state: startingState)
         var victories = 0
+        var defeats = 0
         var farmingVictories = 0
+        var queuedReturns = 0
 
         for _ in 0..<stepCap {
             let modeBeforeStep = simulation.state.campaign.mode
@@ -138,11 +140,15 @@ final class CampaignAreaOneIntegrationTests: XCTestCase {
             let stepVictories = events.reduce(into: 0) { count, event in
                 if case .victory = event { count += 1 }
             }
+            defeats += events.reduce(into: 0) { count, event in
+                if case .defeat = event { count += 1 }
+            }
             victories += stepVictories
             if modeBeforeStep == .farming, stepVictories > 0 {
                 farmingVictories += stepVictories
                 if simulation.state.campaign.queuedLevel == nil {
                     _ = try simulation.apply(.returnToFrontier)
+                    queuedReturns += 1
                 }
             }
 
@@ -156,7 +162,10 @@ final class CampaignAreaOneIntegrationTests: XCTestCase {
                     simulation.state.party.unlocks.pendingUnlock?.milestone,
                     .boss25
                 )
-                XCTAssertGreaterThanOrEqual(victories, 25)
+                XCTAssertEqual(victories, 25)
+                XCTAssertEqual(defeats, 0)
+                XCTAssertEqual(farmingVictories, 0)
+                XCTAssertEqual(queuedReturns, 0)
                 XCTAssertGreaterThan(simulation.state.lootSequence, 0)
                 XCTAssertTrue(simulation.state.autoEquipEnabled)
                 XCTAssertTrue(
@@ -165,7 +174,6 @@ final class CampaignAreaOneIntegrationTests: XCTestCase {
                     },
                     "\(classID) should use an ordinarily dropped auto-equipped item"
                 )
-                _ = farmingVictories
                 return
             }
         }
@@ -175,7 +183,8 @@ final class CampaignAreaOneIntegrationTests: XCTestCase {
             "frontier=\(simulation.state.campaign.highestUnlockedLevel), " +
             "selected=\(simulation.state.campaign.selectedLevel), " +
             "mode=\(simulation.state.campaign.mode), victories=\(victories), " +
-            "farmingVictories=\(farmingVictories)"
+            "defeats=\(defeats), farmingVictories=\(farmingVictories), " +
+            "queuedReturns=\(queuedReturns)"
         )
     }
 }

@@ -29,7 +29,11 @@ final class PrototypeSceneHostTests: XCTestCase {
         )
         XCTAssertEqual(
             (host.scene.childNode(withName: "//enemyLevel") as? SKLabelNode)?.text,
-            "Unknown Guardian · Boss · Enemy Lv. 25"
+            "Boss · Enemy Lv. 25"
+        )
+        XCTAssertEqual(
+            (host.scene.childNode(withName: "//enemyIdentity") as? SKLabelNode)?.text,
+            "Unknown Guardian"
         )
     }
 
@@ -52,12 +56,21 @@ final class PrototypeSceneHostTests: XCTestCase {
 
         host.render(.active(presentation))
 
-        let label = try XCTUnwrap(
+        let identity = try XCTUnwrap(
+            host.scene.childNode(withName: "//enemyIdentity") as? SKLabelNode
+        )
+        let level = try XCTUnwrap(
             host.scene.childNode(withName: "//enemyLevel") as? SKLabelNode
         )
-        XCTAssertEqual(label.text, "Poison Naga Queen · Elite · Enemy Lv. 15")
-        XCTAssertGreaterThanOrEqual(label.frame.minX, 297.5)
-        XCTAssertLessThanOrEqual(label.frame.maxX, 392.5)
+        XCTAssertEqual(identity.text, "Poison Naga Queen")
+        XCTAssertEqual(level.text, "Elite · Enemy Lv. 15")
+        XCTAssertGreaterThanOrEqual(identity.fontSize, 8)
+        XCTAssertGreaterThanOrEqual(level.fontSize, 8)
+        XCTAssertGreaterThanOrEqual(identity.frame.minX, 297.5)
+        XCTAssertLessThanOrEqual(identity.frame.maxX, 392.5)
+        XCTAssertGreaterThanOrEqual(level.frame.minX, 297.5)
+        XCTAssertLessThanOrEqual(level.frame.maxX, 392.5)
+        XCTAssertGreaterThan(level.position.y, identity.position.y)
     }
 
     func testFarmingStatusShowsFrontierAndTracksModeTransitions() throws {
@@ -85,7 +98,11 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertEqual(status.position.y, 82, accuracy: 0.001)
         XCTAssertEqual(
             (host.scene.childNode(withName: "//enemyLevel") as? SKLabelNode)?.text,
-            "Slime · Normal · Enemy Lv. 1"
+            "Normal · Enemy Lv. 1"
+        )
+        XCTAssertEqual(
+            (host.scene.childNode(withName: "//enemyIdentity") as? SKLabelNode)?.text,
+            "Slime"
         )
 
         let originalStatus = status
@@ -323,6 +340,7 @@ final class PrototypeSceneHostTests: XCTestCase {
         let enemyHealthFill = try XCTUnwrap(host.scene.childNode(withName: "//enemyHealthFill"))
 
         XCTAssertEqual(enemyLevel.text, "Normal · Enemy Lv. 7")
+        XCTAssertTrue(host.scene.childNode(withName: "//enemyIdentity")?.isHidden == true)
         XCTAssertEqual(rollingDPS.text, "12.3 DPS")
         XCTAssertEqual(heroHealthFill.xScale, 0.75, accuracy: 0.001)
         XCTAssertEqual(enemyHealthFill.xScale, 0.4, accuracy: 0.001)
