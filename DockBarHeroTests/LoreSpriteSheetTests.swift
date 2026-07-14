@@ -20,4 +20,14 @@ final class LoreSpriteSheetTests: XCTestCase {
         XCTAssertThrowsError(try LoreSpriteSheet.frameRects(pixelWidth: 1023, pixelHeight: 1023, frameCount: 4))
         XCTAssertThrowsError(try LoreSpriteSheet.frameRects(pixelWidth: 1024, pixelHeight: 1024, frameCount: 5))
     }
+
+    func testEveryBundledCatalogSheetLoadsAsFourFrames() throws {
+        let catalog = try LoreCatalog.bundled()
+        for page in catalog.pages {
+            XCTAssertEqual(try LoreSpriteSheet.frames(named: page.art.safeSpriteSheet).count, 4, page.id.rawValue)
+            if let adult = page.art.adultSpriteSheet {
+                XCTAssertEqual(try LoreSpriteSheet.frames(named: adult).count, 4, page.id.rawValue)
+            }
+        }
+    }
 }
