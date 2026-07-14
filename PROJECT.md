@@ -6,10 +6,10 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Current Milestone
 
-- Goal: build Heroes and Party on the integrated Foundation and schema-v2 Progression Safety systems.
-- Current checkpoint: Foundation and Progression Safety are integrated to `main`; review repair, automated verification, launch-window recovery, and visible New Game confirmation are complete.
-- Integration: the owner lifted the internal hold and the feature branch was fast-forwarded and pushed to `main` on 2026-07-12.
-- Remaining: unchecked manual interaction QA, Heroes and Party, and the three class actions; this is not a release-ready milestone.
+- Goal: add the approved ridiculous lore manga vertical slice without inventing Boss 25 cast continuity before Heroes and Party.
+- Current checkpoint: Level 100,000 prologue and Volume I through Level 20 are implemented on `codex/lore-manga-vertical-slice` with final art, settings, animation, and opt-in TTS.
+- Integration: Foundation and Progression Safety remain on `main`; the lore branch is verified but not merged.
+- Remaining: live Book visual/audio QA is blocked by the locked Mac; Heroes and Party and the three class actions remain future milestones.
 
 ## Architecture
 
@@ -20,6 +20,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - AppModel: run presentation, management navigation, first-run window requests, gameplay snapshots, and existing overlay state.
 - PrototypeScene: snapshot-only SpriteKit rendering and event-only visual reactions.
 - AppDelegate: production dependency construction and bounded termination save.
+- Lore: validated page/dialogue sidecars, frontier resolver, Book-scoped TTS, four-frame sheets, and SwiftUI manga reader.
 
 ## Key Paths
 
@@ -30,6 +31,10 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - docs/superpowers/plans/2026-07-12-dockbarhero-foundation-upgrade.md: next executable milestone plan.
 - docs/superpowers/plans/2026-07-12-dockbarhero-progression-safety.md: executable first-gate plan for XP, tiers, gold, farming, retreat, schema v2, reset, and management empty states.
 - docs/qa/review-packets/progression-safety.md: current automated evidence, manual QA list, and integration hold.
+- docs/superpowers/specs/2026-07-13-dockbarhero-lore-manga-design.md: approved world, manga, censorship, and 100-level-volume design.
+- docs/superpowers/specs/2026-07-13-dockbarhero-spoken-dialogue-design.md: approved voice and Book-audio contract.
+- docs/qa/review-packets/lore-manga-vertical-slice.md: current lore evidence and remaining live QA.
+- docs/art/lore-volume1-chapter1-asset-manifest.md: final image sources and visual acceptance record.
 - .superpowers/sdd/progress.md: detailed task and gate ledger.
 - .superpowers/sdd/task-9-report.md: latest Task 9 evidence.
 - DockBarHero/Game/: simulation, driver, session, loot, and metrics.
@@ -50,17 +55,18 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Active Work
 
-- Parent orchestrator: begin the Heroes and Party design/plan from `main` when requested.
-- Next design work: Heroes and Party, then Tank, DPS, and Healer actions.
-- Manual QA items not explicitly exercised remain open in the Progression Safety review packet.
+- Parent orchestrator: finish locked-session live QA, then integrate `codex/lore-manga-vertical-slice` only when requested.
+- Next design work: Heroes and Party before Boss 25 lore, then Tank, DPS, and Healer actions.
+- Manual QA items remain explicit in the Progression Safety and lore review packets.
 
 ## Last Verified State
 
-- Date: 2026-07-12.
-- Checkout: /Users/n3kr0/Projects/TBH on `main`.
-- Progression gate: 255 tests passed with zero failures on 2026-07-12 after launch-window and Danger Zone repairs.
-- Clean unsigned Apple Silicon Debug build succeeded; `./script/build_and_run.sh --verify` launched DockBarHero.
-- Owner visually accepted the rounded New Game confirmation field; other unchecked manual QA remains pending.
+- Date: 2026-07-13.
+- Checkout: isolated worktree on `codex/lore-manga-vertical-slice`.
+- Lore gate: 71 focused tests and the full 290-test suite passed with zero failures.
+- Seven catalog sheets load as 28 frames; all are mechanically 1024x1024 and visually inspected from final paths.
+- Clean unsigned Apple Silicon Debug build succeeded; `./script/build_and_run.sh --verify` launched PID 28026.
+- Live management-window visual/audio QA is not claimed because the Mac locked during inspection.
 
 ## Decisions and Risks
 
@@ -76,3 +82,5 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - Progression Safety is the first gate inside the schema-v2 Heroes and Classes milestone and is not independently release-eligible.
 - The frontier and farming selection remain separate; three defeats retreat one full Boss segment and never auto-return to the frontier.
 - A loaded class-selection run opens the singleton management window; active runs retain menu-bar access to that same window.
+- Lore speech defaults off, never starts outside the open active Book, and stops immediately when the Book closes or the app resigns active.
+- The Adult image path requires confirmation; the current alternate is an unnecessary pixel-censor gag over a fully clothed adult subject.
