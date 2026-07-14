@@ -150,11 +150,11 @@
         {"token": "zombie", "origin": [700, 825]}
       ],
       "actions": [
-        {"action": "idle", "region": [15, 35, 145, 90], "frames": [[15, 65, 65, 70], [80, 65, 70, 70]], "frameCount": 2, "secondsPerFrame": 0.20, "repeats": true},
-        {"action": "walk", "region": [145, 35, 160, 90], "frames": [[145, 65, 75, 70], [220, 65, 70, 70]], "frameCount": 2, "secondsPerFrame": 0.13, "repeats": true},
-        {"action": "attack", "region": [270, 35, 200, 90], "frames": [[270, 65, 75, 70], [345, 65, 125, 70]], "frameCount": 2, "secondsPerFrame": 0.11, "repeats": false},
-        {"action": "hit", "region": [430, 35, 160, 90], "frames": [[430, 65, 80, 70], [510, 65, 80, 70]], "frameCount": 2, "secondsPerFrame": 0.10, "repeats": false},
-        {"action": "defeated", "region": [570, 35, 120, 90], "frames": [[570, 65, 120, 70]], "frameCount": 1, "secondsPerFrame": 0.14, "repeats": false}
+        {"action": "idle", "region": [15, 35, 135, 90], "frames": [[15, 65, 60, 70], [80, 65, 60, 70]], "frameCount": 2, "secondsPerFrame": 0.20, "repeats": true},
+        {"action": "walk", "region": [145, 35, 135, 90], "frames": [[145, 65, 75, 70], [220, 65, 60, 70]], "frameCount": 2, "secondsPerFrame": 0.13, "repeats": true},
+        {"action": "attack", "region": [280, 35, 165, 90], "frames": [[280, 65, 65, 70], [345, 65, 100, 70]], "frameCount": 2, "secondsPerFrame": 0.11, "repeats": false},
+        {"action": "hit", "region": [445, 35, 130, 90], "frames": [[445, 65, 65, 70], [510, 65, 65, 70]], "frameCount": 2, "secondsPerFrame": 0.10, "repeats": false},
+        {"action": "defeated", "region": [575, 35, 110, 90], "frames": [[575, 65, 110, 70]], "frameCount": 1, "secondsPerFrame": 0.14, "repeats": false}
       ]
     },
     {
