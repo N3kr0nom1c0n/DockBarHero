@@ -43,10 +43,14 @@ final class PrototypeScene: SKScene {
         let heroLevel = label(name: "heroLevel", fontSize: 12)
         let heroAction = label(name: "heroAction", fontSize: 10)
         let enemyLevel = label(name: "enemyLevel", fontSize: 12)
+        let farmingStatus = label(name: "farmingStatus", fontSize: 10)
+        farmingStatus.fontColor = .systemOrange
+        farmingStatus.isUserInteractionEnabled = false
         let rollingDPS = label(name: "rollingDPS", fontSize: 12)
         addChild(heroLevel)
         addChild(heroAction)
         addChild(enemyLevel)
+        addChild(farmingStatus)
         addChild(rollingDPS)
         updateLayout()
 
@@ -89,6 +93,16 @@ final class PrototypeScene: SKScene {
         setHealthFraction(for: "enemyHealthFill", current: enemy.currentHealth, maximum: enemy.maxHealth)
         let tier = presentation.state.encounter.tier.rawValue.capitalized
         (childNode(withName: "enemyLevel") as? SKLabelNode)?.text = "\(tier) · \(ManagementFormat.enemyLevel(presentation.state.encounter.enemyLevel))"
+        if let farmingStatus = childNode(withName: "farmingStatus") as? SKLabelNode {
+            switch presentation.state.campaign.mode {
+            case .farming:
+                farmingStatus.text = "FARMING • FRONTIER \(presentation.state.campaign.highestUnlockedLevel)"
+                farmingStatus.isHidden = false
+            case .push:
+                farmingStatus.text = nil
+                farmingStatus.isHidden = true
+            }
+        }
         (childNode(withName: "rollingDPS") as? SKLabelNode)?.text = String(
             format: "%.1f DPS",
             locale: Locale(identifier: "en_US_POSIX"),
@@ -179,6 +193,7 @@ final class PrototypeScene: SKScene {
         childNode(withName: "enemy")?.position = CGPoint(x: enemyX, y: 32)
         positionHealthBar(prefix: "enemy", x: enemyX, y: 59)
         (childNode(withName: "enemyLevel") as? SKLabelNode)?.position = CGPoint(x: enemyX, y: 70)
+        (childNode(withName: "farmingStatus") as? SKLabelNode)?.position = CGPoint(x: enemyX, y: 82)
         (childNode(withName: "rollingDPS") as? SKLabelNode)?.position = CGPoint(x: size.width / 2, y: 70)
     }
 
@@ -289,7 +304,10 @@ final class PrototypeScene: SKScene {
     }
 
     private func setCombatHidden(_ isHidden: Bool) {
-        var names = ["enemy", "enemyHealthBackground", "enemyHealthFill", "enemyLevel", "rollingDPS"]
+        var names = [
+            "enemy", "enemyHealthBackground", "enemyHealthFill", "enemyLevel",
+            "farmingStatus", "rollingDPS"
+        ]
         for slot in renderedHeroClasses.indices {
             let prefix = heroPrefix(slot)
             names += [prefix, "\(prefix)HealthBackground", "\(prefix)HealthFill", "\(prefix)Level", "\(prefix)Action"]

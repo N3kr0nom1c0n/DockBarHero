@@ -36,7 +36,7 @@
 - Consumes: `GamePresentation.state.campaign.mode: CampaignMode` and `GamePresentation.state.campaign.highestUnlockedLevel: Int`.
 - Produces: a stable `SKLabelNode` named `farmingStatus`; no new public or domain interface.
 
-- [ ] **Step 1: Write the failing farming-to-push rendering test**
+- [x] **Step 1: Write the failing farming-to-push rendering test**
 
 Add this test after `testRailUsesExplicitHeroEnemyAndTierLabels`:
 
@@ -54,10 +54,16 @@ func testFarmingStatusShowsFrontierAndTracksModeTransitions() throws {
         host.scene.childNode(withName: "//farmingStatus") as? SKLabelNode
     )
     XCTAssertEqual(status.text, "FARMING • FRONTIER 192")
-    XCTAssertTrue(status.fontColor?.isEqual(NSColor.systemOrange) == true)
+    let statusColor = try XCTUnwrap(status.fontColor?.usingColorSpace(.deviceRGB))
+    let expectedColor = try XCTUnwrap(NSColor.systemOrange.usingColorSpace(.deviceRGB))
+    XCTAssertEqual(statusColor.redComponent, expectedColor.redComponent, accuracy: 0.001)
+    XCTAssertEqual(statusColor.greenComponent, expectedColor.greenComponent, accuracy: 0.001)
+    XCTAssertEqual(statusColor.blueComponent, expectedColor.blueComponent, accuracy: 0.001)
+    XCTAssertEqual(statusColor.alphaComponent, expectedColor.alphaComponent, accuracy: 0.001)
     XCTAssertFalse(status.isHidden)
     XCTAssertFalse(status.isUserInteractionEnabled)
-    XCTAssertEqual(status.position, CGPoint(x: 1_140 * 0.78, y: 82))
+    XCTAssertEqual(status.position.x, host.scene.size.width * 0.78, accuracy: 0.001)
+    XCTAssertEqual(status.position.y, 82, accuracy: 0.001)
     XCTAssertEqual(
         (host.scene.childNode(withName: "//enemyLevel") as? SKLabelNode)?.text,
         "Normal · Enemy Lv. 1"
@@ -84,7 +90,7 @@ Extend `testClassSelectionHidesCombatPresentation` with:
 XCTAssertTrue(host.scene.childNode(withName: "//farmingStatus")?.isHidden == true)
 ```
 
-- [ ] **Step 2: Run the focused test and verify RED**
+- [x] **Step 2: Run the focused test and verify RED**
 
 Run:
 
@@ -94,7 +100,7 @@ xcodebuild test -project DockBarHero.xcodeproj -scheme DockBarHero -configuratio
 
 Expected: `testFarmingStatusShowsFrontierAndTracksModeTransitions` fails because `//farmingStatus` does not exist.
 
-- [ ] **Step 3: Add the minimal stable label implementation**
+- [x] **Step 3: Add the minimal stable label implementation**
 
 In `didMove(to:)`, create the node beside the existing enemy and DPS labels:
 
@@ -143,7 +149,7 @@ var names = [
 ]
 ```
 
-- [ ] **Step 4: Run the focused scene suite and verify GREEN**
+- [x] **Step 4: Run the focused scene suite and verify GREEN**
 
 Run:
 
@@ -153,7 +159,7 @@ xcodebuild test -project DockBarHero.xcodeproj -scheme DockBarHero -configuratio
 
 Expected: 16 `PrototypeSceneHostTests` pass with zero failures and `** TEST SUCCEEDED **`.
 
-- [ ] **Step 5: Review and commit the rendering slice**
+- [x] **Step 5: Review and commit the rendering slice**
 
 Run:
 

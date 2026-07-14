@@ -33,6 +33,48 @@ final class PrototypeSceneHostTests: XCTestCase {
         )
     }
 
+    func testFarmingStatusShowsFrontierAndTracksModeTransitions() throws {
+        let host = try PrototypeSceneHost(size: CGSize(width: 1_140, height: 96))
+        var state = GameState.newGame(balance: .standard)
+        state.campaign.highestUnlockedLevel = 192
+        state.campaign.selectedLevel = 1
+        state.campaign.mode = .farming
+
+        host.render(.active(GameSimulation(state: state).presentation))
+
+        let status = try XCTUnwrap(
+            host.scene.childNode(withName: "//farmingStatus") as? SKLabelNode
+        )
+        XCTAssertEqual(status.text, "FARMING • FRONTIER 192")
+        let statusColor = try XCTUnwrap(status.fontColor?.usingColorSpace(.deviceRGB))
+        let expectedColor = try XCTUnwrap(NSColor.systemOrange.usingColorSpace(.deviceRGB))
+        XCTAssertEqual(statusColor.redComponent, expectedColor.redComponent, accuracy: 0.001)
+        XCTAssertEqual(statusColor.greenComponent, expectedColor.greenComponent, accuracy: 0.001)
+        XCTAssertEqual(statusColor.blueComponent, expectedColor.blueComponent, accuracy: 0.001)
+        XCTAssertEqual(statusColor.alphaComponent, expectedColor.alphaComponent, accuracy: 0.001)
+        XCTAssertFalse(status.isHidden)
+        XCTAssertFalse(status.isUserInteractionEnabled)
+        XCTAssertEqual(status.position.x, host.scene.size.width * 0.78, accuracy: 0.001)
+        XCTAssertEqual(status.position.y, 82, accuracy: 0.001)
+        XCTAssertEqual(
+            (host.scene.childNode(withName: "//enemyLevel") as? SKLabelNode)?.text,
+            "Normal · Enemy Lv. 1"
+        )
+
+        let originalStatus = status
+        state.campaign.selectedLevel = 192
+        state.campaign.mode = .push
+        state.encounter.enemyLevel = 192
+        host.render(.active(GameSimulation(state: state).presentation))
+
+        let pushedStatus = try XCTUnwrap(
+            host.scene.childNode(withName: "//farmingStatus") as? SKLabelNode
+        )
+        XCTAssertTrue(pushedStatus === originalStatus)
+        XCTAssertTrue(pushedStatus.isHidden)
+        XCTAssertNil(pushedStatus.text)
+    }
+
     func testClassSelectionHidesCombatPresentation() throws {
         let host = try PrototypeSceneHost()
 
@@ -42,6 +84,7 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertTrue(host.scene.childNode(withName: "//enemy")?.isHidden == true)
         XCTAssertTrue(host.scene.childNode(withName: "//heroLevel")?.isHidden == true)
         XCTAssertTrue(host.scene.childNode(withName: "//rollingDPS")?.isHidden == true)
+        XCTAssertTrue(host.scene.childNode(withName: "//farmingStatus")?.isHidden == true)
     }
 
     func testHostConfiguresTransparentThirtyFPSScene() throws {
