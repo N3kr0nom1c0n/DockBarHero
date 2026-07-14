@@ -75,7 +75,7 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertNil(pushedStatus.text)
     }
 
-    func testRailLabelsUseBlackOutlineWithoutChangingForegroundColor() throws {
+    func testRailLabelsKeepVisibleForegroundAboveEightBlackOutlineLayers() throws {
         let host = try PrototypeSceneHost(size: CGSize(width: 1_140, height: 96))
         var state = GameState.newGame(balance: .standard)
         state.campaign.mode = .farming
@@ -87,22 +87,17 @@ final class PrototypeSceneHostTests: XCTestCase {
             let label = try XCTUnwrap(
                 host.scene.childNode(withName: "//\(name)") as? SKLabelNode
             )
-            let text = try XCTUnwrap(label.attributedText)
-            XCTAssertEqual(text.attribute(.strokeWidth, at: 0, effectiveRange: nil) as? Double, -8)
-            try assertColor(text.attribute(.strokeColor, at: 0, effectiveRange: nil), equals: .black)
-            try assertColor(text.attribute(.foregroundColor, at: 0, effectiveRange: nil), equals: .white)
+            XCTAssertNil(label.attributedText)
+            try assertColor(label.fontColor, equals: .white)
+            try assertOutlineLayers(of: label)
         }
 
         let farmingStatus = try XCTUnwrap(
             host.scene.childNode(withName: "//farmingStatus") as? SKLabelNode
         )
-        let farmingText = try XCTUnwrap(farmingStatus.attributedText)
-        XCTAssertEqual(farmingText.attribute(.strokeWidth, at: 0, effectiveRange: nil) as? Double, -8)
-        try assertColor(farmingText.attribute(.strokeColor, at: 0, effectiveRange: nil), equals: .black)
-        try assertColor(
-            farmingText.attribute(.foregroundColor, at: 0, effectiveRange: nil),
-            equals: .systemOrange
-        )
+        XCTAssertNil(farmingStatus.attributedText)
+        try assertColor(farmingStatus.fontColor, equals: .systemOrange)
+        try assertOutlineLayers(of: farmingStatus)
     }
 
     func testClassSelectionHidesCombatPresentation() throws {
@@ -440,6 +435,30 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertEqual(actualRGB.greenComponent, expectedRGB.greenComponent, accuracy: 0.001, file: file, line: line)
         XCTAssertEqual(actualRGB.blueComponent, expectedRGB.blueComponent, accuracy: 0.001, file: file, line: line)
         XCTAssertEqual(actualRGB.alphaComponent, expectedRGB.alphaComponent, accuracy: 0.001, file: file, line: line)
+    }
+
+    private func assertOutlineLayers(
+        of label: SKLabelNode,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        let layers = label.children.compactMap { $0 as? SKLabelNode }
+        XCTAssertEqual(layers.count, 8, file: file, line: line)
+        XCTAssertEqual(
+            Set(layers.map(\.position)),
+            Set([
+                CGPoint(x: -1, y: -1), CGPoint(x: 0, y: -1), CGPoint(x: 1, y: -1),
+                CGPoint(x: -1, y: 0), CGPoint(x: 1, y: 0),
+                CGPoint(x: -1, y: 1), CGPoint(x: 0, y: 1), CGPoint(x: 1, y: 1),
+            ]),
+            file: file,
+            line: line
+        )
+        for layer in layers {
+            XCTAssertEqual(layer.text, label.text, file: file, line: line)
+            XCTAssertEqual(layer.zPosition, -1, accuracy: 0.001, file: file, line: line)
+            try assertColor(layer.fontColor, equals: .black, file: file, line: line)
+        }
     }
 }
 

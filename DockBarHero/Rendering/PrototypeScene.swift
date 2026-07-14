@@ -36,6 +36,11 @@ final class PrototypeScene: SKScene {
             )
         ]
     )
+    private static let labelOutlineOffsets = [
+        CGPoint(x: -1, y: -1), CGPoint(x: 0, y: -1), CGPoint(x: 1, y: -1),
+        CGPoint(x: -1, y: 0), CGPoint(x: 1, y: 0),
+        CGPoint(x: -1, y: 1), CGPoint(x: 0, y: 1), CGPoint(x: 1, y: 1),
+    ]
     private let spriteCatalog: any SpriteCatalog
     private var renderedHeroClasses: [HeroClassID] = [.dps]
     private var renderedActions: [ClassActionID] = [.powerStrike]
@@ -379,33 +384,44 @@ final class PrototypeScene: SKScene {
         childNode(withName: "\(prefix)HealthFill")?.position = origin
     }
 
-    private func label(name: String, fontSize: CGFloat) -> SKLabelNode {
+    private func label(
+        name: String,
+        fontSize: CGFloat,
+        fontName: String? = nil
+    ) -> SKLabelNode {
         let node = SKLabelNode(text: nil)
         node.name = name
-        node.fontName = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular).fontName
+        node.fontName = fontName
+            ?? NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular).fontName
         node.fontSize = fontSize
         node.fontColor = .white
         node.horizontalAlignmentMode = .center
+        for offset in Self.labelOutlineOffsets {
+            let outline = SKLabelNode(text: nil)
+            outline.name = "textOutline"
+            outline.fontName = node.fontName
+            outline.fontSize = node.fontSize
+            outline.fontColor = .black
+            outline.horizontalAlignmentMode = node.horizontalAlignmentMode
+            outline.verticalAlignmentMode = node.verticalAlignmentMode
+            outline.position = offset
+            outline.zPosition = -1
+            outline.isUserInteractionEnabled = false
+            node.addChild(outline)
+        }
         return node
     }
 
     private func setOutlinedText(_ text: String?, on label: SKLabelNode) {
+        label.attributedText = nil
         label.text = text
-        guard let text else {
-            label.attributedText = nil
-            return
+        for outline in label.children.compactMap({ $0 as? SKLabelNode }) {
+            outline.text = text
+            outline.fontName = label.fontName
+            outline.fontSize = label.fontSize
+            outline.horizontalAlignmentMode = label.horizontalAlignmentMode
+            outline.verticalAlignmentMode = label.verticalAlignmentMode
         }
-        let font = NSFont(name: label.fontName ?? "", size: label.fontSize)
-            ?? NSFont.monospacedSystemFont(ofSize: label.fontSize, weight: .regular)
-        label.attributedText = NSAttributedString(
-            string: text,
-            attributes: [
-                .font: font,
-                .foregroundColor: label.fontColor ?? .white,
-                .strokeColor: NSColor.black,
-                .strokeWidth: -8,
-            ]
-        )
     }
 
     private func setCombatHidden(_ isHidden: Bool) {
@@ -500,11 +516,7 @@ final class PrototypeScene: SKScene {
 
     private func showHit(at point: CGPoint?) {
         guard let point else { return }
-        let hit = SKLabelNode(text: nil)
-        hit.name = "hit"
-        hit.fontName = "Menlo-Bold"
-        hit.fontSize = 20
-        hit.fontColor = .white
+        let hit = label(name: "hit", fontSize: 20, fontName: "Menlo-Bold")
         setOutlinedText("*", on: hit)
         hit.position = CGPoint(x: point.x, y: point.y + 24)
         addChild(hit)

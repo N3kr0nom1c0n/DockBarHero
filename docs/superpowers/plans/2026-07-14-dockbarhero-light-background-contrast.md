@@ -4,9 +4,9 @@
 
 **Goal:** Add crisp black outlines to rail text and animated actors while preserving every existing sprite color and opaque interior pixel.
 
-**Architecture:** Keep the change inside `PrototypeScene`: attributed label strings provide fill-plus-stroke text, and one shared SpriteKit fragment shader adds an exterior contour to the existing animated textures. Do not regenerate or modify sprite assets.
+**Architecture:** Keep the change inside `PrototypeScene`: eight offset black child labels sit behind each untouched foreground label, and one shared SpriteKit fragment shader adds an exterior contour to the existing animated textures. Do not regenerate or modify sprite assets.
 
-**Tech Stack:** Swift 6, AppKit attributed strings, SpriteKit `SKShader`, XCTest, Xcode arm64 test/build tooling.
+**Tech Stack:** Swift 6, SpriteKit `SKLabelNode` layering and `SKShader`, XCTest, Xcode arm64 test/build tooling.
 
 ## Global Constraints
 
@@ -25,44 +25,37 @@
 
 **Interfaces:**
 - Consumes: existing `SKLabelNode` foreground colors and dynamic label strings.
-- Produces: `setOutlinedText(_:on:)` for every persistent and transient rail label.
+- Produces: `setOutlinedText(_:on:)` for synchronizing every foreground label with its eight black child outline layers.
 
 - [ ] **Step 1: Write the failing label regression test**
 
-Add `testRailLabelsUseBlackOutlineWithoutChangingForegroundColor()`. Render the standard active presentation, unwrap `heroLevel`, `enemyLevel`, `rollingDPS`, and `farmingStatus`, then assert each visible attributed string has `.strokeColor == NSColor.black` and `.strokeWidth == -8`. Put the state into farming mode and assert the farming string keeps `.foregroundColor == NSColor.systemOrange`; assert the white labels keep `.foregroundColor == NSColor.white`.
+Add `testRailLabelsKeepVisibleForegroundAboveEightBlackOutlineLayers()`. Render the standard active presentation, unwrap `heroLevel`, `heroAction`, `enemyLevel`, `rollingDPS`, and `farmingStatus`, then assert the foreground labels have no attributed text and keep their white or orange `fontColor`. Assert each owns eight black child labels at every one-point neighboring offset, with matching text and `zPosition == -1`.
 
 - [ ] **Step 2: Run the test and verify RED**
 
 Run:
 
 ```bash
-xcodebuild test -project DockBarHero.xcodeproj -scheme DockBarHero -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath .build/LightContrastRed CODE_SIGNING_ALLOWED=NO -only-testing:DockBarHeroTests/PrototypeSceneHostTests/testRailLabelsUseBlackOutlineWithoutChangingForegroundColor
+xcodebuild test -project DockBarHero.xcodeproj -scheme DockBarHero -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath .build/LightContrastRed CODE_SIGNING_ALLOWED=NO -only-testing:DockBarHeroTests/PrototypeSceneHostTests/testRailLabelsKeepVisibleForegroundAboveEightBlackOutlineLayers
 ```
 
-Expected: FAIL because existing labels have no attributed text or stroke attributes.
+Expected: FAIL because the attributed-stroke implementation has no separate outline layers and does not leave the foreground plain.
 
 - [ ] **Step 3: Implement outlined label formatting**
 
-Add this helper and route all label assignments in `render(_:)` plus the hit marker through it:
+Create eight black child labels in `label(name:fontSize:fontName:)` at offsets `(-1,-1)` through `(1,1)`, excluding `(0,0)`. Give them `zPosition = -1`. Route all label assignments in `render(_:)` plus the hit marker through this helper:
 
 ```swift
 private func setOutlinedText(_ text: String?, on label: SKLabelNode) {
+    label.attributedText = nil
     label.text = text
-    guard let text else {
-        label.attributedText = nil
-        return
+    for outline in label.children.compactMap({ $0 as? SKLabelNode }) {
+        outline.text = text
+        outline.fontName = label.fontName
+        outline.fontSize = label.fontSize
+        outline.horizontalAlignmentMode = label.horizontalAlignmentMode
+        outline.verticalAlignmentMode = label.verticalAlignmentMode
     }
-    let font = NSFont(name: label.fontName ?? "", size: label.fontSize)
-        ?? NSFont.monospacedSystemFont(ofSize: label.fontSize, weight: .regular)
-    label.attributedText = NSAttributedString(
-        string: text,
-        attributes: [
-            .font: font,
-            .foregroundColor: label.fontColor ?? .white,
-            .strokeColor: NSColor.black,
-            .strokeWidth: -8,
-        ]
-    )
 }
 ```
 

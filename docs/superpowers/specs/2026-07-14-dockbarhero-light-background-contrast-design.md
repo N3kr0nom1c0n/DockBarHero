@@ -13,7 +13,7 @@ Keep rail text and pixel actors readable over pale desktops without changing the
 
 ## Rendering Design
 
-`PrototypeScene` will format label text as an attributed string with foreground color, font, black stroke color, and a negative stroke width so SpriteKit draws both fill and outline. All dynamic label updates will pass through one helper to keep the outline applied during level, cooldown, DPS, and farming-status changes.
+`PrototypeScene` will keep each existing foreground `SKLabelNode` as plain white or semantic-colored text. Eight black child labels, offset by one point around that foreground node and rendered behind it, form the outline without changing or obscuring the fill. All dynamic label updates will pass through one helper so the foreground and outline layers stay synchronized during level, cooldown, DPS, and farming-status changes.
 
 Actor nodes will share a small SpriteKit fragment shader. For an opaque source texel the shader returns the original sampled RGBA unchanged. For a transparent texel adjacent to an opaque texel it returns opaque black; otherwise it remains transparent. Because the catalog already crops every animation frame to a 96x64 texture and uses `.nearest` filtering, a one-texel sample step produces a stable pixel contour without regenerating assets.
 
@@ -24,12 +24,13 @@ No sprite PNG, source board, manifest, or asset-build rule changes. The current 
 ## Rejected Alternatives
 
 - A soft shadow or dark backplate changes the accepted dark-background appearance and does not match the selected crisp treatment.
+- An attributed-string stroke is unsuitable at these small font sizes because SpriteKit can visually swallow the foreground fill and leave the label effectively black.
 - Regenerating sprite assets risks recoloring or erasing interior pixels and is unnecessary because their alpha is already binary.
 - Duplicating eight shadow sprites complicates texture-animation synchronization and actor identity compared with one shared shader.
 
 ## Verification
 
-- A regression test proves every rail label carries a black stroke while preserving its intended foreground color.
+- A regression test proves every rail label keeps a plain foreground node in its intended color above eight synchronized black outline layers.
 - A regression test proves hero and enemy actors use the outline shader and its one-texel sampling step while retaining their original texture, size, scale, and opacity.
 - Focused scene tests, the full arm64 suite, clean unsigned build, context guard, and live launch verification must pass.
 - Live visual acceptance must cover both a pale desktop and a dark desktop. Automated checks are not a substitute for that visual evidence.
