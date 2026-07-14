@@ -75,6 +75,36 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertNil(pushedStatus.text)
     }
 
+    func testRailLabelsUseBlackOutlineWithoutChangingForegroundColor() throws {
+        let host = try PrototypeSceneHost(size: CGSize(width: 1_140, height: 96))
+        var state = GameState.newGame(balance: .standard)
+        state.campaign.mode = .farming
+
+        host.render(.active(GameSimulation(state: state).presentation))
+
+        let whiteLabelNames = ["heroLevel", "heroAction", "enemyLevel", "rollingDPS"]
+        for name in whiteLabelNames {
+            let label = try XCTUnwrap(
+                host.scene.childNode(withName: "//\(name)") as? SKLabelNode
+            )
+            let text = try XCTUnwrap(label.attributedText)
+            XCTAssertEqual(text.attribute(.strokeWidth, at: 0, effectiveRange: nil) as? Double, -8)
+            try assertColor(text.attribute(.strokeColor, at: 0, effectiveRange: nil), equals: .black)
+            try assertColor(text.attribute(.foregroundColor, at: 0, effectiveRange: nil), equals: .white)
+        }
+
+        let farmingStatus = try XCTUnwrap(
+            host.scene.childNode(withName: "//farmingStatus") as? SKLabelNode
+        )
+        let farmingText = try XCTUnwrap(farmingStatus.attributedText)
+        XCTAssertEqual(farmingText.attribute(.strokeWidth, at: 0, effectiveRange: nil) as? Double, -8)
+        try assertColor(farmingText.attribute(.strokeColor, at: 0, effectiveRange: nil), equals: .black)
+        try assertColor(
+            farmingText.attribute(.foregroundColor, at: 0, effectiveRange: nil),
+            equals: .systemOrange
+        )
+    }
+
     func testClassSelectionHidesCombatPresentation() throws {
         let host = try PrototypeSceneHost()
 
@@ -368,6 +398,28 @@ final class PrototypeSceneHostTests: XCTestCase {
         host.scene.activateClassActionForTesting(slot: 0)
         XCTAssertEqual(casts.map(\.0), [0])
         XCTAssertEqual(casts.map(\.1), [.powerStrike])
+    }
+
+    private func assertColor(
+        _ value: Any?,
+        equals expected: NSColor,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        let actualRGB = try XCTUnwrap(
+            (value as? NSColor)?.usingColorSpace(.deviceRGB),
+            file: file,
+            line: line
+        )
+        let expectedRGB = try XCTUnwrap(
+            expected.usingColorSpace(.deviceRGB),
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(actualRGB.redComponent, expectedRGB.redComponent, accuracy: 0.001, file: file, line: line)
+        XCTAssertEqual(actualRGB.greenComponent, expectedRGB.greenComponent, accuracy: 0.001, file: file, line: line)
+        XCTAssertEqual(actualRGB.blueComponent, expectedRGB.blueComponent, accuracy: 0.001, file: file, line: line)
+        XCTAssertEqual(actualRGB.alphaComponent, expectedRGB.alphaComponent, accuracy: 0.001, file: file, line: line)
     }
 }
 

@@ -82,33 +82,49 @@ final class PrototypeScene: SKScene {
                 current: hero.combat.currentHealth,
                 maximum: hero.combat.maxHealth
             )
-            (childNode(withName: "\(prefix)Level") as? SKLabelNode)?.text = ManagementFormat.heroLevel(hero.level)
+            if let level = childNode(withName: "\(prefix)Level") as? SKLabelNode {
+                setOutlinedText(ManagementFormat.heroLevel(hero.level), on: level)
+            }
             if let action = childNode(withName: "\(prefix)Action") as? SKLabelNode {
                 let remaining = hero.classAction.cooldownRemaining.timeInterval
-                action.text = remaining > 0
+                let text = remaining > 0
                     ? "\(actionAbbreviation(hero.classAction.actionID)) \(String(format: "%.1f", remaining))"
                     : "\(actionAbbreviation(hero.classAction.actionID)) READY"
+                setOutlinedText(text, on: action)
                 action.alpha = hero.combat.currentHealth > 0 && remaining == 0 ? 1 : 0.55
             }
         }
         setHealthFraction(for: "enemyHealthFill", current: enemy.currentHealth, maximum: enemy.maxHealth)
         let tier = presentation.state.encounter.tier.rawValue.capitalized
-        (childNode(withName: "enemyLevel") as? SKLabelNode)?.text = "\(tier) · \(ManagementFormat.enemyLevel(presentation.state.encounter.enemyLevel))"
+        if let enemyLevel = childNode(withName: "enemyLevel") as? SKLabelNode {
+            setOutlinedText(
+                "\(tier) · \(ManagementFormat.enemyLevel(presentation.state.encounter.enemyLevel))",
+                on: enemyLevel
+            )
+        }
         if let farmingStatus = childNode(withName: "farmingStatus") as? SKLabelNode {
             switch presentation.state.campaign.mode {
             case .farming:
-                farmingStatus.text = "FARMING • FRONTIER \(presentation.state.campaign.highestUnlockedLevel)"
+                setOutlinedText(
+                    "FARMING • FRONTIER \(presentation.state.campaign.highestUnlockedLevel)",
+                    on: farmingStatus
+                )
                 farmingStatus.isHidden = false
             case .push:
-                farmingStatus.text = nil
+                setOutlinedText(nil, on: farmingStatus)
                 farmingStatus.isHidden = true
             }
         }
-        (childNode(withName: "rollingDPS") as? SKLabelNode)?.text = String(
-            format: "%.1f DPS",
-            locale: Locale(identifier: "en_US_POSIX"),
-            presentation.rollingDPS
-        )
+        if let rollingDPS = childNode(withName: "rollingDPS") as? SKLabelNode {
+            setOutlinedText(
+                String(
+                    format: "%.1f DPS",
+                    locale: Locale(identifier: "en_US_POSIX"),
+                    presentation.rollingDPS
+                ),
+                on: rollingDPS
+            )
+        }
     }
 
     func render(_ run: RunPresentation) {
@@ -341,6 +357,25 @@ final class PrototypeScene: SKScene {
         return node
     }
 
+    private func setOutlinedText(_ text: String?, on label: SKLabelNode) {
+        label.text = text
+        guard let text else {
+            label.attributedText = nil
+            return
+        }
+        let font = NSFont(name: label.fontName ?? "", size: label.fontSize)
+            ?? NSFont.monospacedSystemFont(ofSize: label.fontSize, weight: .regular)
+        label.attributedText = NSAttributedString(
+            string: text,
+            attributes: [
+                .font: font,
+                .foregroundColor: label.fontColor ?? .white,
+                .strokeColor: NSColor.black,
+                .strokeWidth: -8,
+            ]
+        )
+    }
+
     private func setCombatHidden(_ isHidden: Bool) {
         var names = [
             "enemy", "enemyHealthBackground", "enemyHealthFill", "enemyLevel",
@@ -433,11 +468,12 @@ final class PrototypeScene: SKScene {
 
     private func showHit(at point: CGPoint?) {
         guard let point else { return }
-        let hit = SKLabelNode(text: "*")
+        let hit = SKLabelNode(text: nil)
         hit.name = "hit"
         hit.fontName = "Menlo-Bold"
         hit.fontSize = 20
         hit.fontColor = .white
+        setOutlinedText("*", on: hit)
         hit.position = CGPoint(x: point.x, y: point.y + 24)
         addChild(hit)
         hit.run(.sequence([
