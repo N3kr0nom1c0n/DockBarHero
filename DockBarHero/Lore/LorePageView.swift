@@ -7,28 +7,66 @@ struct LorePageView: View {
     @State private var frames: [CGImage] = []
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+        GeometryReader { geometry in
+            let regions = LoreBookLayout.pageRegions(
+                forPageHeight: geometry.size.height,
+                dividerHeight: 1
+            )
+
+            VStack(spacing: 0) {
                 artwork
                     .frame(maxWidth: .infinity)
-                    .aspectRatio(1, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-                    .overlay(RoundedRectangle(cornerRadius: 4).stroke(.black.opacity(0.45), lineWidth: 2))
+                    .frame(height: regions.artworkHeight)
+                    .background(Color.black.opacity(0.9))
+                    .clipped()
                     .accessibilityLabel(page.accessibilityDescription)
 
-                Text(page.title)
-                    .font(.system(size: 23, weight: .black, design: .serif))
-                Text(page.body)
-                    .font(.system(size: 15, design: .serif))
-                    .lineSpacing(4)
-                    .textSelection(.enabled)
+                Divider()
+                    .frame(height: regions.dividerHeight)
+                    .overlay(Color.black.opacity(0.35))
+
+                caption
+                    .frame(height: regions.captionHeight, alignment: .topLeading)
             }
-            .padding(20)
+            .background(Color(red: 0.96, green: 0.89, blue: 0.72))
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(Color.black.opacity(0.5), lineWidth: 2)
+            )
         }
-        .background(Color(red: 0.96, green: 0.89, blue: 0.72))
         .task(id: page.spriteSheetName) {
             frames = (try? LoreSpriteSheet.frames(named: page.spriteSheetName, frameCount: page.frameCount)) ?? []
         }
+    }
+
+    private var caption: some View {
+        ViewThatFits(in: .vertical) {
+            captionContent(titleSize: 22, bodySize: 15, spacing: 8, padding: 16)
+            captionContent(titleSize: 19, bodySize: 13, spacing: 6, padding: 12)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(Color(red: 0.98, green: 0.93, blue: 0.82))
+        .foregroundStyle(Color(red: 0.12, green: 0.08, blue: 0.06))
+        .textSelection(.enabled)
+    }
+
+    private func captionContent(
+        titleSize: CGFloat,
+        bodySize: CGFloat,
+        spacing: CGFloat,
+        padding: CGFloat
+    ) -> some View {
+        VStack(alignment: .leading, spacing: spacing) {
+            Text(page.title)
+                .font(.system(size: titleSize, weight: .black, design: .serif))
+                .fixedSize(horizontal: false, vertical: true)
+            Text(page.body)
+                .font(.system(size: bodySize, weight: .medium, design: .serif))
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(padding)
     }
 
     @ViewBuilder
@@ -59,5 +97,6 @@ struct LorePageView: View {
         Image(decorative: image, scale: 1)
             .resizable()
             .scaledToFit()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

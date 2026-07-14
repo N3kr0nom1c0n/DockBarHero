@@ -38,4 +38,16 @@ final class LoreBookLayoutTests: XCTestCase {
         XCTAssertEqual(LoreBookLayout.captionHeight(forPageHeight: 500), 180)
         XCTAssertEqual(LoreBookLayout.captionHeight(forPageHeight: 900), 190)
     }
+
+    func testPageRegionsConsumeTheAvailableHeightWithoutOverlap() {
+        let regions = LoreBookLayout.pageRegions(forPageHeight: 500, dividerHeight: 1)
+
+        XCTAssertEqual(regions.artworkHeight, 319)
+        XCTAssertEqual(regions.dividerHeight, 1)
+        XCTAssertEqual(regions.captionHeight, 180)
+        XCTAssertEqual(
+            regions.artworkHeight + regions.dividerHeight + regions.captionHeight,
+            500
+        )
+    }
 }

@@ -11,6 +11,12 @@ enum LoreBookLayout {
         let rightIndex: Int
     }
 
+    struct PageRegions: Equatable {
+        let artworkHeight: CGFloat
+        let dividerHeight: CGFloat
+        let captionHeight: CGFloat
+    }
+
     static let minimumSpreadWidth: CGFloat = 720
 
     static func mode(forContentWidth width: CGFloat) -> Mode {
@@ -28,5 +34,19 @@ enum LoreBookLayout {
 
     static func captionHeight(forPageHeight height: CGFloat) -> CGFloat {
         min(190, max(150, height * 0.36))
+    }
+
+    static func pageRegions(forPageHeight height: CGFloat, dividerHeight: CGFloat) -> PageRegions {
+        let safeHeight = max(0, height)
+        let safeDividerHeight = min(max(0, dividerHeight), safeHeight)
+        let captionHeight = min(
+            Self.captionHeight(forPageHeight: safeHeight),
+            safeHeight - safeDividerHeight
+        )
+        return PageRegions(
+            artworkHeight: safeHeight - safeDividerHeight - captionHeight,
+            dividerHeight: safeDividerHeight,
+            captionHeight: captionHeight
+        )
     }
 }
