@@ -8,6 +8,7 @@ enum LoreCatalogError: Error, Equatable {
     case missingRequiredValue(String)
     case invalidUnlock(String)
     case invalidAnimation(String)
+    case invalidComposition(String)
 }
 
 extension LoreCatalog {
@@ -20,7 +21,7 @@ extension LoreCatalog {
     }
 
     static func validated(_ catalog: LoreCatalog) throws -> LoreCatalog {
-        guard catalog.schemaVersion == 1 else {
+        guard catalog.schemaVersion == 2 else {
             throw LoreCatalogError.unsupportedSchema(catalog.schemaVersion)
         }
 
@@ -52,6 +53,34 @@ extension LoreCatalog {
             if page.art.adultSpriteSheet != nil,
                page.art.accessibilityAdult?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false {
                 throw LoreCatalogError.missingRequiredValue(page.id.rawValue)
+            }
+
+            let panels = page.composition.panels
+            let panelIDs = panels.map(\.id)
+            let overlays = page.composition.textOverlays
+            guard (5...7).contains(panels.count),
+                  panels.filter({ $0.role == .motion }).count == 1,
+                  Set(panelIDs).count == panelIDs.count,
+                  Set(panels.map(\.slotID)).count == panels.count,
+                  Set(panels.map(\.readingOrder)).count == panels.count,
+                  !page.composition.safeContextSheet.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  panels.allSatisfy({
+                      (0...1).contains($0.focalPoint.x) &&
+                      (0...1).contains($0.focalPoint.y) &&
+                      ($0.role == .motion ? $0.sourceCell == nil : true) &&
+                      ($0.role == .still ? $0.sourceCell.map { (0...5).contains($0) } == true : true)
+                  }),
+                  (page.composition.adultContextSheet.map {
+                      !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                  } ?? true),
+                  Set(overlays.map(\.id)).count == overlays.count,
+                  overlays.allSatisfy({
+                      panelIDs.contains($0.panelID) &&
+                      !$0.copy.unfiltered.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+                      !$0.copy.clean.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                  }),
+                  Set(page.composition.textOverlays.compactMap(\.dialogueCueID)) == Set(page.dialogueCueIDs) else {
+                throw LoreCatalogError.invalidComposition(page.id.rawValue)
             }
         }
         return catalog

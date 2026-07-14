@@ -103,6 +103,18 @@ extension ResolvedLorePage {
     static let fixture = ResolvedLorePage(
         id: LorePageID(rawValue: "test"), title: "Test", body: "Test",
         spriteSheetName: "test", accessibilityDescription: "Test",
+        composition: ResolvedLoreComposition(
+            layoutID: .cascadeFive,
+            contextSheetName: "test-context-safe",
+            panels: [
+                .init(id: "p1", slotID: "slot1", role: .still, sourceCell: 0, readingOrder: 0, focalPoint: .init(x: 0.5, y: 0.5)),
+                .init(id: "p2", slotID: "slot2", role: .motion, sourceCell: nil, readingOrder: 1, focalPoint: .init(x: 0.5, y: 0.5)),
+                .init(id: "p3", slotID: "slot3", role: .still, sourceCell: 1, readingOrder: 2, focalPoint: .init(x: 0.5, y: 0.5)),
+                .init(id: "p4", slotID: "slot4", role: .still, sourceCell: 2, readingOrder: 3, focalPoint: .init(x: 0.5, y: 0.5)),
+                .init(id: "p5", slotID: "slot5", role: .gag, sourceCell: 3, readingOrder: 4, focalPoint: .init(x: 0.5, y: 0.5))
+            ],
+            textOverlays: []
+        ),
         dialogueCueIDs: ["book.test"], frameCount: 4, frameDurationMilliseconds: 600
     )
 }

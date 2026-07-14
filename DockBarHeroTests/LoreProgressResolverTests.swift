@@ -35,10 +35,35 @@ final class LoreProgressResolverTests: XCTestCase {
         )
         XCTAssertEqual(pages[2].spriteSheetName, "volume-1.level-5-safe")
     }
+
+    func testResolverUsesCleanOverlayAndSafeContextFallback() throws {
+        let page = LoreFixtures.page("resolved", index: 0, unlock: nil, adult: "resolved-adult")
+        let resolved = try XCTUnwrap(LoreProgressResolver.resolve(
+            catalog: try LoreCatalog.validated(.init(schemaVersion: 2, pages: [page])),
+            highestUnlockedLevel: 1, languageMode: .clean, illustrationMode: .adult
+        ).first)
+        XCTAssertEqual(resolved.spriteSheetName, "resolved-adult")
+        XCTAssertEqual(resolved.composition.contextSheetName, "resolved-context-safe")
+        XCTAssertEqual(resolved.composition.textOverlays.first?.text, "resolved clean narration")
+    }
+
+    func testResolverUsesAdultContextWhenAvailable() throws {
+        let page = LoreFixtures.page(
+            "adult-context", index: 0, unlock: nil, adult: "adult-context-motion-adult",
+            adultContext: "adult-context-context-adult"
+        )
+        let resolved = try XCTUnwrap(LoreProgressResolver.resolve(
+            catalog: try LoreCatalog.validated(.init(schemaVersion: 2, pages: [page])),
+            highestUnlockedLevel: 1, languageMode: .unfiltered, illustrationMode: .adult
+        ).first)
+        XCTAssertEqual(resolved.spriteSheetName, "adult-context-motion-adult")
+        XCTAssertEqual(resolved.composition.contextSheetName, "adult-context-context-adult")
+        XCTAssertEqual(resolved.composition.textOverlays.first?.text, "adult-context narration")
+    }
 }
 
 private func makeCatalog() throws -> LoreCatalog {
-    try LoreCatalog.validated(LoreCatalog(schemaVersion: 1, pages: [
+    try LoreCatalog.validated(LoreCatalog(schemaVersion: 2, pages: [
         LoreFixtures.page("prologue.level-100000", index: 0, unlock: nil),
         LoreFixtures.page("volume-1.level-1", index: 1, unlock: nil),
         LoreFixtures.page("volume-1.level-5", index: 2, unlock: 5),
