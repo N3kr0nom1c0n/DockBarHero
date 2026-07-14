@@ -184,6 +184,92 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertTrue(catalog.calls.contains(.init(token: .hero, action: .defeated)))
     }
 
+    func testPresentationIdentityChangeUpdatesEnemyIdleTexture() throws {
+        let catalog = EnemyRecordingSpriteCatalog()
+        let host = try PrototypeSceneHost(spriteCatalog: catalog)
+        var presentation = GameSimulation().presentation
+        presentation.campaign = campaignPresentation(spriteID: .goblin)
+
+        host.scene.render(presentation)
+
+        let enemy = try XCTUnwrap(host.scene.childNode(withName: "enemy") as? SKSpriteNode)
+        XCTAssertTrue(enemy.texture === catalog.texture(for: .goblin))
+
+        presentation.campaign = campaignPresentation(spriteID: .bandit)
+        host.scene.render(presentation)
+
+        XCTAssertTrue(enemy.texture === catalog.texture(for: .bandit))
+    }
+
+    func testEnemyActionsUseRenderedPresentationIdentity() throws {
+        let catalog = EnemyRecordingSpriteCatalog()
+        let host = try PrototypeSceneHost(spriteCatalog: catalog)
+        var presentation = GameSimulation().presentation
+        presentation.campaign = campaignPresentation(spriteID: .goblin)
+        host.scene.render(presentation)
+        catalog.calls.removeAll()
+
+        host.scene.handle([
+            .attack(attacker: .hero, defender: .enemy, damage: 2),
+            .enemyAttack(targetSlot: 0, damage: 2),
+            .victory(defeatedLevel: 1),
+        ])
+
+        XCTAssertTrue(catalog.calls.contains(.init(spriteID: .goblin, action: .hit)))
+        XCTAssertTrue(catalog.calls.contains(.init(spriteID: .goblin, action: .attack)))
+        XCTAssertTrue(catalog.calls.contains(.init(spriteID: .goblin, action: .defeated)))
+    }
+
+    func testIdentityChangeDuringDefeatedTransitionDefersIdleReplacement() throws {
+        let catalog = EnemyRecordingSpriteCatalog()
+        let host = try PrototypeSceneHost(spriteCatalog: catalog)
+        var presentation = GameSimulation().presentation
+        presentation.campaign = campaignPresentation(spriteID: .goblin)
+        host.scene.render(presentation)
+        let enemy = try XCTUnwrap(host.scene.childNode(withName: "enemy") as? SKSpriteNode)
+        host.scene.handle([.victory(defeatedLevel: 1)])
+        XCTAssertNotNil(enemy.action(forKey: "spriteAction"))
+        catalog.calls.removeAll()
+
+        presentation.campaign = campaignPresentation(spriteID: .bandit)
+        host.scene.render(presentation)
+
+        XCTAssertNotNil(enemy.action(forKey: "spriteAction"))
+        XCTAssertFalse(catalog.calls.contains(.init(spriteID: .bandit, action: .idle)))
+    }
+
+    func testRepeatedIdentityRenderDoesNotResetActiveEnemyAction() throws {
+        let catalog = EnemyRecordingSpriteCatalog()
+        let host = try PrototypeSceneHost(spriteCatalog: catalog)
+        var presentation = GameSimulation().presentation
+        presentation.campaign = campaignPresentation(spriteID: .goblin)
+        host.scene.render(presentation)
+        let enemy = try XCTUnwrap(host.scene.childNode(withName: "enemy") as? SKSpriteNode)
+        host.scene.handle([.victory(defeatedLevel: 1)])
+        XCTAssertNotNil(enemy.action(forKey: "spriteAction"))
+        catalog.calls.removeAll()
+
+        host.scene.render(presentation)
+
+        XCTAssertNotNil(enemy.action(forKey: "spriteAction"))
+        XCTAssertFalse(catalog.calls.contains(.init(spriteID: .goblin, action: .idle)))
+    }
+
+    func testProceduralPresentationUsesGenericEnemyIdentity() throws {
+        let catalog = EnemyRecordingSpriteCatalog()
+        let host = try PrototypeSceneHost(spriteCatalog: catalog)
+        var presentation = GameSimulation().presentation
+        presentation.campaign = nil
+        catalog.calls.removeAll()
+
+        host.scene.render(presentation)
+
+        XCTAssertTrue(catalog.calls.contains(.init(
+            spriteID: EnemySpriteID(rawValue: "generic.enemy"),
+            action: .idle
+        )))
+    }
+
     func testVictoryUsesBriefEnemyFadeOutAndIn() throws {
         let host = try PrototypeSceneHost()
         let enemy = try XCTUnwrap(host.scene.childNode(withName: "enemy"))
@@ -308,6 +394,19 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertEqual(casts.map(\.0), [0])
         XCTAssertEqual(casts.map(\.1), [.powerStrike])
     }
+
+    private func campaignPresentation(spriteID: EnemySpriteID) -> CampaignPresentation {
+        CampaignPresentation(
+            areaID: .forgottenShallowDepths,
+            areaFullName: "Test Area",
+            areaShortName: "Test",
+            enemyID: .goblin,
+            enemyName: "Test Enemy",
+            enemySpriteID: spriteID,
+            tier: .normal,
+            level: 1
+        )
+    }
 }
 
 @MainActor
@@ -329,5 +428,36 @@ private final class RecordingSpriteCatalog: SpriteCatalog {
     func textures(for token: SpriteToken, action: SpriteAction) -> [SKTexture] {
         calls.append(Call(token: token, action: action))
         return [texture]
+    }
+}
+
+@MainActor
+private final class EnemyRecordingSpriteCatalog: SpriteCatalog {
+    struct Call: Equatable {
+        let spriteID: EnemySpriteID
+        let action: SpriteAction
+    }
+
+    var calls: [Call] = []
+    private var texturesByID: [EnemySpriteID: SKTexture] = [:]
+    private let genericTexture = SKTexture(image: NSImage(size: CGSize(width: 1, height: 1)))
+
+    func textures(for token: SpriteToken, action: SpriteAction) -> [SKTexture] {
+        [genericTexture]
+    }
+
+    func textures(forEnemy spriteID: EnemySpriteID, action: SpriteAction) -> [SKTexture] {
+        calls.append(Call(spriteID: spriteID, action: action))
+        return [texture(for: spriteID)]
+    }
+
+    func texture(for spriteID: EnemySpriteID) -> SKTexture {
+        if let texture = texturesByID[spriteID] {
+            return texture
+        }
+        let texture = SKTexture(image: NSImage(size: CGSize(width: 1, height: 1)))
+        texture.filteringMode = .nearest
+        texturesByID[spriteID] = texture
+        return texture
     }
 }

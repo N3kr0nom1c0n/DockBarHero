@@ -8,6 +8,7 @@ final class PrototypeScene: SKScene {
     private let spriteCatalog: any SpriteCatalog
     private var renderedHeroClasses: [HeroClassID] = [.dps]
     private var renderedActions: [ClassActionID] = [.powerStrike]
+    private var renderedEnemySpriteID = EnemySpriteID(rawValue: "generic.enemy")
     var onClassAction: ((Int, ClassActionID) -> Void)?
 
     init(size: CGSize, spriteCatalog: any SpriteCatalog) {
@@ -72,6 +73,14 @@ final class PrototypeScene: SKScene {
     func render(_ presentation: GamePresentation) {
         setCombatHidden(false)
         syncHeroNodes(with: presentation.state.party.heroes)
+        let enemySpriteID = presentation.campaign?.enemySpriteID
+            ?? EnemySpriteID(rawValue: "generic.enemy")
+        if enemySpriteID != renderedEnemySpriteID {
+            renderedEnemySpriteID = enemySpriteID
+            if childNode(withName: "enemy")?.action(forKey: "spriteAction") == nil {
+                setEnemyIdleTexture()
+            }
+        }
         let enemy = presentation.state.enemy
         for slot in presentation.state.party.heroes.indices {
             let hero = presentation.state.party.heroes[slot]
@@ -126,24 +135,32 @@ final class PrototypeScene: SKScene {
             switch event {
             case let .attack(attacker, defender, _):
                 animateAttack(from: attacker)
-                playSpriteAction(attacker == .hero ? .hero : .enemy, action: .attack)
-                playSpriteAction(defender == .hero ? .hero : .enemy, action: .hit)
+                if attacker == .hero {
+                    playSpriteAction(.hero, action: .attack)
+                } else {
+                    playEnemySpriteAction(.attack)
+                }
+                if defender == .hero {
+                    playSpriteAction(.hero, action: .hit)
+                } else {
+                    playEnemySpriteAction(.hit)
+                }
                 showHit(at: position(of: defender))
             case let .heroAttack(slot, _):
                 animateHeroAttack(slot: slot)
                 playHeroSpriteAction(slot: slot, action: .attack)
-                playSpriteAction(.enemy, action: .hit)
+                playEnemySpriteAction(.hit)
                 showHit(at: childNode(withName: "enemy")?.position)
             case let .enemyAttack(targetSlot, _):
                 animateAttack(from: .enemy)
-                playSpriteAction(.enemy, action: .attack)
+                playEnemySpriteAction(.attack)
                 playHeroSpriteAction(slot: targetSlot, action: .hit)
                 showHit(at: childNode(withName: heroPrefix(targetSlot))?.position)
             case let .heroDown(slot):
                 playHeroSpriteAction(slot: slot, action: .defeated)
                 animateDefeat(slot: slot)
             case .victory:
-                playSpriteAction(.enemy, action: .defeated)
+                playEnemySpriteAction(.defeated)
                 animateBriefFade(nodeNamed: "enemy")
                 for slot in renderedHeroClasses.indices {
                     setHeroIdleTexture(slot: slot)
@@ -256,6 +273,24 @@ final class PrototypeScene: SKScene {
         ]), withKey: "spriteAction")
     }
 
+    private func playEnemySpriteAction(_ action: SpriteAction) {
+        guard let node = childNode(withName: "enemy") as? SKSpriteNode else { return }
+        let spriteID = renderedEnemySpriteID
+        let textures = spriteCatalog.textures(forEnemy: spriteID, action: action)
+        guard !textures.isEmpty else { return }
+        node.removeAction(forKey: "spriteAction")
+        node.run(.sequence([
+            .animate(with: textures, timePerFrame: 0.08, resize: false, restore: false),
+            .run { [weak self, weak node] in
+                guard let self else { return }
+                node?.texture = self.spriteCatalog.textures(
+                    forEnemy: self.renderedEnemySpriteID,
+                    action: .idle
+                ).first
+            },
+        ]), withKey: "spriteAction")
+    }
+
     private func setIdleTexture(for token: SpriteToken) {
         let name = token == .hero ? "hero" : "enemy"
         guard let node = childNode(withName: name) as? SKSpriteNode else { return }
@@ -269,6 +304,15 @@ final class PrototypeScene: SKScene {
         node.removeAction(forKey: "spriteAction")
         node.texture = spriteCatalog.textures(
             for: renderedHeroClasses.count == 1 ? .hero : spriteToken(for: renderedHeroClasses[slot]),
+            action: .idle
+        ).first
+    }
+
+    private func setEnemyIdleTexture() {
+        guard let node = childNode(withName: "enemy") as? SKSpriteNode else { return }
+        node.removeAction(forKey: "spriteAction")
+        node.texture = spriteCatalog.textures(
+            forEnemy: renderedEnemySpriteID,
             action: .idle
         ).first
     }
