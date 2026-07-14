@@ -118,6 +118,77 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertFalse(level.frame.intersects(status.frame))
     }
 
+    func testNarrowProceduralFarmingStatusStaysVisibleAndOnRail() throws {
+        let host = try PrototypeSceneHost(size: CGSize(width: 400, height: 96))
+        var state = GameState.newGame(balance: .standard)
+        state.campaign.highestUnlockedLevel = 26
+        state.campaign.selectedLevel = 26
+        state.campaign.mode = .farming
+        state.encounter.enemyLevel = 26
+        state.encounter.tier = .normal
+        var presentation = GameSimulation(state: state).presentation
+        presentation.campaign = nil
+
+        host.render(.active(presentation))
+
+        let identity = try XCTUnwrap(
+            host.scene.childNode(withName: "//enemyIdentity") as? SKLabelNode
+        )
+        let level = try XCTUnwrap(
+            host.scene.childNode(withName: "//enemyLevel") as? SKLabelNode
+        )
+        let status = try XCTUnwrap(
+            host.scene.childNode(withName: "//farmingStatus") as? SKLabelNode
+        )
+        XCTAssertTrue(identity.isHidden)
+        XCTAssertEqual(level.text, "Normal · Enemy Lv. 26")
+        XCTAssertEqual(status.text, "FARMING • FRONTIER 26")
+        XCTAssertFalse(status.isHidden)
+        let statusColor = try XCTUnwrap(status.fontColor?.usingColorSpace(.deviceRGB))
+        let expectedColor = try XCTUnwrap(NSColor.systemOrange.usingColorSpace(.deviceRGB))
+        XCTAssertEqual(statusColor.redComponent, expectedColor.redComponent, accuracy: 0.001)
+        XCTAssertEqual(statusColor.greenComponent, expectedColor.greenComponent, accuracy: 0.001)
+        XCTAssertEqual(statusColor.blueComponent, expectedColor.blueComponent, accuracy: 0.001)
+        for label in [level, status] {
+            XCTAssertGreaterThanOrEqual(label.fontSize, 8)
+            XCTAssertGreaterThanOrEqual(label.frame.minX, 297.5)
+            XCTAssertLessThanOrEqual(label.frame.maxX, 392.5)
+            XCTAssertGreaterThanOrEqual(label.frame.minY, 0)
+            XCTAssertLessThanOrEqual(label.frame.maxY, host.scene.size.height)
+        }
+        XCTAssertFalse(level.frame.intersects(status.frame))
+
+        state.campaign.mode = .push
+        presentation = GameSimulation(state: state).presentation
+        presentation.campaign = nil
+        host.render(.active(presentation))
+
+        XCTAssertTrue(identity.isHidden)
+        XCTAssertEqual(level.text, "Normal · Enemy Lv. 26")
+        XCTAssertTrue(status.isHidden)
+        XCTAssertNil(status.text)
+    }
+
+    func testEnemyLabelsUseAccessibleCondensedFontWithoutSerifFallback() throws {
+        let host = try PrototypeSceneHost(size: CGSize(width: 400, height: 96))
+        var state = GameState.newGame(balance: .standard)
+        state.campaign.mode = .farming
+
+        host.render(.active(GameSimulation(state: state).presentation))
+
+        for name in ["enemyIdentity", "enemyLevel", "farmingStatus"] {
+            let label = try XCTUnwrap(
+                host.scene.childNode(withName: "//\(name)") as? SKLabelNode
+            )
+            XCTAssertEqual(label.fontName, "AvenirNextCondensed-Regular")
+            let effectiveFont = try XCTUnwrap(
+                label.fontName.flatMap { NSFont(name: $0, size: label.fontSize) }
+            )
+            XCTAssertEqual(effectiveFont.fontName, "AvenirNextCondensed-Regular")
+            XCTAssertNotEqual(effectiveFont.fontName, "TimesNewRomanPSMT")
+        }
+    }
+
     func testFarmingStatusShowsFrontierAndTracksModeTransitions() throws {
         let host = try PrototypeSceneHost(size: CGSize(width: 1_140, height: 96))
         var state = GameState.newGame(balance: .standard)

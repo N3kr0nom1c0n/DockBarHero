@@ -51,10 +51,7 @@ final class PrototypeScene: SKScene {
         let heroAction = label(name: "heroAction", fontSize: 10)
         let enemyIdentity = label(name: "enemyIdentity", fontSize: 10)
         let enemyLevel = label(name: "enemyLevel", fontSize: 10)
-        let enemyFontName = NSFont(
-            descriptor: NSFont.systemFont(ofSize: 10).fontDescriptor.withSymbolicTraits(.condensed),
-            size: 10
-        )?.fontName
+        let enemyFontName = "AvenirNextCondensed-Regular"
         enemyIdentity.fontName = enemyFontName
         enemyLevel.fontName = enemyFontName
         let farmingStatus = label(name: "farmingStatus", fontSize: 10)
@@ -277,11 +274,12 @@ final class PrototypeScene: SKScene {
         }
 
         let availableWidth = rightBoundary - leftBoundary
-        let showsAuthoredFarming = !identity.isHidden && !status.isHidden
+        let showsFarming = !status.isHidden
+        let showsAuthoredFarming = !identity.isHidden && showsFarming
         let maximumFontSize: CGFloat = showsAuthoredFarming ? 8 : 10
         fitEnemyLabel(identity, availableWidth: availableWidth, maximumFontSize: maximumFontSize)
         fitEnemyLabel(level, availableWidth: availableWidth, maximumFontSize: maximumFontSize)
-        fitEnemyLabel(status, availableWidth: availableWidth, maximumFontSize: 8)
+        fitEnemyLabel(status, availableWidth: availableWidth, maximumFontSize: maximumFontSize)
         positionEnemyLabel(identity, preferredX: enemyX, y: 0, left: leftBoundary, right: rightBoundary)
         positionEnemyLabel(
             level,
@@ -292,7 +290,12 @@ final class PrototypeScene: SKScene {
         )
         positionEnemyLabel(status, preferredX: enemyX, y: 0, left: leftBoundary, right: rightBoundary)
 
-        guard !identity.isHidden else { return }
+        if identity.isHidden {
+            guard showsFarming else { return }
+            positionEnemyLabel(level, minimumY: 65)
+            positionEnemyLabel(status, minimumY: level.frame.maxY + 2)
+            return
+        }
         let firstLineY: CGFloat = showsAuthoredFarming ? 64 : 65
         let lineSpacing: CGFloat = showsAuthoredFarming ? 1 : 2
         positionEnemyLabel(identity, minimumY: firstLineY)
