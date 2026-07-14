@@ -4,7 +4,7 @@
 
 **Branch:** `codex/lore-manga-vertical-slice`
 
-**Candidate tested:** combined pre-commit merge tree from `codex/lore-manga-vertical-slice` and `feature/class-actions-and-loot`, including the fixed-spread and deterministic `--open-book` launch repairs
+**Candidate commit tested:** `8a819b3` (`merge: combine lore reader with sprite game systems`), including the fixed-spread and deterministic `--open-book` launch repairs
 
 **Scope:** dishonest Level 100,000 prologue plus Volume I pages unlocked at Levels 1, 5, 10, 15, and 20. Boss 25 remains intentionally out of scope until Heroes and Party defines the cast.
 
