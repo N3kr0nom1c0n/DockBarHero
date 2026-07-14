@@ -13,6 +13,7 @@ struct AreaTitleMarqueeState: Equatable, Sendable {
     private var shortName = ""
     private var continuousHoverDuration: TimeInterval = 0
     private var requiresPointerExit = false
+    private var hasCompletedInitialScroll = false
 
     mutating func present(
         areaID: AreaID,
@@ -24,6 +25,8 @@ struct AreaTitleMarqueeState: Equatable, Sendable {
             if !animationsEnabled {
                 phase = .settled(shortName: self.shortName)
                 continuousHoverDuration = 0
+            } else if !hasCompletedInitialScroll {
+                phase = .scrolling(fullName: self.fullName, shortName: self.shortName)
             }
             return
         }
@@ -33,6 +36,7 @@ struct AreaTitleMarqueeState: Equatable, Sendable {
         self.shortName = shortName
         continuousHoverDuration = 0
         requiresPointerExit = false
+        hasCompletedInitialScroll = false
         phase = animationsEnabled
             ? .scrolling(fullName: fullName, shortName: shortName)
             : .settled(shortName: shortName)
@@ -45,12 +49,14 @@ struct AreaTitleMarqueeState: Equatable, Sendable {
         shortName = ""
         continuousHoverDuration = 0
         requiresPointerExit = false
+        hasCompletedInitialScroll = false
     }
 
     mutating func completeScroll() {
         guard case let .scrolling(_, shortName) = phase else { return }
         phase = .settled(shortName: shortName)
         continuousHoverDuration = 0
+        hasCompletedInitialScroll = true
     }
 
     @discardableResult
@@ -73,7 +79,9 @@ struct AreaTitleMarqueeState: Equatable, Sendable {
             }
             return false
         }
-        guard !requiresPointerExit, case .settled = phase else { return false }
+        guard hasCompletedInitialScroll,
+              !requiresPointerExit,
+              case .settled = phase else { return false }
 
         continuousHoverDuration += max(0, duration)
         guard continuousHoverDuration >= 3 else { return false }

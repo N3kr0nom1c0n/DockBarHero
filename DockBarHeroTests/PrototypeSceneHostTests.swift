@@ -169,6 +169,27 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertFalse(title.isHidden)
     }
 
+    func testStartupPauseDefersPlaceholderInitialPassUntilActualCampaignIsReady() throws {
+        let host = try PrototypeSceneHost()
+        let title = try XCTUnwrap(
+            host.scene.childNode(withName: "//areaTitle") as? SKLabelNode
+        )
+        XCTAssertNotNil(title.action(forKey: "areaTitleScroll"))
+
+        host.setAnimating(false)
+        var actualPresentation = GameSimulation().presentation
+        actualPresentation.campaign = campaignPresentation(spriteID: .poisonNagaQueen)
+        host.render(.active(actualPresentation))
+
+        XCTAssertEqual(title.text, "Shallow Depths")
+        XCTAssertNil(title.action(forKey: "areaTitleScroll"))
+
+        host.setAnimating(true)
+
+        XCTAssertEqual(title.text, "The Forgotten Shallow Depths That Were Remembered")
+        XCTAssertNotNil(title.action(forKey: "areaTitleScroll"))
+    }
+
     func testSelectionAndProceduralPresentationsHideAndResetAreaTitle() throws {
         let host = try PrototypeSceneHost()
         var presentation = GameSimulation().presentation
@@ -200,6 +221,7 @@ final class PrototypeSceneHostTests: XCTestCase {
 
     func testInteractiveHoverReplayIsDeterministicAndPassiveRejectsIt() throws {
         let host = try PrototypeSceneHost()
+        host.scene.completeMarqueeForTesting()
         host.setAnimating(false)
         host.setAnimating(true)
         host.setInteractive(true)
@@ -219,16 +241,24 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertNil(title.action(forKey: "areaTitleScroll"))
     }
 
-    func testInteractiveUsesLocalTrackingAreaAndDisablingClearsPointer() throws {
+    func testInteractiveTrackingIsActiveForNonKeyOverlayAndDisablingClearsPointer() throws {
         let host = try PrototypeSceneHost()
+        let window = OverlayWindowController(contentView: host.view)
+        window.setInputEnabled(true)
+        window.setVisible(true)
         host.setInteractive(true)
         host.view.updateTrackingAreas()
 
         let trackingArea = try XCTUnwrap(host.view.trackingAreas.first)
+        XCTAssertFalse(window.panel.canBecomeKey)
+        XCTAssertFalse(window.panel.isKeyWindow)
+        XCTAssertTrue(window.panel.styleMask.contains(.nonactivatingPanel))
         XCTAssertTrue(trackingArea.options.contains(.mouseMoved))
         XCTAssertTrue(trackingArea.options.contains(.mouseEnteredAndExited))
-        XCTAssertTrue(trackingArea.options.contains(.activeInKeyWindow))
+        XCTAssertTrue(trackingArea.options.contains(.activeAlways))
+        XCTAssertFalse(trackingArea.options.contains(.activeInKeyWindow))
         XCTAssertTrue(trackingArea.options.contains(.inVisibleRect))
+        XCTAssertTrue(trackingArea.owner === host.view)
 
         host.scene.setPointerLocation(CGPoint(x: 570, y: 84))
         XCTAssertNotNil(host.scene.pointerLocationForTesting)
@@ -236,6 +266,7 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertNil(host.scene.pointerLocationForTesting)
         host.view.updateTrackingAreas()
         XCTAssertTrue(host.view.trackingAreas.isEmpty)
+        window.setVisible(false)
     }
 
     func testRenderingUsesStableNamedNodesAndClampedSnapshotValues() throws {

@@ -105,6 +105,41 @@ final class AreaTitleMarqueeTests: XCTestCase {
         ))
     }
 
+    func testInterruptedInitialPassReplaysOnceWhenAnimationsBecomeEnabled() {
+        var state = presentedState()
+
+        state.present(
+            areaID: .forgottenShallowDepths,
+            fullName: fullName,
+            shortName: shortName,
+            animationsEnabled: false
+        )
+        XCTAssertEqual(state.phase, .settled(shortName: shortName))
+
+        state.present(
+            areaID: .forgottenShallowDepths,
+            fullName: fullName,
+            shortName: shortName,
+            animationsEnabled: true
+        )
+        XCTAssertEqual(state.phase, .scrolling(fullName: fullName, shortName: shortName))
+
+        state.completeScroll()
+        state.present(
+            areaID: .forgottenShallowDepths,
+            fullName: fullName,
+            shortName: shortName,
+            animationsEnabled: false
+        )
+        state.present(
+            areaID: .forgottenShallowDepths,
+            fullName: fullName,
+            shortName: shortName,
+            animationsEnabled: true
+        )
+        XCTAssertEqual(state.phase, .settled(shortName: shortName))
+    }
+
     func testHoverRejectsTwoPointNineNineNineSecondsAndEarlyLeaveResetsDuration() {
         var state = settledState()
 

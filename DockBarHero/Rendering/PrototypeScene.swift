@@ -296,6 +296,11 @@ final class PrototypeScene: SKScene {
         advanceMarquee(by: duration, pointerInside: pointerInside)
     }
 
+    func completeMarqueeForTesting() {
+        marqueeState.completeScroll()
+        applyMarqueeState()
+    }
+
     private func advanceMarquee(by duration: TimeInterval, pointerInside: Bool) -> Bool {
         let replayed = marqueeState.advanceHover(
             by: duration,
