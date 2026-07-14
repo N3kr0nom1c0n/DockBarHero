@@ -103,6 +103,8 @@
 		EC631C3F90F2C01DAA0A47B5 /* SalvageResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DD1B1D1BD91F5406D947CA3 /* SalvageResolver.swift */; };
 		F5240EB9B0162973B453A8A0 /* LootGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4EA7EF1E732EFED34EB7F51 /* LootGeneratorTests.swift */; };
 		F529C11994557356A27A2ED7 /* HeroesAndPartyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA6AB80F2B66FD8B1EFEB88 /* HeroesAndPartyTests.swift */; };
+		F6786BBB13F3F135E5CD908E /* CampaignCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5618489AE8A3727F8257A8 /* CampaignCatalog.swift */; };
+		FA3BEF51AC4FD038C9EAC04C /* CampaignCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 909FF5EF5E620C7AF777D045 /* CampaignCatalogTests.swift */; };
 		FCB6F0934214BE0DB5368C09 /* SpriteCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F8651220111092B641291FE /* SpriteCatalogTests.swift */; };
 		FDAC194AE4CA4639187D16B4 /* EnvironmentMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEBB2B89631ABEA126DC445 /* EnvironmentMonitor.swift */; };
 		FE1B9454B5099622E28EC6F1 /* ItemStatResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79E319DA881A8E21166437AA /* ItemStatResolverTests.swift */; };
@@ -173,8 +175,10 @@
 		80C47315F197A2C91F065E76 /* PrototypeSceneHostTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeSceneHostTests.swift; sourceTree = "<group>"; };
 		8586F52C6908F4FE4E5B9E0A /* OverlayState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayState.swift; sourceTree = "<group>"; };
 		87C1B7D532091DA5C524FDC4 /* SimulationDriverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationDriverTests.swift; sourceTree = "<group>"; };
+		909FF5EF5E620C7AF777D045 /* CampaignCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignCatalogTests.swift; sourceTree = "<group>"; };
 		943AD75B3E2A18F1AC085766 /* DockBarHero.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DockBarHero.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		94FFC10A209C79F066CF303D /* ProgressionSafetyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionSafetyTests.swift; sourceTree = "<group>"; };
+		9B5618489AE8A3727F8257A8 /* CampaignCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignCatalog.swift; sourceTree = "<group>"; };
 		A28CE908CD1CA83A15254ABB /* ClassActionCooldownTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassActionCooldownTests.swift; sourceTree = "<group>"; };
 		A704FA474D0443A40224B764 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 		A932E76C21E80B473A1597E0 /* EncounterDirector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDirector.swift; sourceTree = "<group>"; };
@@ -255,6 +259,7 @@
 				DA347E51C750D24AE0E8747E /* AbilityResolverTests.swift */,
 				C8443E0D34AB8B0707A79331 /* AppModelTests.swift */,
 				F97A36783977BA1422D08114 /* BalanceConfigurationTests.swift */,
+				909FF5EF5E620C7AF777D045 /* CampaignCatalogTests.swift */,
 				3F131C5732DFA84574EECA06 /* ClassActionConfigurationTests.swift */,
 				A28CE908CD1CA83A15254ABB /* ClassActionCooldownTests.swift */,
 				1B935A6631F3D55BDACEDE3A /* ClassActionsViewTests.swift */,
@@ -313,6 +318,7 @@
 				C5646AC2C7AAE5131609DF1B /* AbilityResolver.swift */,
 				ACAE5AC0485F6080C673233C /* ActionPolicy.swift */,
 				61C6867E3AC329AA6C53A38E /* BalanceConfiguration.swift */,
+				9B5618489AE8A3727F8257A8 /* CampaignCatalog.swift */,
 				AD842A41CC4EA805761CD275 /* ClassActionConfiguration.swift */,
 				E36F2AB49907D4D959AB5A2D /* CombatResolver.swift */,
 				FC6ED814FDE7272DED6E5248 /* DamageMetrics.swift */,
@@ -511,6 +517,7 @@
 				2F24AC590C74CCA51A4FCD23 /* AbilityResolverTests.swift in Sources */,
 				7C8006DEC5C5A9D61C649B8B /* AppModelTests.swift in Sources */,
 				DCE10BEFC2693E92CEFFFCC2 /* BalanceConfigurationTests.swift in Sources */,
+				FA3BEF51AC4FD038C9EAC04C /* CampaignCatalogTests.swift in Sources */,
 				49229A9531B096BA67197576 /* ClassActionConfigurationTests.swift in Sources */,
 				4C6CA8040B28259A8F6DED64 /* ClassActionCooldownTests.swift in Sources */,
 				34532C2821BE5596F82DB0B8 /* ClassActionsViewTests.swift in Sources */,
@@ -565,6 +572,7 @@
 				9320F70620705E5BC5DCA006 /* AppSettings.swift in Sources */,
 				91B2505FE7F5AC43E2E34B9E /* BalanceConfiguration.swift in Sources */,
 				B6FA9FD54E51510B7F9FAEA3 /* BuiltinPixelSprites.swift in Sources */,
+				F6786BBB13F3F135E5CD908E /* CampaignCatalog.swift in Sources */,
 				CBABFAEFA23FEFB1A073C6B4 /* ClassActionConfiguration.swift in Sources */,
 				21EAF01946769CAC496CFAF1 /* ClassActionsView.swift in Sources */,
 				E41CD49F4FCF1D1C97BA1272 /* ClassSelectionView.swift in Sources */,
