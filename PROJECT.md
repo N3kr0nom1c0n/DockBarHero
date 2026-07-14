@@ -63,7 +63,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 - Date: 2026-07-13.
 - Checkout: isolated worktree on `codex/lore-manga-vertical-slice`.
-- Lore gate: 71 focused tests and the full 290-test suite passed with zero failures.
+- Lore gate: 72 focused tests and the full 291-test suite passed with zero failures.
 - Seven catalog sheets load as 28 frames; all are mechanically 1024x1024 and visually inspected from final paths.
 - Clean unsigned Apple Silicon Debug build succeeded; `./script/build_and_run.sh --verify` launched PID 28026.
 - Live management-window visual/audio QA is not claimed because the Mac locked during inspection.

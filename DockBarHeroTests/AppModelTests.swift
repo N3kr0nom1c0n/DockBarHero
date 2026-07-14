@@ -399,6 +399,7 @@ final class AppModelTests: XCTestCase {
         model.managementWindowDidClose()
 
         XCTAssertEqual(lore.closeCount, 1)
+        XCTAssertEqual(model.managementRoute, .overview)
     }
 
     func testLoreSettingActionsSubmitIndependentValues() {

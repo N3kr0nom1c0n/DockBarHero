@@ -56,6 +56,21 @@ final class LoreReaderControllerTests: XCTestCase {
         XCTAssertEqual(controller.reactionText, "Heh.")
         XCTAssertTrue(speech.previews.isEmpty)
     }
+
+    func testAutoReadOnlyHappensOncePerSequentialPage() throws {
+        let speech = LoreSpeechFake()
+        let controller = try makeController(speech: speech)
+        var recorded: [LorePageID] = []
+        controller.onAutoReadPage = { recorded.append($0) }
+        controller.update(settings: .spokenFixture, pages: [.fixture])
+
+        controller.open()
+        controller.close()
+        controller.open()
+
+        XCTAssertEqual(speech.spoken.count, 1)
+        XCTAssertEqual(recorded.map(\.rawValue), ["test"])
+    }
 }
 
 @MainActor

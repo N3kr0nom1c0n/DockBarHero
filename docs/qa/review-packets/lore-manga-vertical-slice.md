@@ -20,8 +20,8 @@
 
 | Check | Result |
 |---|---|
-| Combined lore/settings/app tests | PASS: 71 tests, 0 failures |
-| Full `DockBarHeroTests` suite | PASS: 290 tests, 0 failures |
+| Combined lore/settings/app tests | PASS: 72 tests, 0 failures |
+| Full `DockBarHeroTests` suite | PASS: 291 tests, 0 failures |
 | Every catalog image loads and crops | PASS: 7 sheets, 28 frames |
 | Mechanical image dimensions | PASS: all seven are 1024x1024 |
 | Clean unsigned Apple Silicon build | PASS |
@@ -44,6 +44,8 @@ The launched app's passive rail was directly visible and the process launch was 
 - verify VoiceOver announcement for the reversed control.
 
 Automated controller tests cover the safety-critical speech gates and stop behavior, but they are not represented as manual audio evidence.
+
+The final review also added explicit coverage for one-time sequential auto-read, visible clean/unfiltered opening insults, close/reopen route reset, and the Book's dishonest arrow correction.
 
 ## Known Scope Boundaries
 

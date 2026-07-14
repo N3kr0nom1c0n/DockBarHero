@@ -19,6 +19,7 @@ struct LoreBookView: View {
 private struct LoreBookReaderView: View {
     @ObservedObject var model: AppModel
     @ObservedObject var controller: LoreReaderController
+    @State private var arrowPointsWrongWay = true
 
     private var currentIndex: Int {
         guard let id = controller.currentPageID,
@@ -43,6 +44,12 @@ private struct LoreBookReaderView: View {
             controls
         }
         .background(Color(red: 0.20, green: 0.08, blue: 0.06))
+        .task {
+            arrowPointsWrongWay = true
+            try? await Task.sleep(for: .milliseconds(900))
+            arrowPointsWrongWay = false
+            controller.arrowCorrected()
+        }
     }
 
     private var header: some View {
@@ -55,6 +62,10 @@ private struct LoreBookReaderView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
+            Image(systemName: arrowPointsWrongWay ? "arrow.right.circle.fill" : "arrow.left.circle.fill")
+                .font(.system(size: 28, weight: .black))
+                .foregroundStyle(arrowPointsWrongWay ? .red : .black)
+                .accessibilityLabel(arrowPointsWrongWay ? "Misleading reading arrow pointing right" : "Corrected reading arrow pointing left")
             if !controller.reactionText.isEmpty {
                 Text(controller.reactionText)
                     .font(.caption.italic())

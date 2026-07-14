@@ -33,6 +33,7 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
     @Published private(set) var reactionText = ""
     @Published private(set) var isSpeaking = false
     @Published private(set) var pages: [ResolvedLorePage] = []
+    var onAutoReadPage: ((LorePageID) -> Void)?
 
     private let dialogue: SpokenDialogueCatalog
     private let speech: LoreSpeechControlling
@@ -62,7 +63,7 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
     func open() {
         isOpen = true
         reactionText = "The Book opens itself half an inch farther out of spite."
-        if settings.autoReadNewLorePages { playCurrentCue() }
+        autoReadCurrentPageIfNeeded()
     }
 
     func close() {
@@ -90,6 +91,7 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
         isSpeaking = false
         currentPageID = pageID
         cueIndex = 0
+        autoReadCurrentPageIfNeeded()
     }
 
     func replay() {
@@ -118,6 +120,12 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
         speech.previewGiggle(text, gain: BookVolumeMapping.gain(for: detent))
     }
 
+    func arrowCorrected() {
+        reactionText = settings.loreLanguageMode == .clean
+            ? "Slander. The arrow has always pointed left. This is manga. You were reading it backward."
+            : "Slander. The arrow has always pointed left. This is manga, you jackass. You were reading it backwards."
+    }
+
     private var currentPage: ResolvedLorePage? {
         pages.first(where: { $0.id == currentPageID })
     }
@@ -135,6 +143,24 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
         }
         speech.speak(cue, gain: settings.bookOutputGain)
         isSpeaking = true
+    }
+
+    private func autoReadCurrentPageIfNeeded() {
+        guard settings.autoReadNewLorePages, canSpeak, let page = currentPage else { return }
+        if page.id.rawValue == "prologue.level-100000", settings.hasSeenCurrentRunPrologue { return }
+        if let lastID = settings.lastAutoReadLorePageID,
+           let lastIndex = pages.firstIndex(where: { $0.id.rawValue == lastID }),
+           let currentIndex = pages.firstIndex(where: { $0.id == page.id }),
+           currentIndex <= lastIndex {
+            return
+        }
+        cueIndex = 0
+        playCurrentCue()
+        settings.lastAutoReadLorePageID = page.id.rawValue
+        if page.id.rawValue == "prologue.level-100000" {
+            settings.hasSeenCurrentRunPrologue = true
+        }
+        onAutoReadPage?(page.id)
     }
 
     private func stopPlayback() {

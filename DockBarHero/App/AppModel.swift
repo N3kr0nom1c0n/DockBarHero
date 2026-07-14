@@ -47,6 +47,11 @@ final class AppModel: ObservableObject {
         self.loreCatalog = loreCatalog
         self.loreReader = loreReader ?? SilentLoreReaderController()
         self.hasResolvedSettings = settingsController == nil
+        if let controller = self.loreReader as? LoreReaderController {
+            controller.onAutoReadPage = { [weak self] pageID in
+                self?.recordAutoRead(pageID)
+            }
+        }
     }
 
     private func handleEnvironmentVisibility(_ visibility: EnvironmentVisibility) {
@@ -155,6 +160,9 @@ final class AppModel: ObservableObject {
 
     func managementWindowDidClose() {
         loreReader.close()
+        if managementRoute == .book {
+            managementRoute = .overview
+        }
     }
 
     func updateLoreLanguage(_ mode: LoreLanguageMode) {
@@ -297,6 +305,14 @@ final class AppModel: ObservableObject {
 
     private func publishLoreSettings() {
         refreshLore()
+        settingsController?.update(appSettings)
+    }
+
+    private func recordAutoRead(_ pageID: LorePageID) {
+        appSettings.lastAutoReadLorePageID = pageID.rawValue
+        if pageID.rawValue == "prologue.level-100000" {
+            appSettings.hasSeenCurrentRunPrologue = true
+        }
         settingsController?.update(appSettings)
     }
 }

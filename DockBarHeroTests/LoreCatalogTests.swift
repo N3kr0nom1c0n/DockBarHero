@@ -48,6 +48,10 @@ final class LoreCatalogTests: XCTestCase {
             "prologue.level-100000", "volume-1.level-1", "volume-1.level-5",
             "volume-1.level-10", "volume-1.level-15", "volume-1.level-20"
         ])
+        let prologue = try XCTUnwrap(catalog.pages.first)
+        XCTAssertTrue(prologue.body.unfiltered.contains("American jackass"))
+        XCTAssertTrue(prologue.body.unfiltered.contains("arrow"))
+        XCTAssertFalse(prologue.body.clean.lowercased().contains("fuck"))
     }
 }
 
