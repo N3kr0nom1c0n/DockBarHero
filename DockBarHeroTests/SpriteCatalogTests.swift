@@ -126,6 +126,28 @@ final class SpriteCatalogTests: XCTestCase {
         XCTAssertFalse(clip.repeats)
     }
 
+    func testBundledCatalogUsesProductionIdleWhenActionIsUnavailable() throws {
+        let manifest = Data("""
+        {"version":1,"cell":{"width":96,"height":64},"clips":[{
+          "token":"elementalSlimeNormal","action":"idle",
+          "resource":"slime/idle.png","frameCount":1,
+          "secondsPerFrame":0.2,"repeats":true
+        }]}
+        """.utf8)
+        let image = try XCTUnwrap(Self.image(width: 96, height: 64))
+        let catalog = try BundledSpriteCatalog(
+            manifestData: manifest,
+            imageProvider: { _ in image },
+            fallback: BuiltinSpriteCatalog()
+        )
+
+        let clip = catalog.clip(for: .elementalSlimeNormal, action: .attack)
+
+        XCTAssertEqual(clip.textures.first?.size(), CGSize(width: 96, height: 64))
+        XCTAssertEqual(clip.secondsPerFrame, 0.2, accuracy: 0.000_001)
+        XCTAssertTrue(clip.repeats)
+    }
+
     private static func image(width: Int, height: Int) -> CGImage? {
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         guard let context = CGContext(

@@ -97,6 +97,10 @@ final class PrototypeSceneHostTests: XCTestCase {
         let enemy = try XCTUnwrap(host.scene.childNode(withName: "enemy") as? SKSpriteNode)
         XCTAssertEqual(hero.texture?.filteringMode, .nearest)
         XCTAssertEqual(enemy.texture?.filteringMode, .nearest)
+        XCTAssertEqual(hero.texture?.size(), CGSize(width: 96, height: 64))
+        XCTAssertEqual(enemy.texture?.size(), CGSize(width: 96, height: 64))
+        XCTAssertEqual(hero.size, CGSize(width: 54, height: 36))
+        XCTAssertEqual(enemy.size, CGSize(width: 54, height: 36))
         XCTAssertNotNil(host.scene.childNode(withName: "ground"))
     }
 
@@ -178,32 +182,33 @@ final class PrototypeSceneHostTests: XCTestCase {
             .defeat(enemyLevel: 2),
         ])
 
-        XCTAssertTrue(catalog.calls.contains(.init(token: .enemy, action: .attack)))
-        XCTAssertTrue(catalog.calls.contains(.init(token: .hero, action: .hit)))
-        XCTAssertTrue(catalog.calls.contains(.init(token: .enemy, action: .defeated)))
-        XCTAssertTrue(catalog.calls.contains(.init(token: .hero, action: .defeated)))
+        XCTAssertTrue(catalog.calls.contains(.init(token: .goblin, action: .attack)))
+        XCTAssertTrue(catalog.calls.contains(.init(token: .dps, action: .hit)))
+        XCTAssertTrue(catalog.calls.contains(.init(token: .goblin, action: .defeated)))
+        XCTAssertTrue(catalog.calls.contains(.init(token: .dps, action: .defeated)))
     }
 
-    func testVictoryUsesBriefEnemyFadeOutAndIn() throws {
+    func testVictoryKeepsEnemyDefeatSpriteWithoutProceduralFade() throws {
         let host = try PrototypeSceneHost()
         let enemy = try XCTUnwrap(host.scene.childNode(withName: "enemy"))
 
         host.scene.handle([.victory(defeatedLevel: 7)])
 
-        let action = try XCTUnwrap(enemy.action(forKey: "eventFade"))
-        XCTAssertEqual(action.duration, 0.26, accuracy: 0.001)
+        XCTAssertNotNil(enemy.action(forKey: "spriteAction"))
+        XCTAssertNil(enemy.action(forKey: "eventFade"))
         XCTAssertNil(enemy.action(forKey: "reviveVisibility"))
     }
 
-    func testDefeatFadesHeroOutWithoutAutomaticRestore() throws {
+    func testDefeatRetainsHeroDefeatPoseWithoutHidingActor() throws {
         let host = try PrototypeSceneHost()
         let hero = try XCTUnwrap(host.scene.childNode(withName: "hero"))
 
         host.scene.handle([.defeat(enemyLevel: 7)])
 
-        let action = try XCTUnwrap(hero.action(forKey: "reviveVisibility"))
-        XCTAssertEqual(action.duration, 0.08, accuracy: 0.001)
+        XCTAssertNotNil(hero.action(forKey: "spriteAction"))
+        XCTAssertNil(hero.action(forKey: "reviveVisibility"))
         XCTAssertNil(hero.action(forKey: "eventFade"))
+        XCTAssertEqual(hero.alpha, 1, accuracy: 0.001)
     }
 
     func testRevivedReplacesDefeatFadeAndRestoresHeroOpacity() throws {
@@ -270,8 +275,8 @@ final class PrototypeSceneHostTests: XCTestCase {
 
         host.scene.handle([.heroAttack(slot: 1, damage: 12), .heroDown(slot: 1)])
 
-        XCTAssertNil(first.action(forKey: "reviveVisibility"))
-        XCTAssertNotNil(secondNode.action(forKey: "reviveVisibility"))
+        XCTAssertNil(first.action(forKey: "spriteAction"))
+        XCTAssertNotNil(secondNode.action(forKey: "spriteAction"))
     }
 
     func testRailCreatesActionNodeForEveryHeroAndShowsCooldown() throws {
@@ -291,6 +296,60 @@ final class PrototypeSceneHostTests: XCTestCase {
             (host.scene.childNode(withName: "//hero-1Action") as? SKLabelNode)?.text,
             "M READY"
         )
+    }
+
+    func testEveryPartySlotOwnsStableIdleLoopAndAttacksDoNotMoveActors() throws {
+        let host = try PrototypeSceneHost()
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        let dps = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        let healer = GameState.newGame(classID: .healer, balance: .standard, progression: .standard).party.heroes[0]
+        state.party = PartyState(heroes: [state.party.heroes[0], dps, healer], unlocks: .complete)
+        host.render(.active(GameSimulation(state: state).presentation))
+        let heroes = try (0..<3).map { slot in
+            try XCTUnwrap(host.scene.childNode(withName: slot == 0 ? "//hero" : "//hero-\(slot)"))
+        }
+        let positions = heroes.map(\.position)
+
+        XCTAssertTrue(heroes.allSatisfy { $0.action(forKey: "spriteLoop") != nil })
+        XCTAssertTrue(heroes.allSatisfy { $0.action(forKey: "idle") == nil })
+        host.scene.handle([.heroAttack(slot: 1, damage: 12)])
+
+        XCTAssertEqual(heroes.map(\.position), positions)
+        XCTAssertNil(heroes[1].action(forKey: "eventAttack"))
+        XCTAssertNotNil(heroes[1].action(forKey: "spriteAction"))
+    }
+
+    func testClassActionCastAnimatesOnlyAddressedHero() throws {
+        let catalog = RecordingSpriteCatalog()
+        let host = try PrototypeSceneHost(spriteCatalog: catalog)
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        let healer = GameState.newGame(classID: .healer, balance: .standard, progression: .standard).party.heroes[0]
+        state.party = PartyState(heroes: [state.party.heroes[0], healer], unlocks: .secondUnlocked)
+        host.render(.active(GameSimulation(state: state).presentation))
+        catalog.calls.removeAll()
+
+        host.scene.handle([.classActionCast(heroSlot: 1, actionID: .mend)])
+
+        XCTAssertTrue(catalog.calls.contains(.init(token: .healer, action: .classAction)))
+        XCTAssertFalse(catalog.calls.contains(.init(token: .tank, action: .classAction)))
+    }
+
+    func testRenderResolvesEnemyIdentityWithoutReplacingStableNode() throws {
+        let catalog = RecordingSpriteCatalog()
+        let host = try PrototypeSceneHost(spriteCatalog: catalog)
+        let enemy = try XCTUnwrap(host.scene.childNode(withName: "enemy"))
+        var state = GameState.newGame(balance: .standard)
+        state.encounter.enemyLevel = 25
+        state.encounter.tier = .boss
+        catalog.calls.removeAll()
+
+        host.render(.active(GameSimulation(state: state).presentation))
+
+        XCTAssertTrue(host.scene.childNode(withName: "enemy") === enemy)
+        XCTAssertTrue(catalog.calls.contains(.init(token: .ironrootWarchief, action: .idle)))
+        catalog.calls.removeAll()
+        host.render(.active(GameSimulation(state: state).presentation))
+        XCTAssertFalse(catalog.calls.contains(.init(token: .ironrootWarchief, action: .idle)))
     }
 
     func testPassiveRailDoesNotEmitCastButInteractiveRailDoes() throws {

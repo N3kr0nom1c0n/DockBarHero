@@ -113,13 +113,20 @@ final class BundledSpriteCatalog: SpriteCatalog {
     func clip(for token: SpriteToken, action: SpriteAction) -> SpriteClip {
         let key = Key(token: token, action: action)
         if let cached = cachedClips[key] { return cached }
-        guard let entry = entries[key],
-              let clip = makeClip(entry) else {
-            logInvalidOnce(key)
-            return fallback.clip(for: token, action: action)
+        if let entry = entries[key], let clip = makeClip(entry) {
+            cachedClips[key] = clip
+            return clip
         }
-        cachedClips[key] = clip
-        return clip
+        if action != .idle {
+            let idleKey = Key(token: token, action: .idle)
+            if let cached = cachedClips[idleKey] { return cached }
+            if let idleEntry = entries[idleKey], let idleClip = makeClip(idleEntry) {
+                cachedClips[idleKey] = idleClip
+                return idleClip
+            }
+        }
+        logInvalidOnce(key)
+        return fallback.clip(for: token, action: action)
     }
 
     static func productionCatalog(bundle: Bundle = .main) -> any SpriteCatalog {

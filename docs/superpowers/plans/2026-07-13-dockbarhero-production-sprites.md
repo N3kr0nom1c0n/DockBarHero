@@ -207,19 +207,19 @@ git commit -m "feat: resolve deterministic enemy sprite identities"
 - Consumes: `SpriteCatalog.clip(for:action:)` and stable hero slot prefixes.
 - Produces: keyed `spriteLoop` and `spriteAction` actions with no keyed `idle` or `eventAttack` movement.
 
-- [ ] **Step 1: Write failing hero animation tests**
+- [x] **Step 1: Write failing hero animation tests**
 
 Assert every rendered party slot starts a repeating idle clip, repeated snapshots retain the same idle action identity, `.heroAttack(slot:)` animates only that slot without changing position, class-action events choose `.classAction`, `.heroDown` ends on defeat and remains down, and victory/revival restores every slot to idle.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run `PrototypeSceneHostTests`; expect failures because secondary nodes lack idle actions and current attacks use positional movement.
 
-- [ ] **Step 3: Implement stable clip playback**
+- [x] **Step 3: Implement stable clip playback**
 
 Remove the procedural bob and `animateHeroAttack`. Start idle when a node is created or its identity changes. Play nonlooping event clips, return living actors to idle on completion, retain the final defeat frame, and route `.classActionCast(heroSlot:actionID:)` to the exact hero.
 
-- [ ] **Step 4: Verify GREEN and commit**
+- [x] **Step 4: Verify GREEN and commit**
 
 ```bash
 git add DockBarHero/Rendering/PrototypeScene.swift DockBarHeroTests/PrototypeSceneHostTests.swift
@@ -236,19 +236,19 @@ git commit -m "feat: animate every hero from production clips"
 - Consumes: `EnemySpriteResolver` and `GamePresentation.state.encounter`.
 - Produces: stable enemy node identity and clip selection with no saved field.
 
-- [ ] **Step 1: Write failing enemy scene tests**
+- [x] **Step 1: Write failing enemy scene tests**
 
 Assert normal/elite/boss renders select expected tokens, identity changes replace idle once, unchanged snapshots do not restart it, enemy attacks/hits/defeats use the resolved token, and encounter resolution starts the next identity's idle clip.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run the focused scene suite; expect token/call mismatches because the scene always uses `.enemy`.
 
-- [ ] **Step 3: Implement resolved enemy playback**
+- [x] **Step 3: Implement resolved enemy playback**
 
 Track `renderedEnemyToken`, resolve it from level/tier during render, and route enemy event clips through that token. Remove enemy positional lunges and the defeat fade while retaining hit markers and all labels.
 
-- [ ] **Step 4: Verify GREEN and commit**
+- [x] **Step 4: Verify GREEN and commit**
 
 ```bash
 git add DockBarHero/Rendering/PrototypeScene.swift DockBarHeroTests/PrototypeSceneHostTests.swift
