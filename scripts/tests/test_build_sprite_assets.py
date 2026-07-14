@@ -44,6 +44,16 @@ class BuildSpriteAssetsTests(unittest.TestCase):
     def tearDown(self):
         self.temporary_directory.cleanup()
 
+    def test_production_hero_sources_preserve_edge_connected_silhouettes(self):
+        project_root = Path(__file__).resolve().parents[2]
+        manifest = json.loads((project_root / "art/sprite-manifest.json").read_text())
+
+        for source_id in ("dps", "tank", "healer"):
+            with self.subTest(source_id=source_id):
+                source = manifest["sources"][source_id]
+                self.assertTrue(source.get("edgeConnectedBackground"))
+                self.assertEqual(source.get("backgroundFuzz"), 2)
+
     def test_rejects_source_hash_mismatch_without_writing_output(self):
         self._write_manifest(source_hash="0" * 64)
 

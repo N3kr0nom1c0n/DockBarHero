@@ -4,14 +4,14 @@
 
 **Goal:** Add crisp black outlines to rail text and animated actors while preserving every existing sprite color and opaque interior pixel.
 
-**Architecture:** Keep the change inside `PrototypeScene`: eight offset black child labels sit behind each untouched foreground label, and one shared SpriteKit fragment shader adds an exterior contour to the existing animated textures. Do not regenerate or modify sprite assets.
+**Architecture:** Eight offset black child labels sit behind each untouched foreground label, and one shared SpriteKit fragment shader adds an exterior contour. The hero asset manifest uses edge-connected background removal so deterministic regeneration preserves real dark interior pixels instead of making them transparent.
 
-**Tech Stack:** Swift 6, SpriteKit `SKLabelNode` layering and `SKShader`, XCTest, Xcode arm64 test/build tooling.
+**Tech Stack:** Swift 6, SpriteKit `SKLabelNode` layering and `SKShader`, Python/ImageMagick sprite pipeline, XCTest/unittest, Xcode arm64 test/build tooling.
 
 ## Global Constraints
 
 - Preserve the existing transparent rail, scene geometry, labels, health bars, actor dimensions, animation timing, actor opacity, and texture filtering.
-- Preserve every source texture color and alpha value; no PNG, source board, sprite manifest, or asset pipeline edits.
+- Preserve every source-board color; generated hero PNG alpha may change only through the checksum-locked sprite pipeline.
 - Draw a black text stroke approximately one display point wide and a one-source-texel black contour outside actor silhouettes.
 - Do not add a shadow, glow, plate, or background behind actors.
 
@@ -121,16 +121,54 @@ git add DockBarHero/Rendering/PrototypeScene.swift DockBarHeroTests/PrototypeSce
 git commit -m "fix: outline rail actors"
 ```
 
-### Task 3: Full Verification and Context Record
+### Task 3: Preserve Hero Interior Silhouettes
+
+**Files:**
+- Modify: `art/sprite-manifest.json`
+- Modify: `DockBarHero/Resources/Sprites/dps/*.png`
+- Modify: `DockBarHero/Resources/Sprites/tank/*.png`
+- Modify: `DockBarHero/Resources/Sprites/healer/*.png`
+- Test: `scripts/tests/test_build_sprite_assets.py`
+
+**Interfaces:**
+- Consumes: checksum-locked DPS, Tank, and Healer source boards.
+- Produces: generated hero strips whose edge-connected background is transparent while enclosed dark character pixels remain opaque.
+
+- [ ] **Step 1: Write and run the failing production-manifest regression**
+
+Add `test_production_hero_sources_preserve_edge_connected_silhouettes()`. Load `art/sprite-manifest.json` and assert `dps`, `tank`, and `healer` each declare `edgeConnectedBackground: true` and `backgroundFuzz: 2`. Run that method directly; expect three subtest failures against the global-key manifest.
+
+- [ ] **Step 2: Change only the three hero source extraction contracts**
+
+Add `"edgeConnectedBackground": true` and `"backgroundFuzz": 2` to the DPS, Tank, and Healer source entries. Do not change checksums, crop regions, scale, timing, or source boards.
+
+- [ ] **Step 3: Regenerate and verify every hero strip**
+
+```bash
+python3 scripts/build_sprite_assets.py --manifest art/sprite-manifest.json --output DockBarHero/Resources/Sprites
+python3 -m unittest discover -s scripts/tests -p 'test_*.py'
+python3 scripts/build_sprite_assets.py --manifest art/sprite-manifest.json --output DockBarHero/Resources/Sprites --check
+```
+
+Expected: all 16 pipeline tests pass, the generated check succeeds, and only DPS/Tank/Healer strips change.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add art/sprite-manifest.json DockBarHero/Resources/Sprites scripts/tests/test_build_sprite_assets.py
+git commit -m "fix: preserve hero sprite silhouettes"
+```
+
+### Task 4: Full Verification and Context Record
 
 **Files:**
 - Modify only if verified current truth changes: `PROJECT.md`
 
 **Interfaces:**
-- Consumes: Tasks 1 and 2.
+- Consumes: Tasks 1 through 3.
 - Produces: fresh automated and live evidence for the isolated branch.
 
-- [ ] **Step 1: Validate generated assets remain unchanged**
+- [ ] **Step 1: Validate generated assets match the repaired manifest**
 
 ```bash
 python3 scripts/build_sprite_assets.py --manifest art/sprite-manifest.json --output DockBarHero/Resources/Sprites --check
