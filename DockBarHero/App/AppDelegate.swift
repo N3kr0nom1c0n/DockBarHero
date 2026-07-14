@@ -2,8 +2,11 @@ import AppKit
 import SwiftUI
 
 @MainActor
-final class ManagementWindowController: NSWindowController {
+final class ManagementWindowController: NSWindowController, NSWindowDelegate {
+    private let onClose: () -> Void
+
     init(model: AppModel) {
+        onClose = { [weak model] in model?.managementWindowDidClose() }
         let content = NSHostingController(rootView: ManagementRootView(model: model))
         let window = NSWindow(contentViewController: content)
         window.title = "DockBarHero"
@@ -12,6 +15,7 @@ final class ManagementWindowController: NSWindowController {
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
         window.isReleasedWhenClosed = false
         super.init(window: window)
+        window.delegate = self
     }
 
     @available(*, unavailable)
@@ -23,6 +27,10 @@ final class ManagementWindowController: NSWindowController {
         showWindow(nil)
         window?.makeKeyAndOrderFront(nil)
         NSApplication.shared.activate()
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        onClose()
     }
 }
 
@@ -72,7 +80,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let driver = SimulationDriver()
         let session = GameSession(driver: driver, store: store, coordinator: coordinator)
         let settingsSession = SettingsSession(store: SettingsStore())
-        let model = AppModel(gameSession: session, settingsController: settingsSession)
+        let loreCatalog: LoreCatalog?
+        let loreReader: any LoreReaderControlling
+        do {
+            let loadedLore = try LoreCatalog.bundled()
+            let dialogue = try SpokenDialogueCatalog.bundled(loreCatalog: loadedLore)
+            loreCatalog = loadedLore
+            loreReader = LoreReaderController(dialogue: dialogue, speech: SystemLoreSpeechService())
+        } catch {
+            loreCatalog = nil
+            loreReader = SilentLoreReaderController()
+            AppLog.lifecycle.error("Lore bootstrap failed: \(String(describing: error), privacy: .public)")
+        }
+        let model = AppModel(
+            gameSession: session, settingsController: settingsSession,
+            loreCatalog: loreCatalog, loreReader: loreReader
+        )
         self.model = model
         managementWindowController = ManagementWindowController(model: model)
         super.init()
@@ -99,6 +122,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         model.stop()
+    }
+
+    func applicationDidBecomeActive(_ notification: Notification) {
+        model.loreReader.applicationBecameActive()
+    }
+
+    func applicationDidResignActive(_ notification: Notification) {
+        model.loreReader.applicationBecameInactive()
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {

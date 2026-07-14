@@ -14,6 +14,19 @@ protocol LoreReaderControlling: AnyObject {
 }
 
 @MainActor
+final class SilentLoreReaderController: LoreReaderControlling {
+    func update(settings: AppSettings, pages: [ResolvedLorePage]) { }
+    func open() { }
+    func close() { }
+    func applicationBecameActive() { }
+    func applicationBecameInactive() { }
+    func select(_ pageID: LorePageID) { }
+    func replay() { }
+    func skip() { }
+    func previewVolume(detent: Int) { }
+}
+
+@MainActor
 final class LoreReaderController: ObservableObject, LoreReaderControlling {
     @Published private(set) var isOpen = false
     @Published private(set) var currentPageID: LorePageID?

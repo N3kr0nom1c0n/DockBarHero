@@ -327,6 +327,80 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(session.startCount, 1)
     }
 
+    func testLeavingBookRouteClosesLoreSpeech() {
+        let lore = LoreReaderControllerFake()
+        let model = AppModel(loreReader: lore)
+
+        model.selectManagementRoute(.book)
+        model.selectManagementRoute(.overview)
+
+        XCTAssertEqual(lore.openCount, 1)
+        XCTAssertEqual(lore.closeCount, 1)
+    }
+
+    func testResolvedSettingsUpdateLoreReaderWithoutLosingLoreValues() {
+        var initial = AppSettings.defaults
+        initial.loreLanguageMode = .clean
+        initial.bookVolumeDetent = 9
+        initial.spokenDialogueEnabled = true
+        let settings = FakeSettingsController(initial: initial)
+        let lore = LoreReaderControllerFake()
+        let model = AppModel(settingsController: settings, loreReader: lore)
+
+        model.start()
+        settings.resolve()
+
+        XCTAssertEqual(model.appSettings, initial)
+        XCTAssertEqual(lore.updates.last?.settings, initial)
+    }
+
+    func testSuccessfulNewGameClearsDisposableBookState() async throws {
+        let session = FakeGameSession()
+        var initial = AppSettings.defaults
+        initial.hasSeenCurrentRunPrologue = true
+        initial.lastAutoReadLorePageID = "volume-1.level-20"
+        let settings = FakeSettingsController(initial: initial)
+        let model = AppModel(gameSession: session, settingsController: settings)
+        model.start()
+        settings.resolve()
+
+        try await model.startNewGame()
+
+        XCTAssertFalse(model.appSettings.hasSeenCurrentRunPrologue)
+        XCTAssertNil(model.appSettings.lastAutoReadLorePageID)
+        XCTAssertEqual(settings.updates.last, model.appSettings)
+    }
+
+    func testFailedNewGamePreservesDisposableBookState() async {
+        let session = FakeGameSession()
+        session.newGameError = FakeGameSessionError.rejected
+        var initial = AppSettings.defaults
+        initial.hasSeenCurrentRunPrologue = true
+        initial.lastAutoReadLorePageID = "volume-1.level-20"
+        let settings = FakeSettingsController(initial: initial)
+        let model = AppModel(gameSession: session, settingsController: settings)
+        model.start()
+        settings.resolve()
+
+        do {
+            try await model.startNewGame()
+            XCTFail("Expected new game failure")
+        } catch { }
+
+        XCTAssertTrue(model.appSettings.hasSeenCurrentRunPrologue)
+        XCTAssertEqual(model.appSettings.lastAutoReadLorePageID, "volume-1.level-20")
+    }
+
+    func testManagementWindowCloseStopsLoreSpeech() {
+        let lore = LoreReaderControllerFake()
+        let model = AppModel(loreReader: lore)
+        model.selectManagementRoute(.book)
+
+        model.managementWindowDidClose()
+
+        XCTAssertEqual(lore.closeCount, 1)
+    }
+
     func testStopAndSaveStopsOverlayAndAwaitsGameAndSettingsSessions() async {
         let dependencies = TestDependencies()
         let session = FakeGameSession()
@@ -534,6 +608,7 @@ private final class FakeGameSession: GameSessionControlling {
     var stopCompleted = false
     var classChoices: [HeroClassID] = []
     var newGameCount = 0
+    var newGameError: Error?
     private var stopContinuation: CheckedContinuation<Void, Never>?
 
     func start() { startCount += 1 }
@@ -548,6 +623,7 @@ private final class FakeGameSession: GameSessionControlling {
 
     func startNewGame() async throws {
         newGameCount += 1
+        if let newGameError { throw newGameError }
     }
 
     func stopAndSave() async {
@@ -578,4 +654,26 @@ private final class FakeGameSession: GameSessionControlling {
         stopContinuation?.resume()
         stopContinuation = nil
     }
+}
+
+private enum FakeGameSessionError: Error { case rejected }
+
+@MainActor
+private final class LoreReaderControllerFake: LoreReaderControlling {
+    struct Update {
+        let settings: AppSettings
+        let pages: [ResolvedLorePage]
+    }
+    var updates: [Update] = []
+    var openCount = 0
+    var closeCount = 0
+    func update(settings: AppSettings, pages: [ResolvedLorePage]) { updates.append(.init(settings: settings, pages: pages)) }
+    func open() { openCount += 1 }
+    func close() { closeCount += 1 }
+    func applicationBecameActive() { }
+    func applicationBecameInactive() { }
+    func select(_ pageID: LorePageID) { }
+    func replay() { }
+    func skip() { }
+    func previewVolume(detent: Int) { }
 }

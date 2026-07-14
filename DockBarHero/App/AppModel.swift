@@ -7,6 +7,9 @@ final class AppModel: ObservableObject {
     @Published private(set) var runPresentation: RunPresentation = .classSelection
     @Published private(set) var saveStatus: SaveStatus = .notLoaded
     @Published private(set) var managementRoute: ManagementRoute = .overview
+    @Published private(set) var appSettings = AppSettings.defaults
+    @Published private(set) var lorePages: [ResolvedLorePage] = []
+    let loreReader: any LoreReaderControlling
     var onManagementWindowRequest: (() -> Void)?
 
     private var window: OverlayWindowControlling?
@@ -15,6 +18,7 @@ final class AppModel: ObservableObject {
     private var monitor: EnvironmentMonitoring?
     private var gameSession: GameSessionControlling?
     private var settingsController: SettingsControlling?
+    private let loreCatalog: LoreCatalog?
     private var placement = PlacementResolver()
     private var hasCurrentPlacement = false
     private var hasResolvedEnvironment = false
@@ -29,7 +33,9 @@ final class AppModel: ObservableObject {
         screen: ScreenProviding? = nil,
         monitor: EnvironmentMonitoring? = nil,
         gameSession: GameSessionControlling? = nil,
-        settingsController: SettingsControlling? = nil
+        settingsController: SettingsControlling? = nil,
+        loreCatalog: LoreCatalog? = nil,
+        loreReader: (any LoreReaderControlling)? = nil
     ) {
         self.window = window
         self.scene = scene
@@ -37,6 +43,8 @@ final class AppModel: ObservableObject {
         self.monitor = monitor
         self.gameSession = gameSession
         self.settingsController = settingsController
+        self.loreCatalog = loreCatalog
+        self.loreReader = loreReader ?? SilentLoreReaderController()
         self.hasResolvedSettings = settingsController == nil
     }
 
@@ -86,6 +94,7 @@ final class AppModel: ObservableObject {
     }
 
     func stop() {
+        loreReader.close()
         monitor?.stop()
         window?.setVisible(false)
         scene?.setAnimating(false)
@@ -105,6 +114,9 @@ final class AppModel: ObservableObject {
 
     func send(_ action: OverlayAction) {
         state.apply(action)
+        appSettings.manualVisibility = state.manualVisibility
+        appSettings.animationMode = state.animationMode
+        appSettings.inputMode = state.inputMode
         applyState()
         if case .setEnvironmentVisibility = action {
             // Environment visibility is runtime-only.
@@ -128,11 +140,41 @@ final class AppModel: ObservableObject {
 
     func startNewGame() async throws {
         try await gameSession?.startNewGame()
+        appSettings.hasSeenCurrentRunPrologue = false
+        appSettings.lastAutoReadLorePageID = nil
+        publishLoreSettings()
     }
 
     func selectManagementRoute(_ route: ManagementRoute) {
         guard managementRoute != route else { return }
+        if managementRoute == .book { loreReader.close() }
         managementRoute = route
+        if route == .book { loreReader.open() }
+    }
+
+    func managementWindowDidClose() {
+        loreReader.close()
+    }
+
+    func updateLoreLanguage(_ mode: LoreLanguageMode) {
+        appSettings.loreLanguageMode = mode
+        publishLoreSettings()
+    }
+
+    func updateLoreIllustration(_ mode: LoreIllustrationMode) {
+        appSettings.loreIllustrationMode = mode
+        publishLoreSettings()
+    }
+
+    func updateSpokenDialogue(_ enabled: Bool) {
+        appSettings.spokenDialogueEnabled = enabled
+        publishLoreSettings()
+    }
+
+    func updateBookVolume(_ detent: Int) {
+        appSettings.bookVolumeDetent = min(max(detent, 0), 10)
+        publishLoreSettings()
+        loreReader.previewVolume(detent: appSettings.bookVolumeDetent)
     }
 
     private func startGameplayIfNeeded() {
@@ -163,26 +205,24 @@ final class AppModel: ObservableObject {
     }
 
     private func receive(_ settings: AppSettings) {
+        appSettings = settings
         state.manualVisibility = settings.manualVisibility
         state.animationMode = settings.animationMode
         state.inputMode = settings.inputMode
         hasResolvedSettings = true
+        refreshLore()
         applyState()
     }
 
     private var currentSettings: AppSettings {
-        AppSettings(
-            schemaVersion: AppSettings.currentVersion,
-            manualVisibility: state.manualVisibility,
-            animationMode: state.animationMode,
-            inputMode: state.inputMode
-        )
+        appSettings
     }
 
     private func receive(_ presentation: GamePresentation) {
         game = presentation
         runPresentation = .active(presentation)
         scene?.render(presentation)
+        refreshLore()
     }
 
     private func receive(_ run: RunPresentation) {
@@ -218,5 +258,25 @@ final class AppModel: ObservableObject {
         window?.setInputEnabled(state.acceptsInput && isAvailable)
         scene?.setAnimating(state.shouldAnimate && isAvailable)
         scene?.setInteractive(state.acceptsInput && isAvailable)
+    }
+
+    private func refreshLore() {
+        guard let loreCatalog else {
+            lorePages = []
+            loreReader.update(settings: appSettings, pages: [])
+            return
+        }
+        lorePages = LoreProgressResolver.resolve(
+            catalog: loreCatalog,
+            highestUnlockedLevel: game.state.campaign.highestUnlockedLevel,
+            languageMode: appSettings.loreLanguageMode,
+            illustrationMode: appSettings.loreIllustrationMode
+        )
+        loreReader.update(settings: appSettings, pages: lorePages)
+    }
+
+    private func publishLoreSettings() {
+        refreshLore()
+        settingsController?.update(appSettings)
     }
 }
