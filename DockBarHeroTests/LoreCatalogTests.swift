@@ -57,8 +57,14 @@ final class LoreCatalogTests: XCTestCase {
         XCTAssertFalse(prologue.body.clean.lowercased().contains("fuck"))
     }
 
-    func testAcceptsSchemaTwoCompositionWithFiveToSevenPanels() throws {
-        for count in 5...7 {
+    func testAcceptsEachSupportedLayoutWithItsExpectedPanelCount() throws {
+        let expected: [(LoreMangaLayoutID, Int)] = [
+            (.cascadeFive, 5),
+            (.brokenSix, 6),
+            (.staggeredSix, 6),
+            (.shatteredSeven, 7)
+        ]
+        for (layoutID, count) in expected {
             var page = LoreFixtures.page("count-\(count)", index: 0, unlock: nil)
             let panels = (0..<count).map { index in
                 LorePanelDefinition(
@@ -68,8 +74,35 @@ final class LoreCatalogTests: XCTestCase {
                     readingOrder: index, focalPoint: .init(x: 0.5, y: 0.5)
                 )
             }
-            page = page.replacingComposition(page.composition.replacingPanels(panels))
+            page = page.replacingComposition(
+                LoreCompositionDefinition(
+                    layoutID: layoutID,
+                    safeContextSheet: page.composition.safeContextSheet,
+                    adultContextSheet: page.composition.adultContextSheet,
+                    panels: panels,
+                    textOverlays: page.composition.textOverlays
+                )
+            )
             XCTAssertNoThrow(try LoreCatalog.validated(.init(schemaVersion: 2, pages: [page])))
+        }
+    }
+
+    func testRejectsCompositionWithUnknownTemplateSlot() {
+        let page = LoreFixtures.page("bad-slot", index: 0, unlock: nil)
+        var panels = page.composition.panels
+        let replaced = panels[4]
+        panels[4] = LorePanelDefinition(
+            id: replaced.id,
+            slotID: "slot99",
+            role: replaced.role,
+            sourceCell: replaced.sourceCell,
+            readingOrder: replaced.readingOrder,
+            focalPoint: replaced.focalPoint
+        )
+        let invalid = page.replacingComposition(page.composition.replacingPanels(panels))
+
+        XCTAssertThrowsError(try LoreCatalog.validated(.init(schemaVersion: 2, pages: [invalid]))) {
+            XCTAssertEqual($0 as? LoreCatalogError, .invalidComposition("bad-slot"))
         }
     }
 

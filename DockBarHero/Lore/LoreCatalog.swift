@@ -58,7 +58,10 @@ extension LoreCatalog {
             let panels = page.composition.panels
             let panelIDs = panels.map(\.id)
             let overlays = page.composition.textOverlays
-            guard (5...7).contains(panels.count),
+            let template = LoreMangaLayout.template(for: page.composition.layoutID)
+            guard panels.count == template.slots.count,
+                  Set(panels.map(\.slotID)) == Set(template.slots.map(\.id)),
+                  (5...7).contains(panels.count),
                   panels.filter({ $0.role == .motion }).count == 1,
                   Set(panelIDs).count == panelIDs.count,
                   Set(panels.map(\.slotID)).count == panels.count,
