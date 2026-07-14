@@ -100,11 +100,18 @@ final class BuiltinSpriteCatalog: SpriteCatalog {
         forEnemy spriteID: EnemySpriteID,
         action: SpriteAction
     ) -> [PixelSpriteDefinition] {
-        enemyDefinitions[spriteID]?[action]
-            ?? enemyDefinitions[spriteID]?[.idle]
-            ?? definitions[.enemy]?[action]
-            ?? definitions[.enemy]?[.idle]
+        nonEmpty(enemyDefinitions[spriteID]?[action])
+            ?? nonEmpty(enemyDefinitions[spriteID]?[.idle])
+            ?? nonEmpty(definitions[.enemy]?[action])
+            ?? nonEmpty(definitions[.enemy]?[.idle])
             ?? [Self.fallback]
+    }
+
+    private func nonEmpty(
+        _ definitions: [PixelSpriteDefinition]?
+    ) -> [PixelSpriteDefinition]? {
+        guard let definitions, !definitions.isEmpty else { return nil }
+        return definitions
     }
 
     private func texture(for definition: PixelSpriteDefinition) throws -> SKTexture {
