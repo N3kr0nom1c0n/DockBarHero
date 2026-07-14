@@ -41,7 +41,7 @@ final class PrototypeSceneHostTests: XCTestCase {
         let host = try PrototypeSceneHost(size: CGSize(width: 400, height: 96))
         var state = GameState.newGame(balance: .standard)
         state.encounter.enemyLevel = 15
-        state.encounter.tier = .elite
+        state.encounter.tier = .normal
         var presentation = GameSimulation(state: state).presentation
         presentation.campaign = CampaignPresentation(
             areaID: .forgottenShallowDepths,
@@ -50,7 +50,7 @@ final class PrototypeSceneHostTests: XCTestCase {
             enemyID: .poisonNagaQueen,
             enemyName: "Poison Naga Queen",
             enemySpriteID: .poisonNagaQueen,
-            tier: .elite,
+            tier: .normal,
             level: 15
         )
 
@@ -63,7 +63,7 @@ final class PrototypeSceneHostTests: XCTestCase {
             host.scene.childNode(withName: "//enemyLevel") as? SKLabelNode
         )
         XCTAssertEqual(identity.text, "Poison Naga Queen")
-        XCTAssertEqual(level.text, "Elite · Enemy Lv. 15")
+        XCTAssertEqual(level.text, "Normal · Enemy Lv. 15")
         XCTAssertGreaterThanOrEqual(identity.fontSize, 8)
         XCTAssertGreaterThanOrEqual(level.fontSize, 8)
         XCTAssertGreaterThanOrEqual(identity.frame.minX, 297.5)
@@ -71,6 +71,51 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(level.frame.minX, 297.5)
         XCTAssertLessThanOrEqual(level.frame.maxX, 392.5)
         XCTAssertGreaterThan(level.position.y, identity.position.y)
+        XCTAssertFalse(identity.frame.intersects(level.frame))
+    }
+
+    func testNarrowAuthoredFarmingLabelsAreReadableAndDoNotIntersect() throws {
+        let host = try PrototypeSceneHost(size: CGSize(width: 400, height: 96))
+        var state = GameState.newGame(balance: .standard)
+        state.campaign.highestUnlockedLevel = 15
+        state.campaign.selectedLevel = 15
+        state.campaign.mode = .farming
+        state.encounter.enemyLevel = 15
+        state.encounter.tier = .normal
+        var presentation = GameSimulation(state: state).presentation
+        presentation.campaign = CampaignPresentation(
+            areaID: .forgottenShallowDepths,
+            areaFullName: "The Forgotten Shallow Depths That Were Remembered",
+            areaShortName: "Shallow Depths",
+            enemyID: .poisonNagaQueen,
+            enemyName: "Poison Naga Queen",
+            enemySpriteID: .poisonNagaQueen,
+            tier: .normal,
+            level: 15
+        )
+
+        host.render(.active(presentation))
+
+        let identity = try XCTUnwrap(
+            host.scene.childNode(withName: "//enemyIdentity") as? SKLabelNode
+        )
+        let level = try XCTUnwrap(
+            host.scene.childNode(withName: "//enemyLevel") as? SKLabelNode
+        )
+        let status = try XCTUnwrap(
+            host.scene.childNode(withName: "//farmingStatus") as? SKLabelNode
+        )
+        XCTAssertEqual(identity.text, "Poison Naga Queen")
+        XCTAssertEqual(level.text, "Normal · Enemy Lv. 15")
+        XCTAssertEqual(status.text, "FARMING • FRONTIER 15")
+        for label in [identity, level, status] {
+            XCTAssertGreaterThanOrEqual(label.fontSize, 8)
+            XCTAssertGreaterThanOrEqual(label.frame.minX, 297.5)
+            XCTAssertLessThanOrEqual(label.frame.maxX, 392.5)
+        }
+        XCTAssertFalse(identity.frame.intersects(level.frame))
+        XCTAssertFalse(identity.frame.intersects(status.frame))
+        XCTAssertFalse(level.frame.intersects(status.frame))
     }
 
     func testFarmingStatusShowsFrontierAndTracksModeTransitions() throws {
@@ -95,7 +140,7 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertFalse(status.isHidden)
         XCTAssertFalse(status.isUserInteractionEnabled)
         XCTAssertEqual(status.position.x, host.scene.size.width * 0.78, accuracy: 0.001)
-        XCTAssertEqual(status.position.y, 82, accuracy: 0.001)
+        XCTAssertLessThanOrEqual(status.frame.maxY, host.scene.size.height)
         XCTAssertEqual(
             (host.scene.childNode(withName: "//enemyLevel") as? SKLabelNode)?.text,
             "Normal · Enemy Lv. 1"

@@ -51,10 +51,14 @@ final class PrototypeScene: SKScene {
         let heroAction = label(name: "heroAction", fontSize: 10)
         let enemyIdentity = label(name: "enemyIdentity", fontSize: 10)
         let enemyLevel = label(name: "enemyLevel", fontSize: 10)
-        let enemyFontName = NSFont.systemFont(ofSize: 10, weight: .regular).fontName
+        let enemyFontName = NSFont(
+            descriptor: NSFont.systemFont(ofSize: 10).fontDescriptor.withSymbolicTraits(.condensed),
+            size: 10
+        )?.fontName
         enemyIdentity.fontName = enemyFontName
         enemyLevel.fontName = enemyFontName
         let farmingStatus = label(name: "farmingStatus", fontSize: 10)
+        farmingStatus.fontName = enemyFontName
         farmingStatus.fontColor = .systemOrange
         farmingStatus.isUserInteractionEnabled = false
         let rollingDPS = label(name: "rollingDPS", fontSize: 12)
@@ -130,7 +134,6 @@ final class PrototypeScene: SKScene {
         }
         (childNode(withName: "enemyLevel") as? SKLabelNode)?.text =
             "\(tier) · \(ManagementFormat.enemyLevel(presentation.state.encounter.enemyLevel))"
-        layoutEnemyLabels()
         if let farmingStatus = childNode(withName: "farmingStatus") as? SKLabelNode {
             switch presentation.state.campaign.mode {
             case .farming:
@@ -141,6 +144,7 @@ final class PrototypeScene: SKScene {
                 farmingStatus.isHidden = true
             }
         }
+        layoutEnemyLabels()
         (childNode(withName: "rollingDPS") as? SKLabelNode)?.text = String(
             format: "%.1f DPS",
             locale: Locale(identifier: "en_US_POSIX"),
@@ -241,7 +245,6 @@ final class PrototypeScene: SKScene {
         childNode(withName: "enemy")?.position = CGPoint(x: enemyX, y: 32)
         positionHealthBar(prefix: "enemy", x: enemyX, y: 59)
         layoutEnemyLabels()
-        (childNode(withName: "farmingStatus") as? SKLabelNode)?.position = CGPoint(x: enemyX, y: 82)
         (childNode(withName: "rollingDPS") as? SKLabelNode)?.position = CGPoint(x: size.width / 2, y: 70)
         let laneWidth = areaTitleLaneWidth
         if let crop = childNode(withName: "areaTitleCrop") as? SKCropNode {
@@ -257,7 +260,8 @@ final class PrototypeScene: SKScene {
 
     private func layoutEnemyLabels() {
         guard let identity = childNode(withName: "enemyIdentity") as? SKLabelNode,
-              let level = childNode(withName: "enemyLevel") as? SKLabelNode else { return }
+              let level = childNode(withName: "enemyLevel") as? SKLabelNode,
+              let status = childNode(withName: "farmingStatus") as? SKLabelNode else { return }
         let enemyX = size.width * 0.78
         let laneRight = size.width / 2 + areaTitleLaneWidth / 2
         let leftBoundary = laneRight + 8
@@ -267,26 +271,49 @@ final class PrototypeScene: SKScene {
             identity.position = CGPoint(x: enemyX, y: 64)
             level.fontSize = 10
             level.position = CGPoint(x: enemyX, y: identity.isHidden ? 70 : 73)
+            status.fontSize = 10
+            status.position = CGPoint(x: enemyX, y: 82)
             return
         }
 
         let availableWidth = rightBoundary - leftBoundary
-        fitEnemyLabel(identity, availableWidth: availableWidth)
-        fitEnemyLabel(level, availableWidth: availableWidth)
-        positionEnemyLabel(identity, preferredX: enemyX, y: 64, left: leftBoundary, right: rightBoundary)
+        let showsAuthoredFarming = !identity.isHidden && !status.isHidden
+        let maximumFontSize: CGFloat = showsAuthoredFarming ? 8 : 10
+        fitEnemyLabel(identity, availableWidth: availableWidth, maximumFontSize: maximumFontSize)
+        fitEnemyLabel(level, availableWidth: availableWidth, maximumFontSize: maximumFontSize)
+        fitEnemyLabel(status, availableWidth: availableWidth, maximumFontSize: 8)
+        positionEnemyLabel(identity, preferredX: enemyX, y: 0, left: leftBoundary, right: rightBoundary)
         positionEnemyLabel(
             level,
             preferredX: enemyX,
-            y: identity.isHidden ? 70 : 73,
+            y: identity.isHidden ? 70 : 0,
             left: leftBoundary,
             right: rightBoundary
         )
+        positionEnemyLabel(status, preferredX: enemyX, y: 0, left: leftBoundary, right: rightBoundary)
+
+        guard !identity.isHidden else { return }
+        let firstLineY: CGFloat = showsAuthoredFarming ? 64 : 65
+        let lineSpacing: CGFloat = showsAuthoredFarming ? 1 : 2
+        positionEnemyLabel(identity, minimumY: firstLineY)
+        positionEnemyLabel(level, minimumY: identity.frame.maxY + lineSpacing)
+        if showsAuthoredFarming {
+            positionEnemyLabel(status, minimumY: level.frame.maxY + lineSpacing)
+        }
     }
 
-    private func fitEnemyLabel(_ node: SKLabelNode, availableWidth: CGFloat) {
-        node.fontSize = 10
+    private func fitEnemyLabel(
+        _ node: SKLabelNode,
+        availableWidth: CGFloat,
+        maximumFontSize: CGFloat
+    ) {
+        node.fontSize = maximumFontSize
         guard node.frame.width > availableWidth, node.frame.width > 0 else { return }
         node.fontSize = max(8, node.fontSize * availableWidth / node.frame.width)
+    }
+
+    private func positionEnemyLabel(_ node: SKLabelNode, minimumY: CGFloat) {
+        node.position.y += minimumY - node.frame.minY
     }
 
     private func positionEnemyLabel(
