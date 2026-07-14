@@ -9,6 +9,12 @@ final class PrototypeScene: SKScene {
     private var renderedHeroClasses: [HeroClassID] = [.dps]
     private var renderedActions: [ClassActionID] = [.powerStrike]
     private var renderedEnemySpriteID = EnemySpriteID(rawValue: "generic.enemy")
+    private var marqueeState = AreaTitleMarqueeState()
+    private var renderedCampaign: CampaignPresentation?
+    private var animationsEnabled = true
+    private var pointerLocation: CGPoint?
+    private var lastUpdateTime: TimeInterval?
+    var pointerLocationForTesting: CGPoint? { pointerLocation }
     var onClassAction: ((Int, ClassActionID) -> Void)?
 
     init(size: CGSize, spriteCatalog: any SpriteCatalog) {
@@ -48,11 +54,22 @@ final class PrototypeScene: SKScene {
         farmingStatus.fontColor = .systemOrange
         farmingStatus.isUserInteractionEnabled = false
         let rollingDPS = label(name: "rollingDPS", fontSize: 12)
+        let areaTitleCrop = SKCropNode()
+        areaTitleCrop.name = "areaTitleCrop"
+        let areaTitleMask = SKShapeNode()
+        areaTitleMask.name = "areaTitleMask"
+        areaTitleMask.fillColor = .white
+        areaTitleMask.strokeColor = .clear
+        areaTitleCrop.maskNode = areaTitleMask
+        let areaTitle = label(name: "areaTitle", fontSize: 10)
+        areaTitle.verticalAlignmentMode = .center
+        areaTitleCrop.addChild(areaTitle)
         addChild(heroLevel)
         addChild(heroAction)
         addChild(enemyLevel)
         addChild(farmingStatus)
         addChild(rollingDPS)
+        addChild(areaTitleCrop)
         updateLayout()
 
         let idle = SKAction.repeatForever(.sequence([
@@ -72,6 +89,7 @@ final class PrototypeScene: SKScene {
 
     func render(_ presentation: GamePresentation) {
         setCombatHidden(false)
+        renderCampaign(presentation.campaign)
         syncHeroNodes(with: presentation.state.party.heroes)
         let enemySpriteID = presentation.campaign?.enemySpriteID
             ?? EnemySpriteID(rawValue: "generic.enemy")
@@ -123,8 +141,10 @@ final class PrototypeScene: SKScene {
         switch run {
         case .classSelection:
             setCombatHidden(true)
+            hideAreaTitle()
         case .partySelection:
             setCombatHidden(true)
+            hideAreaTitle()
         case let .active(presentation):
             render(presentation)
         }
@@ -212,6 +232,157 @@ final class PrototypeScene: SKScene {
         (childNode(withName: "enemyLevel") as? SKLabelNode)?.position = CGPoint(x: enemyX, y: 70)
         (childNode(withName: "farmingStatus") as? SKLabelNode)?.position = CGPoint(x: enemyX, y: 82)
         (childNode(withName: "rollingDPS") as? SKLabelNode)?.position = CGPoint(x: size.width / 2, y: 70)
+        let laneWidth = areaTitleLaneWidth
+        if let crop = childNode(withName: "areaTitleCrop") as? SKCropNode {
+            crop.position = CGPoint(x: size.width / 2, y: 84)
+            if let mask = crop.maskNode as? SKShapeNode {
+                mask.path = CGPath(
+                    rect: CGRect(x: -laneWidth / 2, y: -8, width: laneWidth, height: 16),
+                    transform: nil
+                )
+            }
+        }
+    }
+
+    override func update(_ currentTime: TimeInterval) {
+        guard animationsEnabled else {
+            lastUpdateTime = nil
+            return
+        }
+        guard let previousTime = lastUpdateTime else {
+            lastUpdateTime = currentTime
+            return
+        }
+        lastUpdateTime = currentTime
+        let duration = max(0, currentTime - previousTime)
+        let pointerInside = pointerLocation.map(areaTitleLaneFrame.contains) ?? false
+        advanceMarquee(by: duration, pointerInside: pointerInside)
+    }
+
+    func setAnimationsEnabled(_ isEnabled: Bool) {
+        animationsEnabled = isEnabled
+        lastUpdateTime = nil
+        guard let renderedCampaign else { return }
+        let previousState = marqueeState
+        marqueeState.present(
+            areaID: renderedCampaign.areaID,
+            fullName: renderedCampaign.areaFullName,
+            shortName: renderedCampaign.areaShortName,
+            animationsEnabled: isEnabled
+        )
+        if marqueeState != previousState {
+            applyMarqueeState()
+        }
+    }
+
+    func setInteractive(_ isInteractive: Bool) {
+        isUserInteractionEnabled = isInteractive
+        guard !isInteractive else { return }
+        pointerLocation = nil
+        _ = marqueeState.advanceHover(
+            by: 0,
+            inside: false,
+            interactive: false,
+            animationsEnabled: animationsEnabled
+        )
+    }
+
+    func setPointerLocation(_ location: CGPoint?) {
+        pointerLocation = location
+    }
+
+    @discardableResult
+    func advanceMarqueeForTesting(by duration: TimeInterval, pointerInside: Bool) -> Bool {
+        advanceMarquee(by: duration, pointerInside: pointerInside)
+    }
+
+    private func advanceMarquee(by duration: TimeInterval, pointerInside: Bool) -> Bool {
+        let replayed = marqueeState.advanceHover(
+            by: duration,
+            inside: pointerInside,
+            interactive: isUserInteractionEnabled,
+            animationsEnabled: animationsEnabled
+        )
+        if replayed {
+            applyMarqueeState()
+        }
+        return replayed
+    }
+
+    private var areaTitleLaneWidth: CGFloat {
+        min(300, max(180, size.width * 0.32))
+    }
+
+    private var areaTitleLaneFrame: CGRect {
+        CGRect(
+            x: size.width / 2 - areaTitleLaneWidth / 2,
+            y: 76,
+            width: areaTitleLaneWidth,
+            height: 16
+        )
+    }
+
+    private func renderCampaign(_ campaign: CampaignPresentation?) {
+        renderedCampaign = campaign
+        guard let campaign else {
+            hideAreaTitle()
+            return
+        }
+        let previousState = marqueeState
+        marqueeState.present(
+            areaID: campaign.areaID,
+            fullName: campaign.areaFullName,
+            shortName: campaign.areaShortName,
+            animationsEnabled: animationsEnabled
+        )
+        if marqueeState != previousState {
+            applyMarqueeState()
+        }
+    }
+
+    private func hideAreaTitle() {
+        renderedCampaign = nil
+        marqueeState.hide()
+        pointerLocation = nil
+        guard let crop = childNode(withName: "areaTitleCrop") as? SKCropNode,
+              let title = crop.childNode(withName: "areaTitle") as? SKLabelNode else { return }
+        crop.isHidden = true
+        title.removeAction(forKey: "areaTitleScroll")
+        title.text = nil
+        title.position = .zero
+    }
+
+    private func applyMarqueeState() {
+        guard let crop = childNode(withName: "areaTitleCrop") as? SKCropNode,
+              let title = crop.childNode(withName: "areaTitle") as? SKLabelNode else { return }
+        title.removeAction(forKey: "areaTitleScroll")
+        switch marqueeState.phase {
+        case .hidden:
+            crop.isHidden = true
+            title.text = nil
+            title.position = .zero
+        case let .settled(shortName):
+            crop.isHidden = false
+            title.isHidden = false
+            title.text = shortName
+            title.position = .zero
+        case let .scrolling(fullName, _):
+            crop.isHidden = false
+            title.isHidden = false
+            title.text = fullName
+            title.position = .zero
+            let travelDistance = areaTitleLaneWidth + title.frame.width
+            title.position.x = travelDistance / 2
+            let move = SKAction.moveTo(x: -travelDistance / 2, duration: travelDistance / 30)
+            title.run(.sequence([
+                move,
+                .run { [weak self] in
+                    guard let self else { return }
+                    self.marqueeState.completeScroll()
+                    self.applyMarqueeState()
+                },
+            ]), withKey: "areaTitleScroll")
+        }
     }
 
     override func mouseDown(with event: NSEvent) {

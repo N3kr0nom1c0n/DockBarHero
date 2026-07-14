@@ -51,6 +51,7 @@
 		5ED67E564BFA31B5C825BD32 /* ManagementRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0DC1D5CB56FCA8F90F01260 /* ManagementRootView.swift */; };
 		5F742D47E8DC4246E38A43E3 /* GameSimulationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E4509B61BEEFA0FF1C5FE4 /* GameSimulationTests.swift */; };
 		6201316CE93A767628A3D782 /* SimulationDriverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87C1B7D532091DA5C524FDC4 /* SimulationDriverTests.swift */; };
+		64C0CD524EAF33F3156376C8 /* AreaTitleMarqueeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 333EBAB2D07D335EB60BE72E /* AreaTitleMarqueeTests.swift */; };
 		69BA3424D743C50C2B50D40C /* SaveDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41781EC2DFD16E39F990371 /* SaveDocumentTests.swift */; };
 		6CAB3CCC1B8160B05C74318F /* EncounterSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE4C396608E15CDFE23EC464 /* EncounterSchedule.swift */; };
 		78C299D366031B1BC4DF5F8B /* InventoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C358270A44F43A95C3131E0C /* InventoryView.swift */; };
@@ -106,6 +107,7 @@
 		E878400C9A2770998271FF87 /* SalvageResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46C434DBDFAF4A4B9E2E9AE6 /* SalvageResolverTests.swift */; };
 		EC631C3F90F2C01DAA0A47B5 /* SalvageResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DD1B1D1BD91F5406D947CA3 /* SalvageResolver.swift */; };
 		EC96897E7A6EFE9ED882D703 /* CampaignResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E44070A3D7266BF76DDF13 /* CampaignResolver.swift */; };
+		EEB41E9179F3E7E603B3C747 /* AreaTitleMarquee.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3165818D30FB84776C7A16 /* AreaTitleMarquee.swift */; };
 		F5240EB9B0162973B453A8A0 /* LootGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4EA7EF1E732EFED34EB7F51 /* LootGeneratorTests.swift */; };
 		F529C11994557356A27A2ED7 /* HeroesAndPartyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA6AB80F2B66FD8B1EFEB88 /* HeroesAndPartyTests.swift */; };
 		F6786BBB13F3F135E5CD908E /* CampaignCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5618489AE8A3727F8257A8 /* CampaignCatalog.swift */; };
@@ -143,6 +145,7 @@
 		25A8CCEBA359DCE30C12AD27 /* MenuBarContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarContent.swift; sourceTree = "<group>"; };
 		2B83DA476844707F0BE3DB96 /* OverlayWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowController.swift; sourceTree = "<group>"; };
 		30B64AA25E17738C495E8392 /* SaveMigrationRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveMigrationRegistry.swift; sourceTree = "<group>"; };
+		333EBAB2D07D335EB60BE72E /* AreaTitleMarqueeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AreaTitleMarqueeTests.swift; sourceTree = "<group>"; };
 		35E44070A3D7266BF76DDF13 /* CampaignResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignResolver.swift; sourceTree = "<group>"; };
 		36E4509B61BEEFA0FF1C5FE4 /* GameSimulationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSimulationTests.swift; sourceTree = "<group>"; };
 		3D23D28184BD8A05F30D6359 /* FullscreenWindowClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenWindowClassifierTests.swift; sourceTree = "<group>"; };
@@ -209,6 +212,7 @@
 		C8443E0D34AB8B0707A79331 /* AppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelTests.swift; sourceTree = "<group>"; };
 		CBB4E71B5A88A861340D85CF /* SaveDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveDocument.swift; sourceTree = "<group>"; };
 		CC5266035A79A6B8511E1D8A /* BuiltinPixelSprites.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuiltinPixelSprites.swift; sourceTree = "<group>"; };
+		CD3165818D30FB84776C7A16 /* AreaTitleMarquee.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AreaTitleMarquee.swift; sourceTree = "<group>"; };
 		CDD14FF849F64AD2F250E89F /* PrototypeScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeScene.swift; sourceTree = "<group>"; };
 		D65C97EC8232A20141D45BB9 /* SaveMigrationRegistryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveMigrationRegistryTests.swift; sourceTree = "<group>"; };
 		D7F34075827F8BA826D583DC /* PartyUnlockResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartyUnlockResolver.swift; sourceTree = "<group>"; };
@@ -268,6 +272,7 @@
 			children = (
 				DA347E51C750D24AE0E8747E /* AbilityResolverTests.swift */,
 				C8443E0D34AB8B0707A79331 /* AppModelTests.swift */,
+				333EBAB2D07D335EB60BE72E /* AreaTitleMarqueeTests.swift */,
 				F97A36783977BA1422D08114 /* BalanceConfigurationTests.swift */,
 				F1ED3407AD3FADD515362803 /* CampaignAreaOneIntegrationTests.swift */,
 				909FF5EF5E620C7AF777D045 /* CampaignCatalogTests.swift */,
@@ -446,6 +451,7 @@
 		F83F46F2C096DFCED5F45261 /* Rendering */ = {
 			isa = PBXGroup;
 			children = (
+				CD3165818D30FB84776C7A16 /* AreaTitleMarquee.swift */,
 				CC5266035A79A6B8511E1D8A /* BuiltinPixelSprites.swift */,
 				ED225C09286EACC435FC3A1C /* PixelSpriteDefinition.swift */,
 				CDD14FF849F64AD2F250E89F /* PrototypeScene.swift */,
@@ -531,6 +537,7 @@
 			files = (
 				2F24AC590C74CCA51A4FCD23 /* AbilityResolverTests.swift in Sources */,
 				7C8006DEC5C5A9D61C649B8B /* AppModelTests.swift in Sources */,
+				64C0CD524EAF33F3156376C8 /* AreaTitleMarqueeTests.swift in Sources */,
 				DCE10BEFC2693E92CEFFFCC2 /* BalanceConfigurationTests.swift in Sources */,
 				12ACEA5387944FB23AD35A54 /* CampaignAreaOneIntegrationTests.swift in Sources */,
 				FA3BEF51AC4FD038C9EAC04C /* CampaignCatalogTests.swift in Sources */,
@@ -588,6 +595,7 @@
 				21D79BC28FD1B426B245BDDB /* AppLog.swift in Sources */,
 				50D611A9B73A82EC3938F28D /* AppModel.swift in Sources */,
 				9320F70620705E5BC5DCA006 /* AppSettings.swift in Sources */,
+				EEB41E9179F3E7E603B3C747 /* AreaTitleMarquee.swift in Sources */,
 				91B2505FE7F5AC43E2E34B9E /* BalanceConfiguration.swift in Sources */,
 				B6FA9FD54E51510B7F9FAEA3 /* BuiltinPixelSprites.swift in Sources */,
 				F6786BBB13F3F135E5CD908E /* CampaignCatalog.swift in Sources */,

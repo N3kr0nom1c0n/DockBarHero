@@ -110,6 +110,134 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertTrue(host.scene.isUserInteractionEnabled)
     }
 
+    func testAuthoredAreaTitleUsesCenteredClippedLaneAndThirtyPointScrollSpeed() throws {
+        let host = try PrototypeSceneHost(size: CGSize(width: 1_140, height: 96))
+        var presentation = GameSimulation().presentation
+        presentation.campaign = campaignPresentation(spriteID: .goblin)
+
+        host.render(.active(presentation))
+
+        let crop = try XCTUnwrap(
+            host.scene.childNode(withName: "//areaTitleCrop") as? SKCropNode
+        )
+        let title = try XCTUnwrap(
+            host.scene.childNode(withName: "//areaTitle") as? SKLabelNode
+        )
+        let mask = try XCTUnwrap(crop.maskNode)
+        XCTAssertEqual(crop.position.x, 570, accuracy: 0.001)
+        XCTAssertEqual(crop.position.y, 84, accuracy: 0.001)
+        XCTAssertEqual(mask.calculateAccumulatedFrame().width, 300, accuracy: 0.001)
+        XCTAssertEqual(title.text, "The Forgotten Shallow Depths That Were Remembered")
+        let scrollDuration = try XCTUnwrap(title.action(forKey: "areaTitleScroll")?.duration)
+        XCTAssertEqual(
+            scrollDuration,
+            TimeInterval((300 + title.frame.width) / 30),
+            accuracy: 0.001
+        )
+        let rollingDPS = try XCTUnwrap(host.scene.childNode(withName: "//rollingDPS"))
+        XCTAssertEqual(
+            rollingDPS.position.y,
+            70,
+            accuracy: 0.001
+        )
+    }
+
+    func testAreaTitleLaneWidthClampsAtMinimumForNarrowRail() throws {
+        let host = try PrototypeSceneHost(size: CGSize(width: 400, height: 96))
+        let crop = try XCTUnwrap(
+            host.scene.childNode(withName: "//areaTitleCrop") as? SKCropNode
+        )
+        let mask = try XCTUnwrap(crop.maskNode)
+
+        XCTAssertEqual(mask.calculateAccumulatedFrame().width, 180, accuracy: 0.001)
+        XCTAssertEqual(crop.position.x, 200, accuracy: 0.001)
+    }
+
+    func testDisabledAnimationSettlesAreaTitleImmediately() throws {
+        let host = try PrototypeSceneHost()
+        host.setAnimating(false)
+        var presentation = GameSimulation().presentation
+        presentation.campaign = campaignPresentation(spriteID: .goblin)
+
+        host.render(.active(presentation))
+
+        let title = try XCTUnwrap(
+            host.scene.childNode(withName: "//areaTitle") as? SKLabelNode
+        )
+        XCTAssertEqual(title.text, "Shallow Depths")
+        XCTAssertNil(title.action(forKey: "areaTitleScroll"))
+        XCTAssertFalse(title.isHidden)
+    }
+
+    func testSelectionAndProceduralPresentationsHideAndResetAreaTitle() throws {
+        let host = try PrototypeSceneHost()
+        var presentation = GameSimulation().presentation
+        presentation.campaign = campaignPresentation(spriteID: .goblin)
+        host.render(.active(presentation))
+
+        host.render(.classSelection)
+        XCTAssertTrue(host.scene.childNode(withName: "//areaTitleCrop")?.isHidden == true)
+
+        let pending = PendingPartyUnlock(milestone: .boss25, choices: [.tank, .healer])
+        host.render(.partySelection(pending, presentation))
+        XCTAssertTrue(host.scene.childNode(withName: "//areaTitleCrop")?.isHidden == true)
+
+        presentation.campaign = nil
+        host.render(.active(presentation))
+        let title = try XCTUnwrap(
+            host.scene.childNode(withName: "//areaTitle") as? SKLabelNode
+        )
+        XCTAssertTrue(host.scene.childNode(withName: "//areaTitleCrop")?.isHidden == true)
+        XCTAssertNil(title.text)
+        XCTAssertNil(title.action(forKey: "areaTitleScroll"))
+
+        presentation.campaign = campaignPresentation(spriteID: .goblin)
+        host.render(.active(presentation))
+        XCTAssertFalse(host.scene.childNode(withName: "//areaTitleCrop")?.isHidden == true)
+        XCTAssertEqual(title.text, "The Forgotten Shallow Depths That Were Remembered")
+        XCTAssertNotNil(title.action(forKey: "areaTitleScroll"))
+    }
+
+    func testInteractiveHoverReplayIsDeterministicAndPassiveRejectsIt() throws {
+        let host = try PrototypeSceneHost()
+        host.setAnimating(false)
+        host.setAnimating(true)
+        host.setInteractive(true)
+        let title = try XCTUnwrap(
+            host.scene.childNode(withName: "//areaTitle") as? SKLabelNode
+        )
+
+        XCTAssertFalse(host.scene.advanceMarqueeForTesting(by: 2.999, pointerInside: true))
+        XCTAssertNil(title.action(forKey: "areaTitleScroll"))
+        XCTAssertTrue(host.scene.advanceMarqueeForTesting(by: 0.001, pointerInside: true))
+        XCTAssertNotNil(title.action(forKey: "areaTitleScroll"))
+
+        host.setAnimating(false)
+        host.setAnimating(true)
+        host.setInteractive(false)
+        XCTAssertFalse(host.scene.advanceMarqueeForTesting(by: 3, pointerInside: true))
+        XCTAssertNil(title.action(forKey: "areaTitleScroll"))
+    }
+
+    func testInteractiveUsesLocalTrackingAreaAndDisablingClearsPointer() throws {
+        let host = try PrototypeSceneHost()
+        host.setInteractive(true)
+        host.view.updateTrackingAreas()
+
+        let trackingArea = try XCTUnwrap(host.view.trackingAreas.first)
+        XCTAssertTrue(trackingArea.options.contains(.mouseMoved))
+        XCTAssertTrue(trackingArea.options.contains(.mouseEnteredAndExited))
+        XCTAssertTrue(trackingArea.options.contains(.activeInKeyWindow))
+        XCTAssertTrue(trackingArea.options.contains(.inVisibleRect))
+
+        host.scene.setPointerLocation(CGPoint(x: 570, y: 84))
+        XCTAssertNotNil(host.scene.pointerLocationForTesting)
+        host.setInteractive(false)
+        XCTAssertNil(host.scene.pointerLocationForTesting)
+        host.view.updateTrackingAreas()
+        XCTAssertTrue(host.view.trackingAreas.isEmpty)
+    }
+
     func testRenderingUsesStableNamedNodesAndClampedSnapshotValues() throws {
         let host = try PrototypeSceneHost()
         let originalHero = try XCTUnwrap(host.scene.childNode(withName: "hero") as? SKSpriteNode)
@@ -398,8 +526,8 @@ final class PrototypeSceneHostTests: XCTestCase {
     private func campaignPresentation(spriteID: EnemySpriteID) -> CampaignPresentation {
         CampaignPresentation(
             areaID: .forgottenShallowDepths,
-            areaFullName: "Test Area",
-            areaShortName: "Test",
+            areaFullName: "The Forgotten Shallow Depths That Were Remembered",
+            areaShortName: "Shallow Depths",
             enemyID: .goblin,
             enemyName: "Test Enemy",
             enemySpriteID: spriteID,
