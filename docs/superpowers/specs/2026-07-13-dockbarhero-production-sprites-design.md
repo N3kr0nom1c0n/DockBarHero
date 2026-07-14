@@ -50,7 +50,7 @@ The original bosses match the approved side-view pixel language, face left, use 
 
 ## Scene Behavior
 
-`PrototypeScene` retains stable nodes for each party slot and the enemy. Rendering changes identity or returns a completed action to the appropriate idle clip; it does not restart idle clips on every presentation snapshot. Events select the exact slot and action clip. Same-timestamp attacks remain ordered by simulation events and do not move nodes.
+`PrototypeScene` retains stable nodes for each party slot and the enemy. Rendering changes identity or returns a completed action to that actor identity's idle clip; it does not restart idle clips on every presentation snapshot. Events select the exact slot and action clip. Same-timestamp attacks remain ordered by simulation events and do not move nodes.
 
 Victory and revival restore every hero's alpha and idle clip. Defeated heroes remain on their final defeat frame until encounter resolution. Animation preference pauses SpriteKit globally exactly as before, and passive input behavior is unchanged.
 
