@@ -4,7 +4,8 @@ import SpriteKit
 @MainActor
 final class PrototypeScene: SKScene {
     private let actorSize = CGSize(width: 24, height: 36)
-    private let healthBarSize = CGSize(width: 150, height: 5)
+    private let maximumHealthBarWidth: CGFloat = 150
+    private let healthBarHeight: CGFloat = 5
     private let spriteCatalog: any SpriteCatalog
     private var renderedHeroClasses: [HeroClassID] = [.dps]
     private var renderedActions: [ClassActionID] = [.powerStrike]
@@ -59,6 +60,7 @@ final class PrototypeScene: SKScene {
         farmingStatus.fontColor = .systemOrange
         farmingStatus.isUserInteractionEnabled = false
         let rollingDPS = label(name: "rollingDPS", fontSize: 12)
+        rollingDPS.verticalAlignmentMode = .center
         let areaTitleCrop = SKCropNode()
         areaTitleCrop.name = "areaTitleCrop"
         let areaTitleMask = SKShapeNode()
@@ -114,12 +116,21 @@ final class PrototypeScene: SKScene {
                 current: hero.combat.currentHealth,
                 maximum: hero.combat.maxHealth
             )
-            (childNode(withName: "\(prefix)Level") as? SKLabelNode)?.text = ManagementFormat.heroLevel(hero.level)
+            (childNode(withName: "\(prefix)Level") as? SKLabelNode)?.text = usesCompactHeroLabels
+                ? "Lv. \(hero.level)"
+                : ManagementFormat.heroLevel(hero.level)
             if let action = childNode(withName: "\(prefix)Action") as? SKLabelNode {
                 let remaining = hero.classAction.cooldownRemaining.timeInterval
-                action.text = remaining > 0
-                    ? "\(actionAbbreviation(hero.classAction.actionID)) \(String(format: "%.1f", remaining))"
-                    : "\(actionAbbreviation(hero.classAction.actionID)) READY"
+                let abbreviation = actionAbbreviation(hero.classAction.actionID)
+                if usesCompactHeroLabels {
+                    action.text = remaining > 0
+                        ? "\(abbreviation) \(String(format: "%.1f", remaining))"
+                        : abbreviation
+                } else {
+                    action.text = remaining > 0
+                        ? "\(abbreviation) \(String(format: "%.1f", remaining))"
+                        : "\(abbreviation) READY"
+                }
                 action.alpha = hero.combat.currentHealth > 0 && remaining == 0 ? 1 : 0.55
             }
         }
@@ -227,20 +238,28 @@ final class PrototypeScene: SKScene {
                 transform: nil
             )
         }
-        let heroX = size.width * 0.22
         let enemyX = size.width * 0.78
+        let heroLeft: CGFloat = 8
+        let heroRight = size.width / 2 - areaTitleLaneWidth / 2 - 8
+        let heroWidth = max(1, heroRight - heroLeft)
+        let heroCellWidth = heroWidth / CGFloat(max(1, renderedHeroClasses.count))
+        let heroHealthBarWidth = min(maximumHealthBarWidth, max(8, heroCellWidth - 6))
         for slot in renderedHeroClasses.indices {
-            let x = renderedHeroClasses.count == 1
-                ? heroX
-                : size.width * (0.12 + 0.12 * CGFloat(slot))
+            let x = heroLeft + heroCellWidth * (CGFloat(slot) + 0.5)
             let prefix = heroPrefix(slot)
             childNode(withName: prefix)?.position = CGPoint(x: x, y: 32)
-            positionHealthBar(prefix: prefix, x: x, y: 59)
-            (childNode(withName: "\(prefix)Level") as? SKLabelNode)?.position = CGPoint(x: x, y: 70)
-            (childNode(withName: "\(prefix)Action") as? SKLabelNode)?.position = CGPoint(x: x, y: 82)
+            positionHealthBar(prefix: prefix, x: x, y: 59, width: heroHealthBarWidth)
+            if let level = childNode(withName: "\(prefix)Level") as? SKLabelNode {
+                level.fontSize = usesCompactHeroLabels ? 8 : 12
+                level.position = CGPoint(x: x, y: 70)
+            }
+            if let action = childNode(withName: "\(prefix)Action") as? SKLabelNode {
+                action.fontSize = usesCompactHeroLabels ? 8 : 10
+                action.position = CGPoint(x: x, y: 82)
+            }
         }
         childNode(withName: "enemy")?.position = CGPoint(x: enemyX, y: 32)
-        positionHealthBar(prefix: "enemy", x: enemyX, y: 59)
+        positionHealthBar(prefix: "enemy", x: enemyX, y: 59, width: maximumHealthBarWidth)
         layoutEnemyLabels()
         (childNode(withName: "rollingDPS") as? SKLabelNode)?.position = CGPoint(x: size.width / 2, y: 70)
         let laneWidth = areaTitleLaneWidth
@@ -408,6 +427,14 @@ final class PrototypeScene: SKScene {
 
     private var areaTitleLaneWidth: CGFloat {
         min(300, max(180, size.width * 0.32))
+    }
+
+    private var usesCompactHeroLabels: Bool {
+        guard renderedHeroClasses.count > 1 else { return false }
+        let heroLeft: CGFloat = 8
+        let heroRight = size.width / 2 - areaTitleLaneWidth / 2 - 8
+        let cellWidth = max(1, heroRight - heroLeft) / CGFloat(renderedHeroClasses.count)
+        return cellWidth < 90
     }
 
     private var areaTitleLaneFrame: CGRect {
@@ -586,21 +613,34 @@ final class PrototypeScene: SKScene {
     }
 
     private func addHealthBar(prefix: String, color: NSColor) {
-        let background = SKShapeNode(rect: CGRect(origin: .zero, size: healthBarSize), cornerRadius: 1)
+        let initialSize = CGSize(width: maximumHealthBarWidth, height: healthBarHeight)
+        let background = SKShapeNode(rect: CGRect(origin: .zero, size: initialSize), cornerRadius: 1)
         background.name = "\(prefix)HealthBackground"
         background.fillColor = NSColor.black.withAlphaComponent(0.5)
         background.strokeColor = .clear
         addChild(background)
 
-        let fill = SKShapeNode(rect: CGRect(origin: .zero, size: healthBarSize), cornerRadius: 1)
+        let fill = SKShapeNode(rect: CGRect(origin: .zero, size: initialSize), cornerRadius: 1)
         fill.name = "\(prefix)HealthFill"
         fill.fillColor = color
         fill.strokeColor = .clear
         addChild(fill)
     }
 
-    private func positionHealthBar(prefix: String, x: CGFloat, y: CGFloat) {
-        let origin = CGPoint(x: x - healthBarSize.width / 2, y: y)
+    private func positionHealthBar(prefix: String, x: CGFloat, y: CGFloat, width: CGFloat) {
+        let size = CGSize(width: width, height: healthBarHeight)
+        for suffix in ["HealthBackground", "HealthFill"] {
+            guard let node = childNode(withName: "\(prefix)\(suffix)") as? SKShapeNode else {
+                continue
+            }
+            node.path = CGPath(
+                roundedRect: CGRect(origin: .zero, size: size),
+                cornerWidth: 1,
+                cornerHeight: 1,
+                transform: nil
+            )
+        }
+        let origin = CGPoint(x: x - width / 2, y: y)
         childNode(withName: "\(prefix)HealthBackground")?.position = origin
         childNode(withName: "\(prefix)HealthFill")?.position = origin
     }

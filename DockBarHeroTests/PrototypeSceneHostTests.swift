@@ -313,6 +313,22 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertEqual(crop.position.x, 200, accuracy: 0.001)
     }
 
+    func testNarrowOneHeroAuthoredFarmingLayoutAvoidsTitleAndRailCollisions() throws {
+        try assertAuthoredFarmingLayout(width: 400, heroCount: 1)
+    }
+
+    func testNarrowThreeHeroAuthoredFarmingLayoutAvoidsTitleAndRailCollisions() throws {
+        try assertAuthoredFarmingLayout(width: 400, heroCount: 3)
+    }
+
+    func testDefaultOneHeroAuthoredFarmingLayoutAvoidsTitleAndRailCollisions() throws {
+        try assertAuthoredFarmingLayout(width: 1_140, heroCount: 1)
+    }
+
+    func testDefaultThreeHeroAuthoredFarmingLayoutAvoidsTitleAndRailCollisions() throws {
+        try assertAuthoredFarmingLayout(width: 1_140, heroCount: 3)
+    }
+
     func testDisabledAnimationSettlesAreaTitleImmediately() throws {
         let host = try PrototypeSceneHost()
         host.setAnimating(false)
@@ -726,6 +742,188 @@ final class PrototypeSceneHostTests: XCTestCase {
             tier: .normal,
             level: 1
         )
+    }
+
+    private func assertAuthoredFarmingLayout(
+        width: CGFloat,
+        heroCount: Int,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        let host = try PrototypeSceneHost(size: CGSize(width: width, height: 96))
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        if heroCount == 3 {
+            let dps = GameState.newGame(
+                classID: .dps,
+                balance: .standard,
+                progression: .standard
+            ).party.heroes[0]
+            let healer = GameState.newGame(
+                classID: .healer,
+                balance: .standard,
+                progression: .standard
+            ).party.heroes[0]
+            state.party = PartyState(
+                heroes: [state.party.heroes[0], dps, healer],
+                unlocks: .complete
+            )
+        }
+        state.campaign.highestUnlockedLevel = 15
+        state.campaign.selectedLevel = 15
+        state.campaign.mode = .farming
+        state.encounter.enemyLevel = 15
+        state.encounter.tier = .normal
+        var presentation = GameSimulation(state: state).presentation
+        presentation.campaign = CampaignPresentation(
+            areaID: .forgottenShallowDepths,
+            areaFullName: "The Forgotten Shallow Depths That Were Remembered",
+            areaShortName: "Shallow Depths",
+            enemyID: .poisonNagaQueen,
+            enemyName: "Poison Naga Queen",
+            enemySpriteID: .poisonNagaQueen,
+            tier: .normal,
+            level: 15
+        )
+
+        host.render(.active(presentation))
+
+        let crop = try XCTUnwrap(
+            host.scene.childNode(withName: "//areaTitleCrop") as? SKCropNode,
+            file: file,
+            line: line
+        )
+        let mask = try XCTUnwrap(crop.maskNode, file: file, line: line)
+        let title = try XCTUnwrap(
+            host.scene.childNode(withName: "//areaTitle") as? SKLabelNode,
+            file: file,
+            line: line
+        )
+        let maskSize = mask.calculateAccumulatedFrame().size
+        let titleLane = CGRect(
+            x: crop.position.x - maskSize.width / 2,
+            y: crop.position.y - maskSize.height / 2,
+            width: maskSize.width,
+            height: maskSize.height
+        )
+        XCTAssertEqual(crop.position.x, width / 2, accuracy: 0.001, file: file, line: line)
+        XCTAssertEqual(crop.position.y, 84, accuracy: 0.001, file: file, line: line)
+        XCTAssertGreaterThanOrEqual(maskSize.width, 180, file: file, line: line)
+        XCTAssertLessThanOrEqual(maskSize.width, 300, file: file, line: line)
+        XCTAssertNotNil(title.action(forKey: "areaTitleScroll"), file: file, line: line)
+        XCTAssertEqual(title.text, presentation.campaign?.areaFullName, file: file, line: line)
+
+        // Sample the scrolling label at mid-lane. Its visible pixels must remain clipped to the lane.
+        title.position.x = 0
+        let titleOrigin = crop.convert(title.frame.origin, to: host.scene)
+        let titleMaximum = crop.convert(
+            CGPoint(x: title.frame.maxX, y: title.frame.maxY),
+            to: host.scene
+        )
+        let titleInScene = CGRect(
+            x: min(titleOrigin.x, titleMaximum.x),
+            y: min(titleOrigin.y, titleMaximum.y),
+            width: abs(titleMaximum.x - titleOrigin.x),
+            height: abs(titleMaximum.y - titleOrigin.y)
+        )
+        let visibleScrollingTitle = titleInScene.intersection(titleLane)
+        XCTAssertFalse(visibleScrollingTitle.isNull, file: file, line: line)
+
+        let rollingDPS = try requiredNode("rollingDPS", in: host.scene, file: file, line: line)
+        let enemyIdentity = try requiredNode("enemyIdentity", in: host.scene, file: file, line: line)
+        let enemyLevel = try requiredNode("enemyLevel", in: host.scene, file: file, line: line)
+        let farmingStatus = try requiredNode("farmingStatus", in: host.scene, file: file, line: line)
+        let enemyFrames = [enemyIdentity.frame, enemyLevel.frame, farmingStatus.frame]
+        let rightFrames = [rollingDPS.frame] + enemyFrames
+
+        for frame in [titleLane, visibleScrollingTitle] + rightFrames {
+            assertFrameIsOnRail(frame, width: width, file: file, line: line)
+        }
+        for frame in rightFrames {
+            XCTAssertFalse(frame.intersects(titleLane), file: file, line: line)
+            XCTAssertFalse(frame.intersects(visibleScrollingTitle), file: file, line: line)
+        }
+        assertPairwiseDisjoint(enemyFrames, file: file, line: line)
+        XCTAssertFalse(rollingDPS.frame.intersects(enemyIdentity.frame), file: file, line: line)
+        XCTAssertFalse(rollingDPS.frame.intersects(enemyLevel.frame), file: file, line: line)
+        XCTAssertFalse(rollingDPS.frame.intersects(farmingStatus.frame), file: file, line: line)
+
+        var actorFrames: [CGRect] = []
+        var healthFrames: [CGRect] = []
+        var levelFrames: [CGRect] = []
+        var actionFrames: [CGRect] = []
+        for slot in 0..<heroCount {
+            let prefix = slot == 0 ? "hero" : "hero-\(slot)"
+            let actor = try requiredNode(prefix, in: host.scene, file: file, line: line)
+            let health = try requiredNode(
+                "\(prefix)HealthBackground",
+                in: host.scene,
+                file: file,
+                line: line
+            )
+            let level = try XCTUnwrap(
+                host.scene.childNode(withName: "//\(prefix)Level") as? SKLabelNode,
+                file: file,
+                line: line
+            )
+            let action = try XCTUnwrap(
+                host.scene.childNode(withName: "//\(prefix)Action") as? SKLabelNode,
+                file: file,
+                line: line
+            )
+            XCTAssertFalse(level.text?.isEmpty ?? true, file: file, line: line)
+            XCTAssertFalse(action.text?.isEmpty ?? true, file: file, line: line)
+            XCTAssertGreaterThanOrEqual(level.fontSize, 8, file: file, line: line)
+            XCTAssertGreaterThanOrEqual(action.fontSize, 8, file: file, line: line)
+            for frame in [actor.frame, health.frame, level.frame, action.frame] {
+                assertFrameIsOnRail(frame, width: width, file: file, line: line)
+                XCTAssertFalse(frame.intersects(titleLane), file: file, line: line)
+                XCTAssertFalse(frame.intersects(visibleScrollingTitle), file: file, line: line)
+                for rightFrame in rightFrames {
+                    XCTAssertFalse(frame.intersects(rightFrame), file: file, line: line)
+                }
+            }
+            actorFrames.append(actor.frame)
+            healthFrames.append(health.frame)
+            levelFrames.append(level.frame)
+            actionFrames.append(action.frame)
+        }
+        assertPairwiseDisjoint(actorFrames, file: file, line: line)
+        assertPairwiseDisjoint(healthFrames, file: file, line: line)
+        assertPairwiseDisjoint(levelFrames, file: file, line: line)
+        assertPairwiseDisjoint(actionFrames, file: file, line: line)
+    }
+
+    private func requiredNode(
+        _ name: String,
+        in scene: SKScene,
+        file: StaticString,
+        line: UInt
+    ) throws -> SKNode {
+        try XCTUnwrap(scene.childNode(withName: "//\(name)"), file: file, line: line)
+    }
+
+    private func assertFrameIsOnRail(
+        _ frame: CGRect,
+        width: CGFloat,
+        file: StaticString,
+        line: UInt
+    ) {
+        XCTAssertGreaterThanOrEqual(frame.minX, 0, file: file, line: line)
+        XCTAssertLessThanOrEqual(frame.maxX, width, file: file, line: line)
+        XCTAssertGreaterThanOrEqual(frame.minY, 0, file: file, line: line)
+        XCTAssertLessThanOrEqual(frame.maxY, 96, file: file, line: line)
+    }
+
+    private func assertPairwiseDisjoint(
+        _ frames: [CGRect],
+        file: StaticString,
+        line: UInt
+    ) {
+        for first in frames.indices {
+            for second in frames.indices where second > first {
+                XCTAssertFalse(frames[first].intersects(frames[second]), file: file, line: line)
+            }
+        }
     }
 }
 
