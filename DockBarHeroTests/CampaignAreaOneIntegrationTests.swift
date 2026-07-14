@@ -3,6 +3,18 @@ import XCTest
 @testable import DockBarHero
 
 final class CampaignAreaOneIntegrationTests: XCTestCase {
+    func testTankClearsAuthoredAreaOneWithOrdinaryDropsAndAutoEquip() throws {
+        try assertSoloClear(classID: .tank)
+    }
+
+    func testDPSClearsAuthoredAreaOneWithOrdinaryDropsAndAutoEquip() throws {
+        try assertSoloClear(classID: .dps)
+    }
+
+    func testHealerClearsAuthoredAreaOneWithOrdinaryDropsAndAutoEquip() throws {
+        try assertSoloClear(classID: .healer)
+    }
+
     func testAuthoredEncounterIsDeterministicAcrossTimePartitions() throws {
         let state = try authoredState(level: 15)
         var single = GameSimulation(state: state)
@@ -101,6 +113,69 @@ final class CampaignAreaOneIntegrationTests: XCTestCase {
             for: CampaignResolver().resolve(level: level),
             balance: .standard,
             progression: .standard
+        )
+    }
+
+    private func assertSoloClear(
+        classID: HeroClassID,
+        stepCap: Int = 50_000
+    ) throws {
+        let startingState = try EncounterDirector().prepareNewGame(
+            in: GameState.newGame(
+                classID: classID,
+                balance: .standard,
+                progression: .standard
+            ),
+            balance: .standard
+        )
+        var simulation = GameSimulation(state: startingState)
+        var victories = 0
+        var farmingVictories = 0
+
+        for _ in 0..<stepCap {
+            let modeBeforeStep = simulation.state.campaign.mode
+            let events = try simulation.advance(by: .nanoseconds(1_000_000_000))
+            let stepVictories = events.reduce(into: 0) { count, event in
+                if case .victory = event { count += 1 }
+            }
+            victories += stepVictories
+            if modeBeforeStep == .farming, stepVictories > 0 {
+                farmingVictories += stepVictories
+                if simulation.state.campaign.queuedLevel == nil {
+                    _ = try simulation.apply(.returnToFrontier)
+                }
+            }
+
+            if simulation.state.encounter.phase == .awaitingPartyChoice {
+                XCTAssertEqual(simulation.state.encounter.enemyLevel, 25, "\(classID) stopped at the wrong level")
+                XCTAssertEqual(simulation.state.encounter.tier, .boss)
+                XCTAssertEqual(simulation.state.enemy.currentHealth, 0)
+                XCTAssertEqual(simulation.state.campaign.highestUnlockedLevel, 25)
+                XCTAssertEqual(simulation.state.party.heroes.map(\.classID), [classID])
+                XCTAssertEqual(
+                    simulation.state.party.unlocks.pendingUnlock?.milestone,
+                    .boss25
+                )
+                XCTAssertGreaterThanOrEqual(victories, 25)
+                XCTAssertGreaterThan(simulation.state.lootSequence, 0)
+                XCTAssertTrue(simulation.state.autoEquipEnabled)
+                XCTAssertTrue(
+                    EquipmentSlot.allCases.contains {
+                        simulation.state.party.heroes[0].equipment[$0] != nil
+                    },
+                    "\(classID) should use an ordinarily dropped auto-equipped item"
+                )
+                _ = farmingVictories
+                return
+            }
+        }
+
+        XCTFail(
+            "\(classID) did not clear Boss 25 within \(stepCap) deterministic seconds; " +
+            "frontier=\(simulation.state.campaign.highestUnlockedLevel), " +
+            "selected=\(simulation.state.campaign.selectedLevel), " +
+            "mode=\(simulation.state.campaign.mode), victories=\(victories), " +
+            "farmingVictories=\(farmingVictories)"
         )
     }
 }
