@@ -35,7 +35,7 @@ final class PrototypeSceneHost: SceneControlling {
 
     init(
         size: CGSize = CGSize(width: 1_140, height: 96),
-        spriteCatalog: any SpriteCatalog = BuiltinSpriteCatalog()
+        spriteCatalog: any SpriteCatalog = BundledSpriteCatalog.productionCatalog()
     ) throws {
         view = SKView(frame: CGRect(origin: .zero, size: size))
         view.allowsTransparency = true

@@ -122,7 +122,7 @@ Using the approved boards as style references, create Ironroot Warchief, Ossuary
 
 Run the builder with `--check`, verify every PNG is RGBA, every width is a positive multiple of 96, every height is 64, every cell has nonzero alpha, and generate contact sheets under `.build/SpritePreviews/` for visual inspection.
 
-- [ ] **Step 5: Commit production assets**
+- [x] **Step 5: Commit production assets**
 
 ```bash
 git add art/sprite-manifest.json DockBarHero/Resources/Sprites
@@ -142,11 +142,11 @@ git commit -m "assets: add production hero enemy and boss sprites"
 - Produces: `SpriteCatalog.clip(for: SpriteToken, action: SpriteAction) -> SpriteClip`.
 - Produces: expanded `SpriteToken` and `SpriteAction` raw-value enums matching the runtime manifest.
 
-- [ ] **Step 1: Write failing catalog tests**
+- [x] **Step 1: Write failing catalog tests**
 
 Specify deterministic manifest decoding, equal-width strip slicing, `.nearest` filtering, declared timing/loop behavior, all required token/action entries, and fallback to the built-in idle definition when a resource or clip is absent.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 xcodebuild test -project DockBarHero.xcodeproj -scheme DockBarHero -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath .build/SpriteCatalogRed CODE_SIGNING_ALLOWED=NO -only-testing:DockBarHeroTests/SpriteCatalogTests
@@ -154,15 +154,15 @@ xcodebuild test -project DockBarHero.xcodeproj -scheme DockBarHero -configuratio
 
 Expected: compile failure because `SpriteClip` and `clip(for:action:)` do not exist.
 
-- [ ] **Step 3: Implement the catalog**
+- [x] **Step 3: Implement the catalog**
 
 Decode the bundled manifest once, load strip images by resource path, split them into declared equal frames, set `.nearest`, and return the declared timing. Keep `BuiltinSpriteCatalog` as an injectable fallback and log invalid resources once.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run the focused SpriteCatalog suite and expect zero failures and `** TEST SUCCEEDED **`.
 
-- [ ] **Step 5: Commit the catalog slice**
+- [x] **Step 5: Commit the catalog slice**
 
 ```bash
 git add DockBarHero/Rendering/SpriteClip.swift DockBarHero/Rendering/SpriteCatalog.swift DockBarHero/Rendering/BuiltinPixelSprites.swift DockBarHeroTests/SpriteCatalogTests.swift project.yml DockBarHero.xcodeproj
