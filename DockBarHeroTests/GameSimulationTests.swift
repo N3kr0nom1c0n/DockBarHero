@@ -2,6 +2,29 @@ import XCTest
 @testable import DockBarHero
 
 final class GameSimulationTests: XCTestCase {
+    func testGamePresentationCarriesAuthoredIdentityWithoutSavingIt() throws {
+        let state = try authoredState(level: 15)
+
+        let campaign = try XCTUnwrap(GameSimulation(state: state).presentation.campaign)
+
+        XCTAssertEqual(campaign.areaID, .forgottenShallowDepths)
+        XCTAssertEqual(campaign.areaFullName, "The Forgotten Shallow Depths That Were Remembered")
+        XCTAssertEqual(campaign.areaShortName, "Shallow Depths")
+        XCTAssertEqual(campaign.enemyID, .poisonNagaQueen)
+        XCTAssertEqual(campaign.enemyName, "Poison Naga Queen")
+        XCTAssertEqual(campaign.enemySpriteID, .poisonNagaQueen)
+        XCTAssertEqual(campaign.tier, .elite)
+        XCTAssertEqual(campaign.level, 15)
+        let json = String(data: try JSONEncoder().encode(state), encoding: .utf8)!
+        XCTAssertFalse(json.contains("Poison Naga Queen"))
+    }
+
+    func testGamePresentationOmitsCampaignIdentityForProceduralLevels() throws {
+        let state = try authoredState(level: 26)
+
+        XCTAssertNil(GameSimulation(state: state).presentation.campaign)
+    }
+
     func testEmptyInMemoryPartyIsRejectedBeforeCompatibilityAccess() throws {
         var state = GameState.newGame(balance: .standard)
         state.party.heroes = []
@@ -693,6 +716,26 @@ final class GameSimulationTests: XCTestCase {
         var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
         let second = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
         state.party = PartyState(heroes: [state.party.heroes[0], second], unlocks: .secondUnlocked)
+        return state
+    }
+
+    private func authoredState(level: Int) throws -> GameState {
+        var state = GameState.newGame(balance: .standard)
+        let resolved = try CampaignResolver().resolve(level: level)
+        state.campaign = CampaignState(
+            highestUnlockedLevel: level,
+            selectedLevel: level,
+            queuedLevel: nil,
+            mode: .push,
+            consecutiveDefeats: 0
+        )
+        state.encounter.enemyLevel = level
+        state.encounter.tier = resolved.tier
+        state.enemy = try EnemyFactory().makeEnemy(
+            for: resolved,
+            balance: .standard,
+            progression: .standard
+        )
         return state
     }
 

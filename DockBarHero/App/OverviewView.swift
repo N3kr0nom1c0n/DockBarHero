@@ -25,6 +25,9 @@ struct OverviewView: View {
         let state = presentation.state
         return VStack(alignment: .leading, spacing: 10) {
             Text("Progression").font(.title2.weight(.semibold))
+            if let campaign = presentation.campaign {
+                labeledValue("Area", campaign.areaFullName)
+            }
             ForEach(Array(state.party.heroes.enumerated()), id: \.offset) { slot, hero in
                 let requiredXP = (try? ProgressionConfiguration.standard.xpRequired(for: hero.level)) ?? 0
                 let stats = presentation.heroes.first(where: { $0.slot == slot })
@@ -41,7 +44,13 @@ struct OverviewView: View {
                 }
             }
             HStack(spacing: 24) {
-                labeledValue("Enemy", "\(state.encounter.tier.rawValue.capitalized) · \(ManagementFormat.enemyLevel(state.encounter.enemyLevel))")
+                labeledValue(
+                    "Enemy",
+                    [presentation.campaign?.enemyName, state.encounter.tier.rawValue.capitalized,
+                     ManagementFormat.enemyLevel(state.encounter.enemyLevel)]
+                        .compactMap { $0 }
+                        .joined(separator: " · ")
+                )
                 labeledValue("Gold", "\(state.economy.gold)")
             }
             HStack(spacing: 16) {
@@ -55,7 +64,7 @@ struct OverviewView: View {
             HStack {
                 Menu("Farm Cleared Level") {
                     ForEach(1..<state.campaign.highestUnlockedLevel, id: \.self) { level in
-                        Button(ManagementFormat.enemyLevel(level)) {
+                        Button(ManagementFormat.destination(level: level)) {
                             model.send(ManagementIntent.selectLevel(level))
                         }
                     }

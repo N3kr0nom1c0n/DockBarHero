@@ -8,6 +8,11 @@ final class ManagementViewTests: XCTestCase {
         XCTAssertEqual(ManagementFormat.itemLevel(56), "Item Lv. 56")
     }
 
+    func testDestinationsNameAuthoredEnemiesAndKeepProceduralLabelsGeneric() {
+        XCTAssertEqual(ManagementFormat.destination(level: 9), "Mimic · Enemy Lv. 9")
+        XCTAssertEqual(ManagementFormat.destination(level: 26), "Enemy Lv. 26")
+    }
+
     func testCampaignIntentFactories() {
         XCTAssertEqual(ManagementIntent.selectLevel(24), .selectLevel(24))
         XCTAssertEqual(ManagementIntent.returnToFrontier, .returnToFrontier)

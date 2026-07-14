@@ -45,6 +45,20 @@ struct GameSimulation {
 
     var presentation: GamePresentation {
         let fallbackHero = state.party.heroes.first?.combat
+        let campaign = (try? CampaignResolver().resolve(level: state.encounter.enemyLevel))
+            .flatMap { resolved -> CampaignPresentation? in
+                guard let area = resolved.area, let enemy = resolved.enemy else { return nil }
+                return CampaignPresentation(
+                    areaID: area.id,
+                    areaFullName: area.fullName,
+                    areaShortName: area.shortName,
+                    enemyID: enemy.id,
+                    enemyName: enemy.displayName,
+                    enemySpriteID: enemy.spriteID,
+                    tier: resolved.tier,
+                    level: resolved.level
+                )
+            }
         return GamePresentation(
             state: state,
             heroAttack: (try? combatResolver.effectiveAttack(for: .hero, in: state)) ?? fallbackHero?.baseAttack ?? 0,
@@ -65,7 +79,8 @@ struct GameSimulation {
                     defense: (try? combatResolver.effectiveDefense(forHeroAt: slot, in: state))
                         ?? state.party.heroes[slot].combat.baseDefense
                 )
-            }
+            },
+            campaign: campaign
         )
     }
 

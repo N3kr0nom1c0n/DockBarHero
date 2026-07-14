@@ -312,6 +312,17 @@ enum GameEvent: Equatable, Sendable {
     case itemsSalvaged(quantity: UInt64, gold: Int64)
 }
 
+struct CampaignPresentation: Equatable, Sendable {
+    let areaID: AreaID
+    let areaFullName: String
+    let areaShortName: String
+    let enemyID: EnemyContentID
+    let enemyName: String
+    let enemySpriteID: EnemySpriteID
+    let tier: EnemyTierID
+    let level: Int
+}
+
 struct GamePresentation: Equatable, Sendable {
     let state: GameState
     let heroAttack: Int
@@ -319,6 +330,7 @@ struct GamePresentation: Equatable, Sendable {
     let rollingDPS: Double
     let encounterDPS: Double
     var heroes: [HeroCombatPresentation] = []
+    var campaign: CampaignPresentation? = nil
 }
 
 struct HeroCombatPresentation: Equatable, Sendable {

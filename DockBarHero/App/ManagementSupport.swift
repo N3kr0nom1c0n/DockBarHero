@@ -33,6 +33,12 @@ enum ManagementFormat {
     static func heroLevel(_ level: Int) -> String { "Hero Lv. \(level)" }
     static func enemyLevel(_ level: Int) -> String { "Enemy Lv. \(level)" }
     static func itemLevel(_ level: Int) -> String { "Item Lv. \(level)" }
+    static func destination(level: Int) -> String {
+        guard let enemy = (try? CampaignResolver().resolve(level: level))?.enemy else {
+            return enemyLevel(level)
+        }
+        return "\(enemy.displayName) · \(enemyLevel(level))"
+    }
     static func isNewGameConfirmationValid(_ value: String) -> Bool {
         value == "GAME OVER MAN!"
     }
