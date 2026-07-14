@@ -71,12 +71,15 @@ enum CampaignCatalogError: Error, Equatable, Sendable {
     case duplicateAreaID(AreaID)
     case duplicateEnemyID(EnemyContentID)
     case duplicateEncounterLevel(Int)
+    case overlappingAreaLevels(AreaID, AreaID)
     case missingAuthoredLevel(Int)
     case unknownAreaReference(AreaID)
     case unknownEnemyReference(EnemyContentID)
+    case encounterOutsideArea(level: Int, areaID: AreaID)
     case tierMismatch(level: Int, expected: EnemyTierID, actual: EnemyTierID)
     case invalidArea(AreaID)
     case invalidEnemy(EnemyContentID)
+    case invalidProfile(enemyID: EnemyContentID, level: Int)
 }
 
 struct CampaignCatalog: Sendable {
@@ -164,9 +167,9 @@ struct CampaignCatalog: Sendable {
     func validate() throws {
         var areaIDs: Set<AreaID> = []
         for area in areas {
-            guard !area.id.rawValue.isEmpty,
-                  !area.fullName.isEmpty,
-                  !area.shortName.isEmpty,
+            guard Self.isKebabID(area.id.rawValue),
+                  Self.hasVisibleCopy(area.fullName),
+                  Self.hasVisibleCopy(area.shortName),
                   area.levels.lowerBound >= 1 else {
                 throw CampaignCatalogError.invalidArea(area.id)
             }
@@ -174,12 +177,22 @@ struct CampaignCatalog: Sendable {
                 throw CampaignCatalogError.duplicateAreaID(area.id)
             }
         }
+        for first in areas.indices {
+            for second in areas.indices where second > first {
+                guard !areas[first].levels.overlaps(areas[second].levels) else {
+                    throw CampaignCatalogError.overlappingAreaLevels(
+                        areas[first].id,
+                        areas[second].id
+                    )
+                }
+            }
+        }
 
         var enemyIDs: Set<EnemyContentID> = []
         for enemy in enemies {
-            guard !enemy.id.rawValue.isEmpty,
-                  !enemy.displayName.isEmpty,
-                  !enemy.spriteID.rawValue.isEmpty,
+            guard Self.isKebabID(enemy.id.rawValue),
+                  Self.hasVisibleCopy(enemy.displayName),
+                  Self.isSpriteID(enemy.spriteID.rawValue),
                   enemy.profile.healthBasisPoints > 0,
                   enemy.profile.attackBasisPoints > 0,
                   enemy.profile.defenseBonus >= 0,
@@ -196,6 +209,12 @@ struct CampaignCatalog: Sendable {
             guard (1...25).contains(encounter.level) else {
                 throw CampaignCatalogError.invalidLevel(encounter.level)
             }
+            guard Self.isKebabID(encounter.areaID.rawValue) else {
+                throw CampaignCatalogError.invalidArea(encounter.areaID)
+            }
+            guard Self.isKebabID(encounter.enemyID.rawValue) else {
+                throw CampaignCatalogError.invalidEnemy(encounter.enemyID)
+            }
             guard encounterLevels.insert(encounter.level).inserted else {
                 throw CampaignCatalogError.duplicateEncounterLevel(encounter.level)
             }
@@ -208,8 +227,14 @@ struct CampaignCatalog: Sendable {
         let areasByID = Dictionary(uniqueKeysWithValues: areas.map { ($0.id, $0) })
         let enemiesByID = Dictionary(uniqueKeysWithValues: enemies.map { ($0.id, $0) })
         for encounter in encounters {
-            guard areasByID[encounter.areaID] != nil else {
+            guard let area = areasByID[encounter.areaID] else {
                 throw CampaignCatalogError.unknownAreaReference(encounter.areaID)
+            }
+            guard area.levels.contains(encounter.level) else {
+                throw CampaignCatalogError.encounterOutsideArea(
+                    level: encounter.level,
+                    areaID: encounter.areaID
+                )
             }
             guard let enemy = enemiesByID[encounter.enemyID] else {
                 throw CampaignCatalogError.unknownEnemyReference(encounter.enemyID)
@@ -224,6 +249,52 @@ struct CampaignCatalog: Sendable {
                     actual: enemy.tier
                 )
             }
+            do {
+                _ = try EnemyFactory().makeEnemy(
+                    for: ResolvedCampaignEncounter(
+                        level: encounter.level,
+                        tier: enemy.tier,
+                        area: area,
+                        enemy: enemy
+                    ),
+                    balance: .standard,
+                    progression: .standard
+                )
+            } catch {
+                throw CampaignCatalogError.invalidProfile(
+                    enemyID: enemy.id,
+                    level: encounter.level
+                )
+            }
+        }
+    }
+
+    private static func hasVisibleCopy(_ value: String) -> Bool {
+        value.unicodeScalars.contains { scalar in
+            scalar.value != 9 && scalar.value != 10 && scalar.value != 13 && scalar.value != 32
+        }
+    }
+
+    private static func isKebabID(_ value: String) -> Bool {
+        let segments = value.split(separator: "-", omittingEmptySubsequences: false)
+        guard !segments.isEmpty else { return false }
+        return segments.allSatisfy(isLowercaseASCIIIdentifierSegment)
+    }
+
+    private static func isSpriteID(_ value: String) -> Bool {
+        let namespaces = value.split(separator: ".", omittingEmptySubsequences: false)
+        guard !namespaces.isEmpty else { return false }
+        return namespaces.allSatisfy { namespace in
+            let segments = namespace.split(separator: "-", omittingEmptySubsequences: false)
+            return !segments.isEmpty && segments.allSatisfy(isLowercaseASCIIIdentifierSegment)
+        }
+    }
+
+    private static func isLowercaseASCIIIdentifierSegment(_ segment: Substring) -> Bool {
+        let scalars = segment.unicodeScalars
+        guard let first = scalars.first, (97...122).contains(first.value) else { return false }
+        return scalars.allSatisfy { scalar in
+            (97...122).contains(scalar.value) || (48...57).contains(scalar.value)
         }
     }
 

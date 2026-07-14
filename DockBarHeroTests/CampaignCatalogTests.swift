@@ -107,15 +107,46 @@ final class CampaignCatalogTests: XCTestCase {
         assertValidationError(.duplicateEncounterLevel(1), in: catalog)
     }
 
+    func testCatalogRejectsOverlappingAuthoredAreaRanges() {
+        var catalog = CampaignCatalog.standard
+        let secondArea = AreaID(rawValue: "second-area")
+        catalog.areas.append(AreaDefinition(
+            id: secondArea,
+            fullName: "Second Area",
+            shortName: "Second",
+            levels: 20...30
+        ))
+
+        assertValidationError(
+            .overlappingAreaLevels(.forgottenShallowDepths, secondArea),
+            in: catalog
+        )
+    }
+
+    func testCatalogRejectsEncounterOutsideReferencedAreaRange() {
+        var catalog = CampaignCatalog.standard
+        catalog.areas[0] = AreaDefinition(
+            id: .forgottenShallowDepths,
+            fullName: "The Forgotten Shallow Depths That Were Remembered",
+            shortName: "Shallow Depths",
+            levels: 2...25
+        )
+
+        assertValidationError(
+            .encounterOutsideArea(level: 1, areaID: .forgottenShallowDepths),
+            in: catalog
+        )
+    }
+
     func testCatalogRejectsUnknownAreaReference() {
         var catalog = CampaignCatalog.standard
         catalog.encounters[0] = EncounterDefinition(
             level: 1,
-            areaID: AreaID(rawValue: "missing.area"),
+            areaID: AreaID(rawValue: "missing-area"),
             enemyID: .slime
         )
 
-        assertValidationError(.unknownAreaReference(AreaID(rawValue: "missing.area")), in: catalog)
+        assertValidationError(.unknownAreaReference(AreaID(rawValue: "missing-area")), in: catalog)
     }
 
     func testCatalogRejectsUnknownEnemyReference() {
@@ -123,10 +154,10 @@ final class CampaignCatalogTests: XCTestCase {
         catalog.encounters[0] = EncounterDefinition(
             level: 1,
             areaID: .forgottenShallowDepths,
-            enemyID: EnemyContentID(rawValue: "missing.enemy")
+            enemyID: EnemyContentID(rawValue: "missing-enemy")
         )
 
-        assertValidationError(.unknownEnemyReference(EnemyContentID(rawValue: "missing.enemy")), in: catalog)
+        assertValidationError(.unknownEnemyReference(EnemyContentID(rawValue: "missing-enemy")), in: catalog)
     }
 
     func testCatalogRejectsTierDisagreement() {
@@ -163,6 +194,20 @@ final class CampaignCatalogTests: XCTestCase {
         assertValidationError(.invalidArea(.forgottenShallowDepths), in: emptyCopy)
     }
 
+    func testCatalogRejectsWhitespaceAndMalformedAreaIDs() {
+        for rawValue in [" forgotten-shallow-depths", "forgotten shallow depths", "Forgotten"] {
+            var catalog = CampaignCatalog.standard
+            let invalidID = AreaID(rawValue: rawValue)
+            catalog.areas[0] = AreaDefinition(
+                id: invalidID,
+                fullName: "The Forgotten Shallow Depths That Were Remembered",
+                shortName: "Shallow Depths",
+                levels: 1...25
+            )
+            assertValidationError(.invalidArea(invalidID), in: catalog)
+        }
+    }
+
     func testCatalogRejectsEmptyEnemyID() {
         var catalog = CampaignCatalog.standard
         catalog.enemies[0] = EnemyDefinition(
@@ -174,6 +219,39 @@ final class CampaignCatalogTests: XCTestCase {
         )
 
         assertValidationError(.invalidEnemy(EnemyContentID(rawValue: "")), in: catalog)
+    }
+
+    func testCatalogRejectsWhitespaceAndMalformedEnemyAndSpriteIDs() {
+        for rawValue in [" goblin", "bad enemy", "BadEnemy", "bad.enemy"] {
+            var catalog = CampaignCatalog.standard
+            let invalidID = EnemyContentID(rawValue: rawValue)
+            catalog.enemies[0] = enemy(
+                invalidID,
+                "Goblin",
+                .normal,
+                .goblin,
+                10_000,
+                10_000,
+                0,
+                10_000
+            )
+            assertValidationError(.invalidEnemy(invalidID), in: catalog)
+        }
+
+        for rawValue in [" generic.enemy", "generic enemy", "Generic.enemy", "generic..enemy"] {
+            var catalog = CampaignCatalog.standard
+            catalog.enemies[0] = enemy(
+                .goblin,
+                "Goblin",
+                .normal,
+                EnemySpriteID(rawValue: rawValue),
+                10_000,
+                10_000,
+                0,
+                10_000
+            )
+            assertValidationError(.invalidEnemy(.goblin), in: catalog)
+        }
     }
 
     func testCatalogRejectsEmptyEnemyDisplayName() {
@@ -225,6 +303,38 @@ final class CampaignCatalogTests: XCTestCase {
         catalog.enemies[0] = enemy(.goblin, "Goblin", .normal, .goblin, 10_000, 10_000, 0, 0)
 
         assertValidationError(.invalidEnemy(.goblin), in: catalog)
+    }
+
+    func testCatalogRejectsProfileOverflowAtEncounterBaseline() {
+        var catalog = CampaignCatalog.standard
+        catalog.enemies[catalog.enemies.firstIndex { $0.id == .slime }!] = enemy(
+            .slime,
+            "Slime",
+            .normal,
+            .slime,
+            .max,
+            10_000,
+            0,
+            10_000
+        )
+
+        assertValidationError(.invalidProfile(enemyID: .slime, level: 1), in: catalog)
+    }
+
+    func testCatalogRejectsProfileIntervalBelowSimulationMinimumAtEncounterBaseline() {
+        var catalog = CampaignCatalog.standard
+        catalog.enemies[catalog.enemies.firstIndex { $0.id == .slime }!] = enemy(
+            .slime,
+            "Slime",
+            .normal,
+            .slime,
+            10_000,
+            10_000,
+            0,
+            1
+        )
+
+        assertValidationError(.invalidProfile(enemyID: .slime, level: 1), in: catalog)
     }
 
     private func assertValidationError(
