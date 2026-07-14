@@ -16,6 +16,7 @@
 		124A28A03BF458D41236DC97 /* CombatResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E36F2AB49907D4D959AB5A2D /* CombatResolver.swift */; };
 		132307DC4D44E92A071D99C3 /* LoreSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422411824C8B72B1D0860190 /* LoreSettingsSection.swift */; };
 		1597213C63418464F67B79D7 /* LootSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C9EAFDD1F3654E80EF008F2 /* LootSystemTests.swift */; };
+		15EA1AF28DA0BDDDED26ACC2 /* LoreContextSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24B45A0A0DDAC3A23BF00F8 /* LoreContextSheetTests.swift */; };
 		198546C7FB44F567A4AE3727 /* PixelSpriteDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED225C09286EACC435FC3A1C /* PixelSpriteDefinition.swift */; };
 		1A2D23F1C1E4064021DC8911 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B90A438265DB89B7E94E759 /* SettingsView.swift */; };
 		1AAFD4151665282A44585C20 /* SimulationDuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F7A6E0E3DB63AA1E34C635B /* SimulationDuration.swift */; };
@@ -84,6 +85,7 @@
 		8D5F1A9C4F5DC0743CD1D534 /* EncounterScheduleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E77E891B1F9FE294748A196 /* EncounterScheduleTests.swift */; };
 		9159513DF5DB84877698F6F7 /* volume1-level20-adult.png in Resources */ = {isa = PBXBuildFile; fileRef = DAF33A1BDC14AB2DA81613EA /* volume1-level20-adult.png */; };
 		91B2505FE7F5AC43E2E34B9E /* BalanceConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C6867E3AC329AA6C53A38E /* BalanceConfiguration.swift */; };
+		9227C3C16ED3D6857ABB7F1C /* LoreContextSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE7D372E21F25DBC9F08EB36 /* LoreContextSheet.swift */; };
 		9320F70620705E5BC5DCA006 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19DCA1BD64EDDBC8E7EF627F /* AppSettings.swift */; };
 		963FDA8AA6B19D585518598D /* CombatResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5976F79B7621E01E99BC4787 /* CombatResolverTests.swift */; };
 		96C175AA63AB27E4C1BFFD6F /* SaveDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBB4E71B5A88A861340D85CF /* SaveDocument.swift */; };
@@ -235,6 +237,7 @@
 		99643AE7B1875E68D893EC37 /* volume1-level5-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level5-safe.png"; sourceTree = "<group>"; };
 		999EEF1DA444150B1FC0F971 /* LoreSpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreSpeechService.swift; sourceTree = "<group>"; };
 		9D492E14395BAA5B3F6DD4C5 /* LoreMangaLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreMangaLayoutTests.swift; sourceTree = "<group>"; };
+		A24B45A0A0DDAC3A23BF00F8 /* LoreContextSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreContextSheetTests.swift; sourceTree = "<group>"; };
 		A28CE908CD1CA83A15254ABB /* ClassActionCooldownTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassActionCooldownTests.swift; sourceTree = "<group>"; };
 		A2F36207173FF2A5AE9DD894 /* LoreBookLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreBookLayoutTests.swift; sourceTree = "<group>"; };
 		A704FA474D0443A40224B764 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
@@ -270,6 +273,7 @@
 		DAF33A1BDC14AB2DA81613EA /* volume1-level20-adult.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level20-adult.png"; sourceTree = "<group>"; };
 		DE374EF6BEA01AE559052260 /* BookReactionBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookReactionBubble.swift; sourceTree = "<group>"; };
 		DE4C396608E15CDFE23EC464 /* EncounterSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterSchedule.swift; sourceTree = "<group>"; };
+		DE7D372E21F25DBC9F08EB36 /* LoreContextSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreContextSheet.swift; sourceTree = "<group>"; };
 		DEA2AF257AB993F0C2CB0C09 /* ManagementSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagementSupport.swift; sourceTree = "<group>"; };
 		E043207E2BD7ACD2F4C89799 /* FullscreenWindowClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenWindowClassifier.swift; sourceTree = "<group>"; };
 		E0927F25F81CB58218B0B6F2 /* SettingsSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSession.swift; sourceTree = "<group>"; };
@@ -360,6 +364,7 @@
 				7C9EAFDD1F3654E80EF008F2 /* LootSystemTests.swift */,
 				A2F36207173FF2A5AE9DD894 /* LoreBookLayoutTests.swift */,
 				5799E80DDEB4CA18DAC529DF /* LoreCatalogTests.swift */,
+				A24B45A0A0DDAC3A23BF00F8 /* LoreContextSheetTests.swift */,
 				9D492E14395BAA5B3F6DD4C5 /* LoreMangaLayoutTests.swift */,
 				D02118DC5C64C058B2733253 /* LoreProgressResolverTests.swift */,
 				2307BDF142D241BE51EE8EA4 /* LoreReaderControllerTests.swift */,
@@ -491,6 +496,7 @@
 				2DD84DF83A09A54CE9034537 /* LoreBookLayout.swift */,
 				FAB39E0FB32961E18A2C1F88 /* LoreBookView.swift */,
 				7C86A376C9311B9A96931763 /* LoreCatalog.swift */,
+				DE7D372E21F25DBC9F08EB36 /* LoreContextSheet.swift */,
 				7D2A47D4C8CD3356F8D3098A /* LoreMangaLayout.swift */,
 				91D4B8399E4D0BB95638F44A /* LoreModels.swift */,
 				F6343507187CF69D47ABD31F /* LorePageView.swift */,
@@ -695,6 +701,7 @@
 				1597213C63418464F67B79D7 /* LootSystemTests.swift in Sources */,
 				A843303C2F15CF6F91277FBF /* LoreBookLayoutTests.swift in Sources */,
 				B5770621EE102360E5B0C4EF /* LoreCatalogTests.swift in Sources */,
+				15EA1AF28DA0BDDDED26ACC2 /* LoreContextSheetTests.swift in Sources */,
 				6A2F99B10DBA2312243220D4 /* LoreMangaLayoutTests.swift in Sources */,
 				B1F70CA677EE4E3ACBA45C0D /* LoreProgressResolverTests.swift in Sources */,
 				A159D58FDCEB43F0A3704215 /* LoreReaderControllerTests.swift in Sources */,
@@ -764,6 +771,7 @@
 				E580DC35667A443E8866BF9A /* LoreBookLayout.swift in Sources */,
 				0694E01EE15762FF6CA99745 /* LoreBookView.swift in Sources */,
 				83C736E2594D0C6CF631648B /* LoreCatalog.swift in Sources */,
+				9227C3C16ED3D6857ABB7F1C /* LoreContextSheet.swift in Sources */,
 				4377B91DA895F66C07EEF4B5 /* LoreMangaLayout.swift in Sources */,
 				480DE49077DE151516C19CE2 /* LoreModels.swift in Sources */,
 				1B624E5F3398AD5F9FD48707 /* LorePageView.swift in Sources */,
