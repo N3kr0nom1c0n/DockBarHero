@@ -17,7 +17,7 @@ Each normal page contains:
 
 - five to seven irregular panels;
 - exactly one animated anchor panel occupying roughly 35 to 45 percent of the available page area;
-- four to five still story panels;
+- four to five primary still story panels;
 - zero or one optional tiny gag panel;
 - one or two rectangular Book narration boxes;
 - one to three character speech balloons;
@@ -52,9 +52,9 @@ Text containers have a bounded amount of copy. If localized or accessibility-siz
 Each page uses two independent art sources:
 
 1. The existing four-frame 2x2 animation sheet supplies the animated anchor panel.
-2. A new four-image 2x2 context sheet supplies distinct still story moments.
+2. A new six-image 3x2 context sheet supplies distinct still story moments.
 
-The context sheet is not an animation sequence. Its quadrants show different camera angles or story beats: establishing shot, reaction, close-up, cutaway, aftermath, or background gag. Runtime cropping produces individual still panels, which may use aspect-fill crops chosen by the page composition.
+The context sheet is not an animation sequence. Its cells show different camera angles or story beats: establishing shot, reaction, close-up, cutaway, aftermath, or background gag. Runtime cropping produces individual still panels, which may use aspect-fill crops chosen by the page composition. Five-panel layouts may leave two context cells unused; the six-panel and seven-panel layouts consume five and six context cells respectively.
 
 All generated art remains text-free, black-and-white, high-contrast, and stylistically consistent with the existing seinen-comedy sheets. Principal character identity, costume, props, and setting must remain recognizable across the motion and context sheets.
 
@@ -79,13 +79,13 @@ The lore page definition gains authored composition data:
 
 - stable layout template identifier;
 - safe context-sheet resource name and optional adult resource name;
-- ordered panel descriptors with role, source quadrant, crop focal point, and reading order;
+- ordered panel descriptors with role, source cell, crop focal point, and reading order;
 - ordered live-text descriptors with speaker, text style, panel attachment, placement preference, and dialogue cue reference where applicable;
 - accessibility descriptions for the page and meaningful panel beats.
 
 Layout geometry is normalized rather than stored in pixels. Runtime layout code maps normalized panel paths into the available page rectangle, applies gutters and border styling, then positions live text within declared safe regions. The four templates are deterministic pure data and can be tested without rendering the full Book.
 
-Exactly one panel has the `motion` role. Catalog validation rejects pages with zero or multiple motion panels, invalid source quadrants, duplicate reading-order positions, missing required safe context art, or live text attached to a nonexistent panel.
+Exactly one panel has the `motion` role. Catalog validation rejects pages with zero or multiple motion panels, invalid source cells, duplicate reading-order positions, missing required safe context art, or live text attached to a nonexistent panel.
 
 ## 8. Responsive and Accessible Behavior
 
@@ -116,7 +116,7 @@ Automated checks cover:
 
 - all four normalized layout templates staying in bounds with non-overlapping panel interiors;
 - exactly one motion panel and an unambiguous right-to-left reading order per page;
-- context-sheet decoding and all four crops;
+- context-sheet decoding and all six crops;
 - catalog validation for resources, panel roles, text attachments, and safe/adult fallback;
 - clean and unfiltered text resolution before composition;
 - reduced-motion, Book-closed, and inactive-window animation freezing;
