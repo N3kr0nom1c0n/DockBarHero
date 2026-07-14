@@ -12,6 +12,7 @@
 		0C72AC77E83566C8E0DA02E0 /* RewardResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E15F15F2B4568EC8B2B4D0F1 /* RewardResolverTests.swift */; };
 		0D8352F4EF268E26358CE414 /* InventoryResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41CEAD8EA63F8550701A8C4A /* InventoryResolver.swift */; };
 		124A28A03BF458D41236DC97 /* CombatResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E36F2AB49907D4D959AB5A2D /* CombatResolver.swift */; };
+		12ACEA5387944FB23AD35A54 /* CampaignAreaOneIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1ED3407AD3FADD515362803 /* CampaignAreaOneIntegrationTests.swift */; };
 		1597213C63418464F67B79D7 /* LootSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C9EAFDD1F3654E80EF008F2 /* LootSystemTests.swift */; };
 		198546C7FB44F567A4AE3727 /* PixelSpriteDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED225C09286EACC435FC3A1C /* PixelSpriteDefinition.swift */; };
 		1A2D23F1C1E4064021DC8911 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B90A438265DB89B7E94E759 /* SettingsView.swift */; };
@@ -226,6 +227,7 @@
 		ED225C09286EACC435FC3A1C /* PixelSpriteDefinition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PixelSpriteDefinition.swift; sourceTree = "<group>"; };
 		ED2CF71E3855222237A52A24 /* ManagementRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagementRoute.swift; sourceTree = "<group>"; };
 		F0DC1D5CB56FCA8F90F01260 /* ManagementRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagementRootView.swift; sourceTree = "<group>"; };
+		F1ED3407AD3FADD515362803 /* CampaignAreaOneIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignAreaOneIntegrationTests.swift; sourceTree = "<group>"; };
 		F1F51D738CA8F9F9A5F971EC /* PartySelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartySelectionView.swift; sourceTree = "<group>"; };
 		F4462558286CABDA69360563 /* LootGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LootGenerator.swift; sourceTree = "<group>"; };
 		F80EFDBAE5BD492DF775661F /* InventoryConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryConfiguration.swift; sourceTree = "<group>"; };
@@ -267,6 +269,7 @@
 				DA347E51C750D24AE0E8747E /* AbilityResolverTests.swift */,
 				C8443E0D34AB8B0707A79331 /* AppModelTests.swift */,
 				F97A36783977BA1422D08114 /* BalanceConfigurationTests.swift */,
+				F1ED3407AD3FADD515362803 /* CampaignAreaOneIntegrationTests.swift */,
 				909FF5EF5E620C7AF777D045 /* CampaignCatalogTests.swift */,
 				816B58306EE312D628193808 /* CampaignResolverTests.swift */,
 				3F131C5732DFA84574EECA06 /* ClassActionConfigurationTests.swift */,
@@ -529,6 +532,7 @@
 				2F24AC590C74CCA51A4FCD23 /* AbilityResolverTests.swift in Sources */,
 				7C8006DEC5C5A9D61C649B8B /* AppModelTests.swift in Sources */,
 				DCE10BEFC2693E92CEFFFCC2 /* BalanceConfigurationTests.swift in Sources */,
+				12ACEA5387944FB23AD35A54 /* CampaignAreaOneIntegrationTests.swift in Sources */,
 				FA3BEF51AC4FD038C9EAC04C /* CampaignCatalogTests.swift in Sources */,
 				7E6E876D03D689B99EF96818 /* CampaignResolverTests.swift in Sources */,
 				49229A9531B096BA67197576 /* ClassActionConfigurationTests.swift in Sources */,

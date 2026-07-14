@@ -295,6 +295,27 @@ final class GameSimulationTests: XCTestCase {
         XCTAssertEqual(simulation.state, stateBeforeAdvance)
     }
 
+    func testWrongAuthoredTierIsRejectedBeforeMutation() throws {
+        let resolved = try CampaignResolver().resolve(level: 9)
+        var state = GameState.newGame(balance: .standard)
+        state.campaign.highestUnlockedLevel = 9
+        state.campaign.selectedLevel = 9
+        state.encounter.enemyLevel = 9
+        state.encounter.tier = .elite
+        state.enemy = try EnemyFactory().makeEnemy(
+            for: resolved,
+            balance: .standard,
+            progression: .standard
+        )
+        var simulation = GameSimulation(state: state)
+        let original = simulation.state
+
+        XCTAssertThrowsError(try simulation.advance(by: .zero)) { error in
+            XCTAssertEqual(error as? SimulationError, .invalidState)
+        }
+        XCTAssertEqual(simulation.state, original)
+    }
+
     func testIncoherentRevivingStateIsRejectedBeforeMutation() {
         var state = GameState.newGame(balance: .standard)
         state.encounter.phase = .reviving
