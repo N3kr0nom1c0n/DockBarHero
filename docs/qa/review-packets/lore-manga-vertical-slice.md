@@ -1,8 +1,10 @@
 # Lore Manga Vertical Slice Review Packet
 
-**Date:** 2026-07-13
+**Date:** 2026-07-14
 
 **Branch:** `codex/lore-manga-vertical-slice`
+
+**Candidate commit tested:** `c29296ef2666be4428c17a4b1900625e3330379a` (`fix: anchor the two-page lore reader`)
 
 **Scope:** dishonest Level 100,000 prologue plus Volume I pages unlocked at Levels 1, 5, 10, 15, and 20. Boss 25 remains intentionally out of scope until Heroes and Party defines the cast.
 
@@ -20,32 +22,43 @@
 
 | Check | Result |
 |---|---|
-| Combined lore/settings/app tests | PASS: 72 tests, 0 failures |
-| Full `DockBarHeroTests` suite | PASS: 291 tests, 0 failures |
+| Focused lore/settings/app tests | Prior accepted candidate evidence: 72 tests, 0 failures; not rerun in this automated-only Task 4 pass |
+| Full `DockBarHeroTests` suite | PASS (2026-07-14): 298 tests, 0 failures (`** TEST SUCCEEDED **`) |
 | Every catalog image loads and crops | PASS: 7 sheets, 28 frames |
 | Mechanical image dimensions | PASS: all seven are 1024x1024 |
-| Clean unsigned Apple Silicon build | PASS |
-| `./script/build_and_run.sh --verify` | PASS: launched PID 28026 |
+| Clean unsigned Apple Silicon build | PASS (2026-07-14): `** BUILD SUCCEEDED **` |
+| `./script/build_and_run.sh --verify` | PASS (2026-07-14): launched PID 57167 |
 | `git diff --check` | PASS before each feature commit |
 
 ## Visual Asset Inspection
 
 Each final bundled PNG was reopened at original detail after normalization. PASS for all seven: exact 2x2 grid, stable principal identity, clear four-step loop, no generated lettering, no watermark/logo, and correct safe/censored presentation. Detailed source paths and selection notes are in `docs/art/lore-volume1-chapter1-asset-manifest.md`.
 
-## Live QA Status
+## Parent-Owned Live QA Status
 
-The launched app's passive rail was directly visible and the process launch was verified. The Mac locked while attempting to open the management window through the menu-bar UI. The control layer could not unlock it, so the following live checks remain honestly unverified:
+The 2026-07-14 automated pass launched DockBarHero (PID 57167), but it did not perform visual, audio, or VoiceOver inspection. The parent orchestrator must mark each item below from observed live evidence only; no screenshots were captured in this pass.
 
-- open Book route and confirm the spread/single-page transition visually;
-- watch a complete four-frame loop in the running reader;
-- enable speech, verify Book-only playback, and close mid-line to confirm audible interruption;
-- turn the potentiometer at 0, 5, and 10 and compare the giggle volume;
-- confirm the Adult dialog and pixel-censor alternate in the running reader;
-- verify VoiceOver announcement for the reversed control.
+### Wide window
 
-Automated controller tests cover the safety-critical speech gates and stop behavior, but they are not represented as manual audio evidence.
+- PENDING: initial two-page spread, with current page on the right.
+- PENDING: fixed caption cards under pointer, trackpad, and wheel input; no page scroll indicator.
+- PENDING: complete, unclipped `Level 100,000: The Finaler Ending` title and body.
+- PENDING: readable title/body against opaque caption cards in light and dark appearances.
+- PENDING: potentiometer changes only the Book reaction, not header, pages, or bottom controls.
+- PENDING: lying-arrow correction changes only the arrow and anchored reaction bubble.
+- PENDING: Next/Previous preserve right-to-left page placement.
+- PENDING: reaction bubble cannot intercept page, navigation, Replay, Skip, or potentiometer input.
 
-The final review also added explicit coverage for one-time sequential auto-read, visible clean/unfiltered opening insults, close/reopen route reset, and the Book's dishonest arrow correction.
+### Compact and preserved behavior
+
+- PENDING: minimum width shows one centered page with complete caption.
+- PENDING: restoring wide width returns the spread without changing the selected page.
+- PENDING: Reduced Motion freezes the illustration on its static frame.
+- PENDING (audio): disabled speech yields only the visual Book giggle when moving the potentiometer.
+- PENDING (audio): enabled speech preserves Replay, Skip, volume preview, page-turn interruption, Book-close interruption, and app-deactivation silence.
+- PENDING (VoiceOver): announces `Next Page`, `Previous Page`, and the honest effective Book volume.
+
+Automated tests cover controller behavior but are not manual visual, audio, or VoiceOver evidence.
 
 ## Known Scope Boundaries
 
