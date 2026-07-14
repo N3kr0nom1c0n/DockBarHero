@@ -1,4 +1,30 @@
 struct EncounterDirector: Sendable {
+    let resolver: CampaignResolver
+    let enemyFactory: EnemyFactory
+
+    init(
+        resolver: CampaignResolver = CampaignResolver(),
+        enemyFactory: EnemyFactory = EnemyFactory()
+    ) {
+        self.resolver = resolver
+        self.enemyFactory = enemyFactory
+    }
+
+    func prepareNewGame(in state: GameState, balance: BalanceConfiguration) throws -> GameState {
+        guard state.campaign.highestUnlockedLevel == 1,
+              state.campaign.selectedLevel == 1,
+              state.encounter.enemyLevel == 1 else {
+            throw SimulationError.invalidState
+        }
+        return try activate(
+            level: 1,
+            mode: .push,
+            resetDefeats: true,
+            in: state,
+            balance: balance
+        )
+    }
+
     func beginNextEncounter(in state: GameState, balance: BalanceConfiguration) throws -> GameState {
         try completeVictory(in: state, balance: balance)
     }
@@ -181,11 +207,15 @@ struct EncounterDirector: Sendable {
         balance: BalanceConfiguration
     ) throws -> GameState {
         guard level >= 1,
-              level <= state.campaign.highestUnlockedLevel,
-              let tier = EncounterSchedule.standard.tier(for: level),
-              let enemy = balance.enemy(level: level, tier: tier, progression: .standard) else {
+              level <= state.campaign.highestUnlockedLevel else {
             throw SimulationError.invalidBalance
         }
+        let resolved = try resolver.resolve(level: level)
+        let enemy = try enemyFactory.makeEnemy(
+            for: resolved,
+            balance: balance,
+            progression: .standard
+        )
 
         var result = state
         result.campaign.selectedLevel = level
@@ -200,7 +230,7 @@ struct EncounterDirector: Sendable {
             }
         }
         result.encounter.enemyLevel = level
-        result.encounter.tier = tier
+        result.encounter.tier = resolved.tier
         for slot in result.party.heroes.indices {
             result.party.heroes[slot].combat.currentHealth = result.party.heroes[slot].combat.maxHealth
             result.party.heroes[slot].encounterAliveDuration = .zero

@@ -19,6 +19,9 @@ final class GameSessionTests: XCTestCase {
 
         XCTAssertEqual(driver.startCount, 1)
         XCTAssertEqual(driver.currentState.party.heroes[0].classID, .tank)
+        XCTAssertEqual(driver.currentState.enemy.maxHealth, 39)
+        XCTAssertEqual(driver.currentState.enemy.baseAttack, 3)
+        XCTAssertEqual(driver.currentState.enemy.attackInterval, .nanoseconds(1_950_000_000))
         let replacements = await store.replacements()
         XCTAssertEqual(replacements, [.active(driver.currentState)])
     }

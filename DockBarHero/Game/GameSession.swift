@@ -115,12 +115,15 @@ final class GameSession: GameSessionControlling {
 
     func chooseStartingClass(_ classID: HeroClassID) async throws {
         guard hasStarted, !isStopping, !hasStopped, currentRunState == .classSelection else { return }
-        let state = GameState.newGame(
-            classID: classID,
-            balance: .standard,
-            progression: .standard
-        )
         do {
+            let state = try EncounterDirector().prepareNewGame(
+                in: GameState.newGame(
+                    classID: classID,
+                    balance: .standard,
+                    progression: .standard
+                ),
+                balance: .standard
+            )
             try await store.replaceRun(with: .active(state))
             currentRunState = .active(state)
             startActive(state, generation: generation)
