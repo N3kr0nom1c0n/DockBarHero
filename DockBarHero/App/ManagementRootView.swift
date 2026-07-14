@@ -26,10 +26,7 @@ struct ManagementRootView: View {
             case .inventory:
                 InventoryView(model: model)
             case .book:
-                DeferredFeatureView(
-                    title: "The Completely Trustworthy Book",
-                    message: "The pages are arguing with the binding. One moment."
-                )
+                LoreBookView(model: model)
             case .abilities:
                 DeferredFeatureView(
                     title: "Abilities",
