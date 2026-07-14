@@ -28,20 +28,29 @@ private struct LoreBookReaderView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            Divider()
-            if model.lorePages.isEmpty {
-                ContentUnavailableView("No Pages Yet", systemImage: "book.closed")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                ViewThatFits(in: .horizontal) {
-                    twoPageSpread
-                    singlePage
+        ZStack(alignment: .topTrailing) {
+            VStack(spacing: 0) {
+                header
+                    .frame(height: 62)
+                Divider()
+
+                if model.lorePages.isEmpty {
+                    ContentUnavailableView("No Pages Yet", systemImage: "book.closed")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    GeometryReader { geometry in
+                        readerContent(for: LoreBookLayout.mode(forContentWidth: geometry.size.width))
+                    }
+                    .layoutPriority(1)
                 }
+
+                Divider()
+                controls
             }
-            Divider()
-            controls
+
+            BookReactionBubble(text: controller.reactionText)
+                .padding(.top, 74)
+                .padding(.trailing, 18)
         }
         .background(Color(red: 0.20, green: 0.08, blue: 0.06))
         .task {
@@ -66,34 +75,45 @@ private struct LoreBookReaderView: View {
                 .font(.system(size: 28, weight: .black))
                 .foregroundStyle(arrowPointsWrongWay ? .red : .black)
                 .accessibilityLabel(arrowPointsWrongWay ? "Misleading reading arrow pointing right" : "Corrected reading arrow pointing left")
-            if !controller.reactionText.isEmpty {
-                Text(controller.reactionText)
-                    .font(.caption.italic())
-                    .padding(8)
-                    .background(.white.opacity(0.75), in: RoundedRectangle(cornerRadius: 8))
-                    .foregroundStyle(.black)
-                    .accessibilityLabel("The Book says: \(controller.reactionText)")
-            }
         }
         .padding(12)
         .background(Color(red: 0.88, green: 0.76, blue: 0.52))
     }
 
     private var twoPageSpread: some View {
-        HStack(spacing: 3) {
-            if model.lorePages.indices.contains(currentIndex + 1) {
-                page(model.lorePages[currentIndex + 1])
-            } else {
-                Color(red: 0.93, green: 0.85, blue: 0.68)
+        Group {
+            if let spread = LoreBookLayout.spread(
+                pageCount: model.lorePages.count,
+                currentIndex: currentIndex
+            ) {
+                HStack(spacing: 3) {
+                    if let leftIndex = spread.leftIndex {
+                        page(model.lorePages[leftIndex])
+                    } else {
+                        Color(red: 0.93, green: 0.85, blue: 0.68)
+                    }
+                    page(model.lorePages[spread.rightIndex])
+                }
             }
-            page(model.lorePages[currentIndex])
         }
-        .frame(minWidth: 720, minHeight: 390)
+        .padding(10)
     }
 
     private var singlePage: some View {
         page(model.lorePages[currentIndex])
-            .frame(minWidth: 360, minHeight: 390)
+            .frame(maxWidth: 560)
+            .padding(10)
+            .frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder
+    private func readerContent(for mode: LoreBookLayout.Mode) -> some View {
+        switch mode {
+        case .spread:
+            twoPageSpread
+        case .singlePage:
+            singlePage
+        }
     }
 
     private func page(_ page: ResolvedLorePage) -> some View {
@@ -106,9 +126,11 @@ private struct LoreBookReaderView: View {
             Button("Next ◀") { select(index: currentIndex + 1) }
                 .keyboardShortcut(.leftArrow, modifiers: [])
                 .disabled(currentIndex + 1 >= model.lorePages.count)
+                .accessibilityLabel("Next Page")
             Button("Previous ▶") { select(index: currentIndex - 1) }
                 .keyboardShortcut(.rightArrow, modifiers: [])
                 .disabled(currentIndex == 0)
+                .accessibilityLabel("Previous Page")
 
             Divider().frame(height: 32)
             Button("Replay", systemImage: "speaker.wave.2") { controller.replay() }
@@ -124,6 +146,7 @@ private struct LoreBookReaderView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 6)
         .background(Color(red: 0.78, green: 0.61, blue: 0.36))
+        .frame(minHeight: 92)
     }
 
     private func select(index: Int) {

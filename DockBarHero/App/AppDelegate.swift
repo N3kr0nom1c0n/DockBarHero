@@ -1,6 +1,11 @@
 import AppKit
 import SwiftUI
 
+enum ManagementWindowSizing {
+    static let initialContentSize = NSSize(width: 1_100, height: 720)
+    static let minimumSize = NSSize(width: 720, height: 520)
+}
+
 @MainActor
 final class ManagementWindowController: NSWindowController, NSWindowDelegate {
     private let onClose: () -> Void
@@ -10,8 +15,8 @@ final class ManagementWindowController: NSWindowController, NSWindowDelegate {
         let content = NSHostingController(rootView: ManagementRootView(model: model))
         let window = NSWindow(contentViewController: content)
         window.title = "DockBarHero"
-        window.setContentSize(NSSize(width: 860, height: 620))
-        window.minSize = NSSize(width: 720, height: 520)
+        window.setContentSize(ManagementWindowSizing.initialContentSize)
+        window.minSize = ManagementWindowSizing.minimumSize
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
         window.isReleasedWhenClosed = false
         super.init(window: window)

@@ -50,4 +50,17 @@ final class LoreBookLayoutTests: XCTestCase {
             500
         )
     }
+
+    func testDefaultManagementWindowCanShowSpreadBesideSidebar() {
+        let maximumSidebarWidth: CGFloat = 230
+
+        XCTAssertEqual(ManagementWindowSizing.initialContentSize.width, 1_100)
+        XCTAssertEqual(ManagementWindowSizing.initialContentSize.height, 720)
+        XCTAssertEqual(ManagementWindowSizing.minimumSize.width, 720)
+        XCTAssertEqual(ManagementWindowSizing.minimumSize.height, 520)
+        XCTAssertGreaterThanOrEqual(
+            ManagementWindowSizing.initialContentSize.width - maximumSidebarWidth,
+            LoreBookLayout.minimumSpreadWidth
+        )
+    }
 }

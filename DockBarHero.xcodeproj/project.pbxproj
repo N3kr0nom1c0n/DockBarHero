@@ -91,6 +91,7 @@
 		C62C8B02A3F0BF1FE9EE1D42 /* LootSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DE3A7CF2C6E82A95957389 /* LootSystem.swift */; };
 		C689F488793AF13327A04885 /* EncounterDirectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3FC244D744D5DDE9BDB7B8A /* EncounterDirectorTests.swift */; };
 		C6E726271E35F71BDC6681D0 /* FullscreenWindowClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = E043207E2BD7ACD2F4C89799 /* FullscreenWindowClassifier.swift */; };
+		C91F0432A5D1E2720874A0DC /* BookReactionBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE374EF6BEA01AE559052260 /* BookReactionBubble.swift */; };
 		CC5249441D0267288AAF4690 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A704FA474D0443A40224B764 /* SettingsStore.swift */; };
 		CEDF2A499DB305DF5ACF02C9 /* SettingsSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F1ACAF83DE0C417D08CC08E /* SettingsSessionTests.swift */; };
 		D12F51121C8BCBAB20F16BE5 /* EnvironmentMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47C35A975941EEBB55C9FF53 /* EnvironmentMonitorTests.swift */; };
@@ -214,6 +215,7 @@
 		D02118DC5C64C058B2733253 /* LoreProgressResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreProgressResolverTests.swift; sourceTree = "<group>"; };
 		D65C97EC8232A20141D45BB9 /* SaveMigrationRegistryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveMigrationRegistryTests.swift; sourceTree = "<group>"; };
 		DAF33A1BDC14AB2DA81613EA /* volume1-level20-adult.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level20-adult.png"; sourceTree = "<group>"; };
+		DE374EF6BEA01AE559052260 /* BookReactionBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookReactionBubble.swift; sourceTree = "<group>"; };
 		DE4C396608E15CDFE23EC464 /* EncounterSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterSchedule.swift; sourceTree = "<group>"; };
 		DEA2AF257AB993F0C2CB0C09 /* ManagementSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagementSupport.swift; sourceTree = "<group>"; };
 		E043207E2BD7ACD2F4C89799 /* FullscreenWindowClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenWindowClassifier.swift; sourceTree = "<group>"; };
@@ -394,6 +396,7 @@
 		D25AC00E35973486E1DFFA2E /* Lore */ = {
 			isa = PBXGroup;
 			children = (
+				DE374EF6BEA01AE559052260 /* BookReactionBubble.swift */,
 				59CF8EDBDE7A94B07E6D96D2 /* BookVolumePotentiometer.swift */,
 				2DD84DF83A09A54CE9034537 /* LoreBookLayout.swift */,
 				FAB39E0FB32961E18A2C1F88 /* LoreBookView.swift */,
@@ -622,6 +625,7 @@
 				50D611A9B73A82EC3938F28D /* AppModel.swift in Sources */,
 				9320F70620705E5BC5DCA006 /* AppSettings.swift in Sources */,
 				91B2505FE7F5AC43E2E34B9E /* BalanceConfiguration.swift in Sources */,
+				C91F0432A5D1E2720874A0DC /* BookReactionBubble.swift in Sources */,
 				2C9DB209F470519689EAC0DE /* BookVolumePotentiometer.swift in Sources */,
 				B6FA9FD54E51510B7F9FAEA3 /* BuiltinPixelSprites.swift in Sources */,
 				E41CD49F4FCF1D1C97BA1272 /* ClassSelectionView.swift in Sources */,
