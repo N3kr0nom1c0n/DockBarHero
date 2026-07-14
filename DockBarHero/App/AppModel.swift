@@ -70,6 +70,9 @@ final class AppModel: ObservableObject {
         self.scene = scene
         self.screen = screen
         self.monitor = monitor
+        scene.setClassActionHandler { [weak self] slot, actionID in
+            self?.send(.castAction(heroSlot: slot, actionID: actionID))
+        }
         if gameplayStarted {
             scene.render(runPresentation)
         }
@@ -142,6 +145,10 @@ final class AppModel: ObservableObject {
 
     func chooseStartingClass(_ classID: HeroClassID) async throws {
         try await gameSession?.chooseStartingClass(classID)
+    }
+
+    func choosePartyClass(_ classID: HeroClassID) async throws {
+        try await gameSession?.choosePartyClass(classID)
     }
 
     func startNewGame() async throws {
@@ -257,6 +264,9 @@ final class AppModel: ObservableObject {
         runPresentation = run
         switch run {
         case .classSelection:
+            scene?.render(run)
+            onManagementWindowRequest?()
+        case .partySelection:
             scene?.render(run)
             onManagementWindowRequest?()
         case let .active(presentation):

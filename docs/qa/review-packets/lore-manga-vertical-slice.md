@@ -4,7 +4,7 @@
 
 **Branch:** `codex/lore-manga-vertical-slice`
 
-**Candidate commit tested:** `c29296ef2666be4428c17a4b1900625e3330379a` (`fix: anchor the two-page lore reader`)
+**Candidate tested:** combined pre-commit merge tree from `codex/lore-manga-vertical-slice` and `feature/class-actions-and-loot`, including the fixed-spread and deterministic `--open-book` launch repairs
 
 **Scope:** dishonest Level 100,000 prologue plus Volume I pages unlocked at Levels 1, 5, 10, 15, and 20. Boss 25 remains intentionally out of scope until Heroes and Party defines the cast.
 
@@ -22,13 +22,15 @@
 
 | Check | Result |
 |---|---|
-| Focused lore/settings/app tests | Prior accepted candidate evidence: 72 tests, 0 failures; not rerun in this automated-only Task 4 pass |
-| Full `DockBarHeroTests` suite | PASS (2026-07-14): 298 tests, 0 failures (`** TEST SUCCEEDED **`) |
+| Focused launch/window regressions | PASS (2026-07-14): 2 tests, 0 failures, after confirmed compile-failing red runs |
+| Full combined `DockBarHeroTests` suite | PASS (2026-07-14): 400 tests, 0 failures (`** TEST SUCCEEDED **`) |
+| Sprite-pipeline Python suite | PASS (2026-07-14): 15 tests, 0 failures |
 | Every catalog image loads and crops | PASS: 7 sheets, 28 frames |
 | Mechanical image dimensions | PASS: all seven are 1024x1024 |
 | Clean unsigned Apple Silicon build | PASS (2026-07-14): `** BUILD SUCCEEDED **` |
-| `./script/build_and_run.sh --verify` | PASS (2026-07-14): launched PID 57167 |
-| `git diff --check` | PASS before each feature commit |
+| Exact combined launch | PASS (2026-07-14): one process, PID 39103, exact worktree bundle with `--open-book` |
+| Runtime management-window frame | PASS (2026-07-14): 1100x752 outer frame after SwiftUI sizing repair |
+| `git diff --check` | PASS after conflict resolution and before the integration commit |
 
 ## Visual Asset Inspection
 
@@ -36,17 +38,18 @@ Each final bundled PNG was reopened at original detail after normalization. PASS
 
 ## Parent-Owned Live QA Status
 
-The 2026-07-14 automated pass launched DockBarHero (PID 57167), but it did not perform visual, audio, or VoiceOver inspection. The parent orchestrator must mark each item below from observed live evidence only; no screenshots were captured in this pass.
+The parent launched the exact combined worktree bundle with `--open-book`, confirmed one process at PID 39103, inspected the accessibility tree and live window, and exercised wheel input plus Next/Previous. Audio, VoiceOver, appearance switching, reduced motion, compact resizing, and the remaining controls were not exercised.
 
 ### Wide window
 
-- PENDING: initial two-page spread, with current page on the right.
-- PENDING: fixed caption cards under pointer, trackpad, and wheel input; no page scroll indicator.
-- PENDING: complete, unclipped `Level 100,000: The Finaler Ending` title and body.
-- PENDING: readable title/body against opaque caption cards in light and dark appearances.
+- PASS: the 1100-point initial window shows two pages, with the selected page on the right and following page on the left.
+- PASS: wheel input leaves both fixed caption cards anchored; no page scroll indicator appears.
+- PASS: complete, unclipped `Level 100,000: The Finaler Ending` title and body.
+- PASS: readable title/body against opaque caption cards in the currently active dark appearance.
+- PENDING: repeat caption contrast inspection in light appearance.
 - PENDING: potentiometer changes only the Book reaction, not header, pages, or bottom controls.
 - PENDING: lying-arrow correction changes only the arrow and anchored reaction bubble.
-- PENDING: Next/Previous preserve right-to-left page placement.
+- PASS: Next/Previous preserve right-to-left page placement and return to the original prologue spread.
 - PENDING: reaction bubble cannot intercept page, navigation, Replay, Skip, or potentiometer input.
 
 ### Compact and preserved behavior

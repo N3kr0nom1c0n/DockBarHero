@@ -6,13 +6,31 @@ enum ManagementWindowSizing {
     static let minimumSize = NSSize(width: 720, height: 520)
 }
 
+struct InitialManagementWindowSizingGate {
+    private var hasAppliedInitialSize = false
+
+    mutating func shouldApplyInitialSize() -> Bool {
+        guard !hasAppliedInitialSize else { return false }
+        hasAppliedInitialSize = true
+        return true
+    }
+}
+
+enum AppLaunchOptions {
+    static func managementRoute(arguments: [String]) -> ManagementRoute? {
+        arguments.contains("--open-book") ? .book : nil
+    }
+}
+
 @MainActor
 final class ManagementWindowController: NSWindowController, NSWindowDelegate {
     private let onClose: () -> Void
+    private var initialSizingGate = InitialManagementWindowSizingGate()
 
     init(model: AppModel) {
         onClose = { [weak model] in model?.managementWindowDidClose() }
         let content = NSHostingController(rootView: ManagementRootView(model: model))
+        content.sizingOptions = [.minSize]
         let window = NSWindow(contentViewController: content)
         window.title = "DockBarHero"
         window.setContentSize(ManagementWindowSizing.initialContentSize)
@@ -30,6 +48,9 @@ final class ManagementWindowController: NSWindowController, NSWindowDelegate {
 
     func open() {
         showWindow(nil)
+        if initialSizingGate.shouldApplyInitialSize() {
+            window?.setContentSize(ManagementWindowSizing.initialContentSize)
+        }
         window?.makeKeyAndOrderFront(nil)
         NSApplication.shared.activate()
     }
@@ -119,6 +140,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let monitor = EnvironmentMonitor(evaluator: WorkspaceEnvironmentEvaluator())
             model.connect(window: window, scene: scene, screen: screen, monitor: monitor)
             model.start()
+            if let route = AppLaunchOptions.managementRoute(arguments: ProcessInfo.processInfo.arguments) {
+                model.selectManagementRoute(route)
+                managementWindowController.open()
+            }
             AppLog.lifecycle.info("DockBarHero launched")
         } catch {
             AppLog.scene.error("Scene bootstrap failed: \(error.localizedDescription)")

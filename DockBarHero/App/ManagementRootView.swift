@@ -7,6 +7,8 @@ struct ManagementRootView: View {
         switch model.runPresentation {
         case .classSelection:
             ClassSelectionView(model: model)
+        case let .partySelection(pending, _):
+            PartySelectionView(model: model, pending: pending)
         case .active:
             managementView
         }
@@ -28,10 +30,7 @@ struct ManagementRootView: View {
             case .book:
                 LoreBookView(model: model)
             case .abilities:
-                DeferredFeatureView(
-                    title: "Abilities",
-                    message: "Class Actions arrive in a later milestone."
-                )
+                ClassActionsView(model: model)
             case .skills:
                 DeferredFeatureView(
                     title: "Skills",

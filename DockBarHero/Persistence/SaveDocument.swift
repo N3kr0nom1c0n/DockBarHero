@@ -65,6 +65,7 @@ enum SaveDecodingError: Error, Equatable {
 enum SaveValidationError: Error, Equatable {
     case invalidEnemyLevel
     case invalidHero
+    case invalidClassAction
     case invalidCampaign
     case invalidEconomy
     case invalidHealth(CombatantID)
@@ -75,6 +76,7 @@ enum SaveValidationError: Error, Equatable {
     case duplicateItemID(ItemID)
     case missingEquipment(ItemID)
     case equipmentSlotMismatch(ItemID)
+    case sharedEquipment(ItemID)
     case inconsistentEncounter
 }
 
@@ -127,16 +129,59 @@ struct SaveCodec: Sendable {
 
     private func validate(_ runState: RunState) throws {
         guard case let .active(state) = runState else { return }
-        guard state.party.heroes.count == 1 else {
+        guard state.encounter.activeElapsed >= .zero else {
+            throw SaveValidationError.invalidTimer
+        }
+        guard (1...3).contains(state.party.heroes.count),
+              Set(state.party.heroes.map(\.classID)).count == state.party.heroes.count else {
             throw SaveValidationError.invalidHero
         }
-        let heroState = state.party.heroes[0]
-        guard heroState.level >= 1,
-              heroState.currentXP >= 0,
-              heroState.currentXP < (try progressionValue {
-                  try ProgressionConfiguration.standard.xpRequired(for: heroState.level)
-              }) else {
-            throw SaveValidationError.invalidHero
+        for heroState in state.party.heroes {
+            guard heroState.level >= 1,
+                  heroState.currentXP >= 0,
+                  heroState.currentXP < (try progressionValue {
+                      try ProgressionConfiguration.standard.xpRequired(for: heroState.level)
+                  }),
+                  heroState.encounterAliveDuration >= .zero,
+                  heroState.encounterAliveDuration <= state.encounter.activeElapsed,
+                  heroState.consecutiveDeaths >= 0 else {
+                throw SaveValidationError.invalidHero
+            }
+            let actionConfiguration = ClassActionConfiguration.standard
+            let expectedAction = actionConfiguration.action(for: heroState.classID)
+            guard let definition = try? actionConfiguration.definition(for: heroState.classAction.actionID),
+                  heroState.classAction.actionID == expectedAction,
+                  definition.heroClass == heroState.classID,
+                  heroState.classAction.cooldownRemaining >= .zero,
+                  heroState.classAction.cooldownRemaining <= definition.cooldown,
+                  !heroState.classAction.guardActive || (
+                      heroState.classID == .tank &&
+                      heroState.combat.currentHealth > 0 &&
+                      state.encounter.phase == .active
+                  ) else {
+                throw SaveValidationError.invalidClassAction
+            }
+        }
+        switch state.party.unlocks {
+        case .locked:
+            guard state.party.heroes.count == 1 else { throw SaveValidationError.invalidHero }
+        case let .pendingSecond(pending):
+            let currentClass = state.party.heroes[0].classID
+            guard state.party.heroes.count == 1,
+                  pending.milestone == .boss25,
+                  pending.choices.count == 2,
+                  Set(pending.choices).count == 2,
+                  !pending.choices.contains(currentClass),
+                  Set(pending.choices).union([currentClass]) == Set(HeroClassID.allCases),
+                  state.encounter.phase == .awaitingPartyChoice,
+                  state.encounter.enemyLevel == 25,
+                  state.encounter.tier == .boss else {
+                throw SaveValidationError.invalidHero
+            }
+        case .secondUnlocked:
+            guard state.party.heroes.count == 2 else { throw SaveValidationError.invalidHero }
+        case .complete:
+            guard state.party.heroes.count == 3 else { throw SaveValidationError.invalidHero }
         }
         guard state.economy.gold >= 0 else {
             throw SaveValidationError.invalidEconomy
@@ -155,12 +200,14 @@ struct SaveCodec: Sendable {
             throw SaveValidationError.invalidCampaign
         }
 
-        guard heroState.combat.id == .hero, state.enemy.id == .enemy else {
+        guard state.party.heroes.allSatisfy({ $0.combat.id == .hero }), state.enemy.id == .enemy else {
             throw SaveValidationError.inconsistentEncounter
         }
-        try validateHealth(heroState.combat)
+        for heroState in state.party.heroes {
+            try validateHealth(heroState.combat)
+            try validateCombatStats(heroState.combat)
+        }
         try validateHealth(state.enemy)
-        try validateCombatStats(heroState.combat)
         try validateCombatStats(state.enemy)
 
         guard balance.enemy(
@@ -170,9 +217,11 @@ struct SaveCodec: Sendable {
         ) != nil else {
             throw SaveValidationError.invalidEnemyLevel
         }
-        guard heroState.combat.attackInterval >= .minimumAttackInterval,
+        guard state.party.heroes.allSatisfy({
+                  $0.combat.attackInterval >= .minimumAttackInterval &&
+                  $0.combat.timeUntilNextAttack >= .zero
+              }),
               state.enemy.attackInterval >= .minimumAttackInterval,
-              heroState.combat.timeUntilNextAttack >= .zero,
               state.enemy.timeUntilNextAttack >= .zero,
               state.encounter.activeElapsed >= .zero,
               state.encounter.reviveRemaining >= .zero,
@@ -182,11 +231,21 @@ struct SaveCodec: Sendable {
 
         var itemIDs = Set<ItemID>()
         var creationSequences = Set<UInt64>()
-        for item in state.inventory {
+        guard state.inventoryExpansionPurchases >= 0,
+              state.inventory.count <= (try InventoryResolver().capacity(for: state)) else {
+            throw SaveValidationError.invalidLootSequence
+        }
+        for item in state.inventory + state.overflowInventory {
             guard item.id.rawValue > 0,
                   item.level > 0,
                   item.primaryStat > 0,
-                  item.creationSequence > 0 else {
+                  item.creationSequence > 0,
+                  item.quantity > 0 else {
+                throw SaveValidationError.invalidItem(item.id)
+            }
+            do {
+                try LootConfiguration.standard.validate(item)
+            } catch {
                 throw SaveValidationError.invalidItem(item.id)
             }
             guard itemIDs.insert(item.id).inserted else {
@@ -197,25 +256,37 @@ struct SaveCodec: Sendable {
             }
         }
 
-        for slot in EquipmentSlot.allCases {
-            guard let itemID = heroState.equipment[slot] else { continue }
-            let matches = state.inventory.filter { $0.id == itemID }
-            guard let item = matches.first else {
-                throw SaveValidationError.missingEquipment(itemID)
-            }
-            guard matches.count == 1, item.slot == slot else {
-                throw SaveValidationError.equipmentSlotMismatch(itemID)
-            }
-            let baseStat = slot == .weapon ? heroState.combat.baseAttack : heroState.combat.baseDefense
-            let (_, overflow) = baseStat.addingReportingOverflow(item.primaryStat)
-            guard !overflow else {
-                throw SaveValidationError.invalidCombatStats(.hero)
+        var equippedItemIDs = Set<ItemID>()
+        for heroState in state.party.heroes {
+            for slot in EquipmentSlot.allCases {
+                guard let itemID = heroState.equipment[slot] else { continue }
+                guard equippedItemIDs.insert(itemID).inserted else {
+                    throw SaveValidationError.sharedEquipment(itemID)
+                }
+                let matches = state.inventory.filter { $0.id == itemID }
+                guard let item = matches.first else {
+                    throw SaveValidationError.missingEquipment(itemID)
+                }
+                guard matches.count == 1, item.slot == slot else {
+                    throw SaveValidationError.equipmentSlotMismatch(itemID)
+                }
+                guard item.quantity == 1 else {
+                    throw SaveValidationError.invalidItem(itemID)
+                }
+                let baseStat = slot == .weapon ? heroState.combat.baseAttack : heroState.combat.baseDefense
+                let (_, overflow) = baseStat.addingReportingOverflow(item.primaryStat)
+                guard !overflow else {
+                    throw SaveValidationError.invalidCombatStats(.hero)
+                }
             }
         }
 
         let (nextItemID, itemIDOverflow) = state.lootSequence.addingReportingOverflow(1)
         guard !itemIDOverflow,
               !state.inventory.contains(where: {
+                  $0.id.rawValue == nextItemID || $0.creationSequence == nextItemID
+              }),
+              !state.overflowInventory.contains(where: {
                   $0.id.rawValue == nextItemID || $0.creationSequence == nextItemID
               }) else {
             throw SaveValidationError.invalidLootSequence
@@ -229,16 +300,22 @@ struct SaveCodec: Sendable {
             let (_, damageOverflow) = state.encounter.heroDamage.addingReportingOverflow(
                 state.enemy.currentHealth
             )
-            guard heroState.combat.currentHealth > 0,
+            guard state.party.heroes.contains(where: { $0.combat.currentHealth > 0 }),
                   state.enemy.currentHealth > 0,
                   state.encounter.reviveRemaining == .zero,
                   !damageOverflow else {
                 throw SaveValidationError.inconsistentEncounter
             }
         case .reviving:
-            guard heroState.combat.currentHealth == 0,
+            guard state.party.heroes.allSatisfy({ $0.combat.currentHealth == 0 }),
                   state.enemy.currentHealth > 0,
                   state.encounter.reviveRemaining <= balance.reviveDelay else {
+                throw SaveValidationError.inconsistentEncounter
+            }
+        case .awaitingPartyChoice:
+            guard state.party.unlocks.pendingUnlock != nil,
+                  state.enemy.currentHealth == 0,
+                  state.encounter.reviveRemaining == .zero else {
                 throw SaveValidationError.inconsistentEncounter
             }
         }

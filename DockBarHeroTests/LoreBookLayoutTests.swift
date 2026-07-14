@@ -2,6 +2,13 @@ import XCTest
 @testable import DockBarHero
 
 final class LoreBookLayoutTests: XCTestCase {
+    func testInitialManagementWindowSizeIsAppliedOnlyOnFirstOpen() {
+        var gate = InitialManagementWindowSizingGate()
+
+        XCTAssertTrue(gate.shouldApplyInitialSize())
+        XCTAssertFalse(gate.shouldApplyInitialSize())
+    }
+
     func testWideContentUsesTwoPageSpreadAndCompactContentUsesSinglePage() {
         XCTAssertEqual(
             LoreBookLayout.mode(forContentWidth: LoreBookLayout.minimumSpreadWidth),
