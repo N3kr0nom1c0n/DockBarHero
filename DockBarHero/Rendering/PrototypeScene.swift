@@ -5,6 +5,37 @@ import SpriteKit
 final class PrototypeScene: SKScene {
     private let actorSize = CGSize(width: 54, height: 36)
     private let healthBarSize = CGSize(width: 150, height: 5)
+    private static let actorOutlineShader = SKShader(
+        source: """
+        void main() {
+            vec4 source = texture2D(u_texture, v_tex_coord);
+            vec2 step = u_outlineStep;
+            float adjacentAlpha = 0.0;
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(-step.x, -step.y)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(0.0, -step.y)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(step.x, -step.y)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(-step.x, 0.0)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(step.x, 0.0)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(-step.x, step.y)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(0.0, step.y)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(step.x, step.y)).a);
+
+            if (source.a > 0.0) {
+                gl_FragColor = source;
+            } else if (adjacentAlpha > 0.0) {
+                gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+            } else {
+                gl_FragColor = vec4(0.0);
+            }
+        }
+        """,
+        uniforms: [
+            SKUniform(
+                name: "u_outlineStep",
+                vectorFloat2: vector_float2(1.0 / 96.0, 1.0 / 64.0)
+            )
+        ]
+    )
     private let spriteCatalog: any SpriteCatalog
     private var renderedHeroClasses: [HeroClassID] = [.dps]
     private var renderedActions: [ClassActionID] = [.powerStrike]
@@ -243,6 +274,7 @@ final class PrototypeScene: SKScene {
         )
         node.name = name
         node.position = CGPoint(x: x, y: 32)
+        node.shader = Self.actorOutlineShader
         return node
     }
 

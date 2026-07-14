@@ -136,6 +136,26 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertNotNil(host.scene.childNode(withName: "ground"))
     }
 
+    func testActorsUseOneTexelExteriorOutlineWithoutChangingPresentation() throws {
+        let host = try PrototypeSceneHost()
+        let hero = try XCTUnwrap(host.scene.childNode(withName: "hero") as? SKSpriteNode)
+        let enemy = try XCTUnwrap(host.scene.childNode(withName: "enemy") as? SKSpriteNode)
+
+        for actor in [hero, enemy] {
+            let shader = try XCTUnwrap(actor.shader)
+            let step = try XCTUnwrap(shader.uniformNamed("u_outlineStep")).floatVector2Value
+            XCTAssertEqual(step.x, 1.0 / 96.0, accuracy: 0.000_001)
+            XCTAssertEqual(step.y, 1.0 / 64.0, accuracy: 0.000_001)
+            XCTAssertEqual(actor.texture?.filteringMode, .nearest)
+            XCTAssertEqual(actor.texture?.size(), CGSize(width: 96, height: 64))
+            XCTAssertEqual(actor.size, CGSize(width: 54, height: 36))
+            XCTAssertEqual(actor.alpha, 1, accuracy: 0.001)
+            XCTAssertEqual(actor.colorBlendFactor, 0, accuracy: 0.001)
+        }
+        XCTAssertEqual(hero.xScale, 1, accuracy: 0.001)
+        XCTAssertEqual(enemy.xScale, -1, accuracy: 0.001)
+    }
+
     func testAnimationAndInteractionControls() throws {
         let host = try PrototypeSceneHost()
 
