@@ -35,6 +35,7 @@ final class PrototypeScene: SKScene {
 
         let hero = actor(name: "hero", token: .dps, x: size.width * 0.22)
         let enemy = actor(name: "enemy", token: .goblin, x: size.width * 0.78)
+        enemy.xScale = -1
         addChild(hero)
         addChild(enemy)
         startSpriteLoop(on: hero, token: .dps)

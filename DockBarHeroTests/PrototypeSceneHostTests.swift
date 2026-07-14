@@ -101,6 +101,8 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertEqual(enemy.texture?.size(), CGSize(width: 96, height: 64))
         XCTAssertEqual(hero.size, CGSize(width: 54, height: 36))
         XCTAssertEqual(enemy.size, CGSize(width: 54, height: 36))
+        XCTAssertEqual(hero.xScale, 1, accuracy: 0.001)
+        XCTAssertEqual(enemy.xScale, -1, accuracy: 0.001)
         XCTAssertNotNil(host.scene.childNode(withName: "ground"))
     }
 
