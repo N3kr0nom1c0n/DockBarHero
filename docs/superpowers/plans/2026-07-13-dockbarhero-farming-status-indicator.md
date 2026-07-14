@@ -270,7 +270,7 @@ git status --short
 
 Expected: context valid, no whitespace errors, `AGENTS.md` at most 100 lines, `PROJECT.md` at most 150 lines, and only the QA/context files modified.
 
-- [ ] **Step 6: Commit, push, and prove isolation**
+- [x] **Step 6: Commit, push, and prove isolation**
 
 Run:
 

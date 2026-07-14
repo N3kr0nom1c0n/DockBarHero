@@ -74,7 +74,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - Date: 2026-07-13.
 - Checkout: `/Users/n3kr0/Projects/TBH/.worktrees/heroes-and-party` on `feature/class-actions-and-loot`.
 - Latest post-QA gate: 345 arm64 tests passed with zero failures; clean unsigned arm64 build and exact-worktree launch succeeded.
-- `feature/class-actions-and-loot` retains upstream tracking in its isolated worktree; no merge or release was performed.
+- `feature/class-actions-and-loot` was pushed with matching local and remote SHAs and retained in its isolated worktree; no merge or release was performed.
 - Save isolation retained both diagnostic archives and the clean end-to-end save. Primary and backup settings were restored byte-identically to their pre-QA hash.
 - Exact-window QA showed three class-distinct pixel sprites and the centered DPS scale. A stale same-bundle-ID app caused the earlier duplicate process and rectangle-era image; absolute worktree-bundle targeting removed that ambiguity.
 - Victory now restores every defeated party sprite; the regression passed all 15 focused rendering tests before the full suite.
