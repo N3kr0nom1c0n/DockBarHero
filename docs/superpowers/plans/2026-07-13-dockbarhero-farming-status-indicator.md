@@ -182,7 +182,7 @@ Expected: only the stable label and its focused tests are committed.
 - Consumes: the Task 1 `farmingStatus` node and the existing management `returnToFrontier` intent path.
 - Produces: verified QA evidence and current project context; no runtime interface.
 
-- [ ] **Step 1: Run the complete automated and build gates**
+- [x] **Step 1: Run the complete automated and build gates**
 
 Run the full suite:
 
@@ -200,7 +200,7 @@ xcodebuild clean build -project DockBarHero.xcodeproj -scheme DockBarHero -confi
 
 Expected: clean/build exits zero and reports `** BUILD SUCCEEDED **`.
 
-- [ ] **Step 2: Launch only the exact worktree bundle**
+- [x] **Step 2: Launch only the exact worktree bundle**
 
 Run:
 
@@ -212,7 +212,7 @@ ps -axo pid=,command= | awk '/DockBarHero\.app\/Contents\/MacOS\/DockBarHero$/ {
 
 Expected: one process from `/Users/n3kr0/Projects/TBH/.worktrees/heroes-and-party/.build/RunDerivedData/Build/Products/Debug/DockBarHero.app/Contents/MacOS/DockBarHero`.
 
-- [ ] **Step 3: Perform exact-window live QA at the encounter boundary**
+- [x] **Step 3: Perform exact-window live QA at the encounter boundary**
 
 With the existing clean run at farming level 1/frontier 192:
 
@@ -224,7 +224,7 @@ With the existing clean run at farming level 1/frontier 192:
 
 Expected: both visible and hidden states match the approved design without changing passive rail behavior.
 
-- [ ] **Step 4: Write verified QA and current context**
+- [x] **Step 4: Write verified QA and current context**
 
 After every preceding command and live check matches its expected result, create `docs/qa/review-packets/farming-status-indicator.md` with this exact content. If any observed value differs, stop and record the actual evidence instead of using this block:
 
@@ -257,7 +257,7 @@ After every preceding command and live check matches its expected result, create
 
 Update `PROJECT.md` to link the new packet and state only the verified test count, build, launch, visible farming copy, boundary transition, and branch status.
 
-- [ ] **Step 5: Run documentation and repository guards**
+- [x] **Step 5: Run documentation and repository guards**
 
 Run:
 

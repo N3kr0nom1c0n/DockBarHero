@@ -6,8 +6,8 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Current Milestone
 
-- Goal: complete Class Actions and the two-slice Loot Expansion without merging to `main` or starting authored quest rewards.
-- Current checkpoint: Class Actions, Item Depth, Inventory Operations, and the live QA rendering correction are implemented in verified vertical slices on `feature/class-actions-and-loot`.
+- Goal: complete Class Actions, the two-slice Loot Expansion, and the farming/frontier rail-status follow-up without merging this branch to `main` or starting authored quest rewards.
+- Current checkpoint: Class Actions, Item Depth, Inventory Operations, the live QA rendering correction, and the farming/frontier status indicator are implemented in verified vertical slices on `feature/class-actions-and-loot`.
 - Integration: the owner lifted the internal hold and the feature branch was fast-forwarded and pushed to `main` on 2026-07-12.
 - Remaining: owner review and later tuning of provisional prices; the pushed feature branch remains isolated and is not release-ready.
 
@@ -38,7 +38,10 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - docs/superpowers/plans/2026-07-12-dockbarhero-class-actions.md: executable Class Actions plan.
 - docs/superpowers/plans/2026-07-12-dockbarhero-item-depth.md: executable Item Depth plan.
 - docs/superpowers/plans/2026-07-12-dockbarhero-inventory-operations.md: executable Inventory Operations plan.
+- docs/superpowers/specs/2026-07-13-dockbarhero-farming-status-indicator-design.md: approved farming/frontier rail-status design.
+- docs/superpowers/plans/2026-07-13-dockbarhero-farming-status-indicator.md: executable and verified farming-status plan.
 - docs/qa/review-packets/class-actions-and-loot.md: current automated, isolation, launch, and completed live-QA evidence.
+- docs/qa/review-packets/farming-status-indicator.md: focused, integrated, build, exact-process, and live transition evidence.
 - docs/qa/review-packets/heroes-and-party.md: focused, integrated, save-isolation, and live-QA evidence.
 - docs/qa/review-packets/progression-safety.md: current automated evidence, manual QA list, and integration hold.
 - .superpowers/sdd/progress.md: detailed task and gate ledger.
@@ -62,19 +65,20 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 ## Active Work
 
 - Parent orchestrator: preserve the pushed `feature/class-actions-and-loot` branch and worktree without merging or releasing.
-- Live QA passed for unlocks, three-class actions, cooldown relaunch, rarity/affixes, auto-equip, capacity/overflow, partial and bulk salvage, locking, remedial farming, pixel sprites, and the DPS scale.
-- Remote handoff is complete; `main` remains unchanged by this milestone run.
+- Live QA passed for unlocks, three-class actions, cooldown relaunch, rarity/affixes, auto-equip, capacity/overflow, partial and bulk salvage, locking, remedial farming, pixel sprites, the DPS scale, and farming/frontier status transitions.
+- The feature branch remains isolated; `main` remains unchanged by this follow-up.
 - Authored quest/boss content that grants specific Unique items remains a later milestone.
 
 ## Last Verified State
 
 - Date: 2026-07-13.
 - Checkout: `/Users/n3kr0/Projects/TBH/.worktrees/heroes-and-party` on `feature/class-actions-and-loot`.
-- Final post-QA gate: 344 arm64 tests passed with zero failures; clean unsigned arm64 build, context guard, and exact-worktree launch succeeded.
-- `feature/class-actions-and-loot` was pushed with upstream tracking and retained in its isolated worktree; no merge or release was performed.
+- Latest post-QA gate: 345 arm64 tests passed with zero failures; clean unsigned arm64 build and exact-worktree launch succeeded.
+- `feature/class-actions-and-loot` retains upstream tracking in its isolated worktree; no merge or release was performed.
 - Save isolation retained both diagnostic archives and the clean end-to-end save. Primary and backup settings were restored byte-identically to their pre-QA hash.
 - Exact-window QA showed three class-distinct pixel sprites and the centered DPS scale. A stale same-bundle-ID app caused the earlier duplicate process and rectangle-era image; absolute worktree-bundle targeting removed that ambiguity.
 - Victory now restores every defeated party sprite; the regression passed all 15 focused rendering tests before the full suite.
+- Exact-window QA showed `FARMING • FRONTIER 194` above the level-174 farming encounter, retained it while the frontier destination was queued, and hid it after push mode committed; enemy level and DPS remained visible.
 
 ## Decisions and Risks
 
