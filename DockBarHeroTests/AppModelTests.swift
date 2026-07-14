@@ -401,6 +401,55 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(lore.closeCount, 1)
     }
 
+    func testLoreSettingActionsSubmitIndependentValues() {
+        let settings = FakeSettingsController(initial: .defaults)
+        let lore = LoreReaderControllerFake()
+        let model = AppModel(settingsController: settings, loreReader: lore)
+        model.start()
+        settings.resolve()
+
+        model.updateLoreLanguage(.clean)
+        model.updateSpokenDialogue(true)
+        model.updateBookVolume(0)
+
+        XCTAssertEqual(settings.updates.last?.loreLanguageMode, .clean)
+        XCTAssertEqual(settings.updates.last?.loreIllustrationMode, .safe)
+        XCTAssertEqual(settings.updates.last?.spokenDialogueEnabled, true)
+        XCTAssertEqual(settings.updates.last?.bookVolumeDetent, 0)
+    }
+
+    func testAdultIllustrationsRequireExplicitConfirmation() {
+        let settings = FakeSettingsController(initial: .defaults)
+        let model = AppModel(settingsController: settings)
+        model.start()
+        settings.resolve()
+
+        model.updateLoreIllustration(.adult)
+        XCTAssertTrue(model.isAdultIllustrationConfirmationPresented)
+        XCTAssertEqual(model.appSettings.loreIllustrationMode, .safe)
+
+        model.confirmAdultIllustrations()
+        XCTAssertFalse(model.isAdultIllustrationConfirmationPresented)
+        XCTAssertEqual(model.appSettings.loreIllustrationMode, .adult)
+        XCTAssertEqual(settings.updates.last?.loreIllustrationMode, .adult)
+    }
+
+    func testCancelAdultConfirmationKeepsSafeMode() {
+        let model = AppModel()
+        model.updateLoreIllustration(.adult)
+        model.cancelAdultIllustrations()
+        XCTAssertEqual(model.appSettings.loreIllustrationMode, .safe)
+        XCTAssertFalse(model.isAdultIllustrationConfirmationPresented)
+    }
+
+    func testDisablingSpeechImmediatelyUpdatesReader() {
+        let lore = LoreReaderControllerFake()
+        let model = AppModel(loreReader: lore)
+        model.updateSpokenDialogue(true)
+        model.updateSpokenDialogue(false)
+        XCTAssertEqual(lore.updates.last?.settings.spokenDialogueEnabled, false)
+    }
+
     func testStopAndSaveStopsOverlayAndAwaitsGameAndSettingsSessions() async {
         let dependencies = TestDependencies()
         let session = FakeGameSession()

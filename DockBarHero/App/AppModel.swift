@@ -9,6 +9,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var managementRoute: ManagementRoute = .overview
     @Published private(set) var appSettings = AppSettings.defaults
     @Published private(set) var lorePages: [ResolvedLorePage] = []
+    @Published private(set) var isAdultIllustrationConfirmationPresented = false
     let loreReader: any LoreReaderControlling
     var onManagementWindowRequest: (() -> Void)?
 
@@ -162,12 +163,31 @@ final class AppModel: ObservableObject {
     }
 
     func updateLoreIllustration(_ mode: LoreIllustrationMode) {
+        if mode == .adult && appSettings.loreIllustrationMode != .adult {
+            isAdultIllustrationConfirmationPresented = true
+            return
+        }
         appSettings.loreIllustrationMode = mode
         publishLoreSettings()
     }
 
+    func confirmAdultIllustrations() {
+        isAdultIllustrationConfirmationPresented = false
+        appSettings.loreIllustrationMode = .adult
+        publishLoreSettings()
+    }
+
+    func cancelAdultIllustrations() {
+        isAdultIllustrationConfirmationPresented = false
+    }
+
     func updateSpokenDialogue(_ enabled: Bool) {
         appSettings.spokenDialogueEnabled = enabled
+        publishLoreSettings()
+    }
+
+    func updateAutoReadNewLorePages(_ enabled: Bool) {
+        appSettings.autoReadNewLorePages = enabled
         publishLoreSettings()
     }
 

@@ -20,6 +20,7 @@ struct SettingsView: View {
                 get: { model.state.inputMode == .interactive },
                 set: { model.send(.setInputMode($0 ? .interactive : .passive)) }
             ))
+            LoreSettingsSection(model: model)
             Section("Danger Zone") {
                 Text("Start New Game replaces heroes, XP, gold, frontier, inventory, equipment, and unlocks.")
                     .foregroundStyle(.secondary)

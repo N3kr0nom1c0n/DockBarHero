@@ -13,6 +13,7 @@
 		0C45CAB4AEB12121259E293A /* SaveStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF357C4A8AD1952FDF98EA0D /* SaveStoreTests.swift */; };
 		0C72AC77E83566C8E0DA02E0 /* RewardResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E15F15F2B4568EC8B2B4D0F1 /* RewardResolverTests.swift */; };
 		124A28A03BF458D41236DC97 /* CombatResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E36F2AB49907D4D959AB5A2D /* CombatResolver.swift */; };
+		132307DC4D44E92A071D99C3 /* LoreSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422411824C8B72B1D0860190 /* LoreSettingsSection.swift */; };
 		1597213C63418464F67B79D7 /* LootSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C9EAFDD1F3654E80EF008F2 /* LootSystemTests.swift */; };
 		198546C7FB44F567A4AE3727 /* PixelSpriteDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED225C09286EACC435FC3A1C /* PixelSpriteDefinition.swift */; };
 		1A2D23F1C1E4064021DC8911 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B90A438265DB89B7E94E759 /* SettingsView.swift */; };
@@ -140,6 +141,7 @@
 		3E77E891B1F9FE294748A196 /* EncounterScheduleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterScheduleTests.swift; sourceTree = "<group>"; };
 		3F1ACAF83DE0C417D08CC08E /* SettingsSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSessionTests.swift; sourceTree = "<group>"; };
 		3FEBB2B89631ABEA126DC445 /* EnvironmentMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentMonitor.swift; sourceTree = "<group>"; };
+		422411824C8B72B1D0860190 /* LoreSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreSettingsSection.swift; sourceTree = "<group>"; };
 		42278A046B943F22DAEF4580 /* SaveCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveCoordinator.swift; sourceTree = "<group>"; };
 		426594A2CD84B0AE56418323 /* SpriteCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteCatalog.swift; sourceTree = "<group>"; };
 		44ADEBD46ABA5F66B87B50F2 /* SpokenDialogueCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpokenDialogueCatalogTests.swift; sourceTree = "<group>"; };
@@ -365,6 +367,7 @@
 				F6343507187CF69D47ABD31F /* LorePageView.swift */,
 				69974EDD211C54A56DFAEA29 /* LoreProgressResolver.swift */,
 				A9B373ACCB24E702DBE0F0C4 /* LoreReaderController.swift */,
+				422411824C8B72B1D0860190 /* LoreSettingsSection.swift */,
 				999EEF1DA444150B1FC0F971 /* LoreSpeechService.swift */,
 				0102E18BEBEFB5FE34A343B4 /* LoreSpriteSheet.swift */,
 				C4BB70A08450EF5CC9113E5B /* SpokenDialogueCatalog.swift */,
@@ -598,6 +601,7 @@
 				1B624E5F3398AD5F9FD48707 /* LorePageView.swift in Sources */,
 				66D79C83C8FEC1C00BCF16F4 /* LoreProgressResolver.swift in Sources */,
 				4C056A09D99AF56B48F5C316 /* LoreReaderController.swift in Sources */,
+				132307DC4D44E92A071D99C3 /* LoreSettingsSection.swift in Sources */,
 				F2F24D98A41DFAE2EE387DF8 /* LoreSpeechService.swift in Sources */,
 				F4F377215D16153CC7485697 /* LoreSpriteSheet.swift in Sources */,
 				5ED67E564BFA31B5C825BD32 /* ManagementRootView.swift in Sources */,
