@@ -6,10 +6,10 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Current Milestone
 
-- Goal: complete Class Actions, the two-slice Loot Expansion, and the farming/frontier rail-status follow-up without merging this branch to `main` or starting authored quest rewards.
-- Current checkpoint: Class Actions, Item Depth, Inventory Operations, the live QA rendering correction, and the farming/frontier status indicator are implemented in verified vertical slices on `feature/class-actions-and-loot`.
-- Integration: the owner lifted the internal hold and the feature branch was fast-forwarded and pushed to `main` on 2026-07-12.
-- Remaining: owner review and later tuning of provisional prices; the pushed feature branch remains isolated and is not release-ready.
+- Goal: complete production hero, enemy, elite, and boss sprites without merging this branch to `main` or starting authored quest rewards.
+- Current checkpoint: the deterministic asset pipeline, bundled runtime catalog, identity resolver, and stable clip-driven rail are implemented and pass automated gates on `feature/class-actions-and-loot`.
+- Integration: prior foundation work was pushed on 2026-07-12; the production-sprite commits remain isolated and unpushed.
+- Remaining: unlock the Mac for exact-overlay live QA; do not push, merge, or release before that gate passes.
 
 ## Architecture
 
@@ -40,6 +40,9 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - docs/superpowers/plans/2026-07-12-dockbarhero-inventory-operations.md: executable Inventory Operations plan.
 - docs/superpowers/specs/2026-07-13-dockbarhero-farming-status-indicator-design.md: approved farming/frontier rail-status design.
 - docs/superpowers/plans/2026-07-13-dockbarhero-farming-status-indicator.md: executable and verified farming-status plan.
+- docs/superpowers/specs/2026-07-13-dockbarhero-production-sprites-design.md: approved production-sprite source, pipeline, identity, and scene behavior.
+- docs/superpowers/plans/2026-07-13-dockbarhero-production-sprites.md: executable production-sprite plan and gate ledger.
+- docs/qa/review-packets/production-sprites.md: asset, runtime, full-suite, build, launch, and live-QA status.
 - docs/qa/review-packets/class-actions-and-loot.md: current automated, isolation, launch, and completed live-QA evidence.
 - docs/qa/review-packets/farming-status-indicator.md: focused, integrated, build, exact-process, and live transition evidence.
 - docs/qa/review-packets/heroes-and-party.md: focused, integrated, save-isolation, and live-QA evidence.
@@ -68,13 +71,15 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - Live QA passed for unlocks, three-class actions, cooldown relaunch, rarity/affixes, auto-equip, capacity/overflow, partial and bulk salvage, locking, remedial farming, pixel sprites, the DPS scale, and farming/frontier status transitions.
 - The feature branch remains isolated; `main` remains unchanged by this follow-up.
 - Authored quest/boss content that grants specific Unique items remains a later milestone.
+- Production sprite generation covers 186 clips across 34 tokens; live overlay inspection remains pending because the Mac session was locked.
 
 ## Last Verified State
 
 - Date: 2026-07-13.
 - Checkout: `/Users/n3kr0/Projects/TBH/.worktrees/heroes-and-party` on `feature/class-actions-and-loot`.
-- Latest post-QA gate: 345 arm64 tests passed with zero failures; clean unsigned arm64 build and exact-worktree launch succeeded.
-- `feature/class-actions-and-loot` was pushed with matching local and remote SHAs and retained in its isolated worktree; no merge or release was performed.
+- Latest production-sprite gate: 355 arm64 tests passed with zero failures; clean unsigned arm64 build and exact-worktree launch succeeded.
+- Exactly one launched process used the isolated worktree bundle; live visual QA was not claimable while the Mac session was locked.
+- The remote feature branch remains at the prior verified checkpoint; production-sprite commits are local only because live visual QA is pending.
 - Save isolation retained both diagnostic archives and the clean end-to-end save. Primary and backup settings were restored byte-identically to their pre-QA hash.
 - Exact-window QA showed three class-distinct pixel sprites and the centered DPS scale. A stale same-bundle-ID app caused the earlier duplicate process and rectangle-era image; absolute worktree-bundle targeting removed that ambiguity.
 - Victory now restores every defeated party sprite; the regression passed all 15 focused rendering tests before the full suite.
@@ -90,6 +95,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - Implementation stayed inline; only approved Terra and Sol review checkpoints are allowed.
 - Automated evidence must not be converted into manual visual evidence.
 - Provisional graphics use pixel sprites; production art polish is deferred behind code systems.
+- Production sprites are checksum-locked, normalized into transparent 96x64 cells, loaded with nearest filtering, and selected deterministically without save-state changes.
 - The release target is Apple Silicon and Steam-ready without tradable-item economy.
 - Progression Safety is the first gate inside the schema-v2 Heroes and Classes milestone and is not independently release-eligible.
 - The frontier and farming selection remain separate; three defeats retreat one full Boss segment and never auto-return to the frontier.

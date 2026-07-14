@@ -262,18 +262,18 @@ git commit -m "feat: animate deterministic enemy identities"
 - Modify: `PROJECT.md`
 - Modify: `docs/superpowers/plans/2026-07-13-dockbarhero-production-sprites.md`
 
-- [ ] **Step 1: Run asset and focused gates**
+- [x] **Step 1: Run asset and focused gates**
 
 Run the pipeline tests, builder `--check`, SpriteCatalog, EnemySpriteResolver, and PrototypeSceneHost suites. Record actual counts only.
 
-- [ ] **Step 2: Run complete arm64 gates**
+- [x] **Step 2: Run complete arm64 gates**
 
 ```bash
 xcodebuild test -project DockBarHero.xcodeproj -scheme DockBarHero -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath .build/ProductionSpritesFull CODE_SIGNING_ALLOWED=NO
 xcodebuild clean build -project DockBarHero.xcodeproj -scheme DockBarHero -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath .build/ProductionSpritesBuild CODE_SIGNING_ALLOWED=NO
 ```
 
-- [ ] **Step 3: Launch one exact worktree bundle**
+- [x] **Step 3: Launch one exact worktree bundle**
 
 Terminate every existing DockBarHero process, run `./script/build_and_run.sh --verify`, and prove exactly one process uses the absolute worktree path.
 
@@ -281,7 +281,7 @@ Terminate every existing DockBarHero process, run `./script/build_and_run.sh --v
 
 Verify all three heroes idle independently, simultaneous attacks animate by slot without drift, class actions use their clips, damage/defeat/victory restore correctly, normal/elite/boss identities change at correct levels, farming/push status remains correct, sprites do not obscure health/action/level/DPS labels, animation pause works, and passive rail remains click-through. Preserve settings and saves.
 
-- [ ] **Step 5: Record verified facts and guard context**
+- [x] **Step 5: Record verified facts and guard context**
 
 Write the QA packet, update `PROJECT.md`, run context guard, `git diff --check`, line limits, and inspect the complete diff.
 
