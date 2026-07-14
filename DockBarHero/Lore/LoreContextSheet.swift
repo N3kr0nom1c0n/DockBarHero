@@ -11,7 +11,10 @@ enum LoreContextSheetError: Error, Equatable {
 
 enum LoreContextSheet {
     static func cellRects(pixelWidth: Int, pixelHeight: Int) throws -> [CGRect] {
-        guard pixelWidth.isMultiple(of: 3), pixelHeight.isMultiple(of: 2) else {
+        guard pixelWidth > 0,
+              pixelHeight > 0,
+              pixelWidth.isMultiple(of: 3),
+              pixelHeight.isMultiple(of: 2) else {
             throw LoreContextSheetError.invalidDimensions
         }
         let cellWidth = pixelWidth / 3

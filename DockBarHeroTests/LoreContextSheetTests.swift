@@ -20,6 +20,16 @@ final class LoreContextSheetTests: XCTestCase {
     func testRejectsWrongAspectOddDimensionsAndMissingResource() {
         XCTAssertThrowsError(try LoreContextSheet.cellRects(pixelWidth: 1024, pixelHeight: 1024))
         XCTAssertThrowsError(try LoreContextSheet.cellRects(pixelWidth: 1535, pixelHeight: 1024))
+        XCTAssertThrowsError(try LoreContextSheet.cellRects(pixelWidth: 1536, pixelHeight: 1023))
         XCTAssertThrowsError(try LoreContextSheet.cells(named: "missing-lore-context"))
+    }
+
+    func testRejectsZeroAndNegativeDimensions() {
+        XCTAssertThrowsError(try LoreContextSheet.cellRects(pixelWidth: 0, pixelHeight: 1024))
+        XCTAssertThrowsError(try LoreContextSheet.cellRects(pixelWidth: 1536, pixelHeight: 0))
+        XCTAssertThrowsError(try LoreContextSheet.cellRects(pixelWidth: 0, pixelHeight: 0))
+        XCTAssertThrowsError(try LoreContextSheet.cellRects(pixelWidth: -1536, pixelHeight: 1024))
+        XCTAssertThrowsError(try LoreContextSheet.cellRects(pixelWidth: 1536, pixelHeight: -1024))
+        XCTAssertThrowsError(try LoreContextSheet.cellRects(pixelWidth: -1536, pixelHeight: -1024))
     }
 }
