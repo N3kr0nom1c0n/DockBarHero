@@ -18,6 +18,7 @@
 		1AC6D3EDFF22908386E99C35 /* MenuBarContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25A8CCEBA359DCE30C12AD27 /* MenuBarContent.swift */; };
 		1E047E3D81737630D87DEDF0 /* SaveCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4701E932AD87DBAB46323F9A /* SaveCoordinatorTests.swift */; };
 		21D79BC28FD1B426B245BDDB /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07DDCF7DBA016A9D2B399E07 /* AppLog.swift */; };
+		24AD24825B1F664054AB63D5 /* SpokenDialogueCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44ADEBD46ABA5F66B87B50F2 /* SpokenDialogueCatalogTests.swift */; };
 		28AFF37FD651B145A307738E /* LoreCatalog.json in Resources */ = {isa = PBXBuildFile; fileRef = 6BF16D10926FAF32D7E88B5C /* LoreCatalog.json */; };
 		2C378817AE82E13592A72B68 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DE51EFDEE69BE8B40D600A8 /* AppDelegate.swift */; };
 		2E65DEB89F07322368ED6E17 /* GameModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C253FA011076DCBFA498E4B /* GameModels.swift */; };
@@ -33,6 +34,8 @@
 		465B7E460ABEAD19437A0B7E /* GameSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C45D88CDFE5A712AE6004EE /* GameSessionTests.swift */; };
 		480DE49077DE151516C19CE2 /* LoreModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91D4B8399E4D0BB95638F44A /* LoreModels.swift */; };
 		48D871001D395CBCCCF3DA22 /* SaveV1GoldenFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BD3F3FB59AAF1E07BD40F9E /* SaveV1GoldenFixture.swift */; };
+		496A72C1F00B67DB4F85041B /* SpokenDialogueCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4BB70A08450EF5CC9113E5B /* SpokenDialogueCatalog.swift */; };
+		4C056A09D99AF56B48F5C316 /* LoreReaderController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B373ACCB24E702DBE0F0C4 /* LoreReaderController.swift */; };
 		4C74E7C46D369DE0FE0ECE7C /* FullscreenWindowClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D23D28184BD8A05F30D6359 /* FullscreenWindowClassifierTests.swift */; };
 		4CCFDC1FE8F1137185519C86 /* EncounterDirector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A932E76C21E80B473A1597E0 /* EncounterDirector.swift */; };
 		50D611A9B73A82EC3938F28D /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DFB967DB50E4309E608F612 /* AppModel.swift */; };
@@ -52,6 +55,7 @@
 		7EA69C9E879356121B98FD2A /* DeferredFeatureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAF751D9037251AB30034F99 /* DeferredFeatureView.swift */; };
 		82E7EAAA8217716805FDAC9F /* DamageMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0047DBA6B2CCA397CC178D1B /* DamageMetricsTests.swift */; };
 		83C736E2594D0C6CF631648B /* LoreCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C86A376C9311B9A96931763 /* LoreCatalog.swift */; };
+		83EE8DE484A58EA043742673 /* SpokenDialogue.json in Resources */ = {isa = PBXBuildFile; fileRef = 6DC1C58AE9B9DB5ADE1EB049 /* SpokenDialogue.json */; };
 		8674F689C5F772CB5950B8A1 /* DockBarHeroApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E17FEA9F1C03CFF1875E99D /* DockBarHeroApp.swift */; };
 		8D5F1A9C4F5DC0743CD1D534 /* EncounterScheduleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E77E891B1F9FE294748A196 /* EncounterScheduleTests.swift */; };
 		91B2505FE7F5AC43E2E34B9E /* BalanceConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C6867E3AC329AA6C53A38E /* BalanceConfiguration.swift */; };
@@ -62,6 +66,7 @@
 		99B85F8360961389079F6AAE /* PrototypeScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDD14FF849F64AD2F250E89F /* PrototypeScene.swift */; };
 		9B25CEBFFD043DABD9553B1F /* ActionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACAE5AC0485F6080C673233C /* ActionPolicy.swift */; };
 		9B8BBEA8B49EAF2D96149DF1 /* SpriteCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 426594A2CD84B0AE56418323 /* SpriteCatalog.swift */; };
+		A159D58FDCEB43F0A3704215 /* LoreReaderControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307BDF142D241BE51EE8EA4 /* LoreReaderControllerTests.swift */; };
 		A4F0A3576D6CC0AF29F4AF64 /* ProgressionSafetyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94FFC10A209C79F066CF303D /* ProgressionSafetyTests.swift */; };
 		AD5E43CA462AEAC55F3C6389 /* OverlayPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697D836989C5878F5D1E9937 /* OverlayPlacementTests.swift */; };
 		AF9896646F223301E5123E54 /* OverlayWindowControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C11309CD62DDBF6F14591880 /* OverlayWindowControllerTests.swift */; };
@@ -88,6 +93,7 @@
 		E41CD49F4FCF1D1C97BA1272 /* ClassSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AA8D918588D2009FC89BACE /* ClassSelectionView.swift */; };
 		E631EFADE9270DBED7CF818D /* ProgressionConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C614BC4DA34D639B48B1D67 /* ProgressionConfigurationTests.swift */; };
 		E6A843FD10A019EE85795CB2 /* PrototypeSceneHostTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80C47315F197A2C91F065E76 /* PrototypeSceneHostTests.swift */; };
+		F2F24D98A41DFAE2EE387DF8 /* LoreSpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999EEF1DA444150B1FC0F971 /* LoreSpeechService.swift */; };
 		FCB6F0934214BE0DB5368C09 /* SpriteCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F8651220111092B641291FE /* SpriteCatalogTests.swift */; };
 		FDAC194AE4CA4639187D16B4 /* EnvironmentMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEBB2B89631ABEA126DC445 /* EnvironmentMonitor.swift */; };
 /* End PBXBuildFile section */
@@ -115,6 +121,7 @@
 		1C45D88CDFE5A712AE6004EE /* GameSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSessionTests.swift; sourceTree = "<group>"; };
 		1E4B92627EE6A337F1D4D4E8 /* DockBarHeroTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DockBarHeroTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1F7A6E0E3DB63AA1E34C635B /* SimulationDuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationDuration.swift; sourceTree = "<group>"; };
+		2307BDF142D241BE51EE8EA4 /* LoreReaderControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreReaderControllerTests.swift; sourceTree = "<group>"; };
 		25A8CCEBA359DCE30C12AD27 /* MenuBarContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarContent.swift; sourceTree = "<group>"; };
 		2B83DA476844707F0BE3DB96 /* OverlayWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowController.swift; sourceTree = "<group>"; };
 		30B64AA25E17738C495E8392 /* SaveMigrationRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveMigrationRegistry.swift; sourceTree = "<group>"; };
@@ -126,6 +133,7 @@
 		3FEBB2B89631ABEA126DC445 /* EnvironmentMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentMonitor.swift; sourceTree = "<group>"; };
 		42278A046B943F22DAEF4580 /* SaveCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveCoordinator.swift; sourceTree = "<group>"; };
 		426594A2CD84B0AE56418323 /* SpriteCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteCatalog.swift; sourceTree = "<group>"; };
+		44ADEBD46ABA5F66B87B50F2 /* SpokenDialogueCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpokenDialogueCatalogTests.swift; sourceTree = "<group>"; };
 		46EC0A023F1BDE7B989940D1 /* RewardResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardResolver.swift; sourceTree = "<group>"; };
 		4701E932AD87DBAB46323F9A /* SaveCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveCoordinatorTests.swift; sourceTree = "<group>"; };
 		47C35A975941EEBB55C9FF53 /* EnvironmentMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentMonitorTests.swift; sourceTree = "<group>"; };
@@ -142,6 +150,7 @@
 		6B90A438265DB89B7E94E759 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		6BD3F3FB59AAF1E07BD40F9E /* SaveV1GoldenFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveV1GoldenFixture.swift; sourceTree = "<group>"; };
 		6BF16D10926FAF32D7E88B5C /* LoreCatalog.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LoreCatalog.json; sourceTree = "<group>"; };
+		6DC1C58AE9B9DB5ADE1EB049 /* SpokenDialogue.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = SpokenDialogue.json; sourceTree = "<group>"; };
 		6DE51EFDEE69BE8B40D600A8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		70160FF019FFD009FA1DFF7F /* OverlayPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPlacement.swift; sourceTree = "<group>"; };
 		7262122A992B17AD88488FCD /* SimulationDurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationDurationTests.swift; sourceTree = "<group>"; };
@@ -155,8 +164,10 @@
 		91D4B8399E4D0BB95638F44A /* LoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreModels.swift; sourceTree = "<group>"; };
 		943AD75B3E2A18F1AC085766 /* DockBarHero.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DockBarHero.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		94FFC10A209C79F066CF303D /* ProgressionSafetyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionSafetyTests.swift; sourceTree = "<group>"; };
+		999EEF1DA444150B1FC0F971 /* LoreSpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreSpeechService.swift; sourceTree = "<group>"; };
 		A704FA474D0443A40224B764 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 		A932E76C21E80B473A1597E0 /* EncounterDirector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDirector.swift; sourceTree = "<group>"; };
+		A9B373ACCB24E702DBE0F0C4 /* LoreReaderController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreReaderController.swift; sourceTree = "<group>"; };
 		A9D5A484FB89F5C8147E2CAA /* SettingsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStoreTests.swift; sourceTree = "<group>"; };
 		ACAE5AC0485F6080C673233C /* ActionPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionPolicy.swift; sourceTree = "<group>"; };
 		B41781EC2DFD16E39F990371 /* SaveDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveDocumentTests.swift; sourceTree = "<group>"; };
@@ -165,6 +176,7 @@
 		BEB06A577225C8CFC2CC8287 /* SimulationDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationDriver.swift; sourceTree = "<group>"; };
 		C11309CD62DDBF6F14591880 /* OverlayWindowControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowControllerTests.swift; sourceTree = "<group>"; };
 		C358270A44F43A95C3131E0C /* InventoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryView.swift; sourceTree = "<group>"; };
+		C4BB70A08450EF5CC9113E5B /* SpokenDialogueCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpokenDialogueCatalog.swift; sourceTree = "<group>"; };
 		C50E5986E66736133E5E7924 /* AppKitScreenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppKitScreenProvider.swift; sourceTree = "<group>"; };
 		C7AF396794E525A68FB81CE8 /* ProgressionConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionConfiguration.swift; sourceTree = "<group>"; };
 		C8443E0D34AB8B0707A79331 /* AppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelTests.swift; sourceTree = "<group>"; };
@@ -235,6 +247,7 @@
 				7C9EAFDD1F3654E80EF008F2 /* LootSystemTests.swift */,
 				5799E80DDEB4CA18DAC529DF /* LoreCatalogTests.swift */,
 				D02118DC5C64C058B2733253 /* LoreProgressResolverTests.swift */,
+				2307BDF142D241BE51EE8EA4 /* LoreReaderControllerTests.swift */,
 				0407F7EE6505467BBACD3540 /* ManagementNavigationTests.swift */,
 				3E7699A4FA7579E552E49A7A /* ManagementViewTests.swift */,
 				697D836989C5878F5D1E9937 /* OverlayPlacementTests.swift */,
@@ -252,6 +265,7 @@
 				A9D5A484FB89F5C8147E2CAA /* SettingsStoreTests.swift */,
 				87C1B7D532091DA5C524FDC4 /* SimulationDriverTests.swift */,
 				7262122A992B17AD88488FCD /* SimulationDurationTests.swift */,
+				44ADEBD46ABA5F66B87B50F2 /* SpokenDialogueCatalogTests.swift */,
 				7F8651220111092B641291FE /* SpriteCatalogTests.swift */,
 				D6B3C9708A19094822AA33EA /* Fixtures */,
 			);
@@ -293,6 +307,7 @@
 			isa = PBXGroup;
 			children = (
 				6BF16D10926FAF32D7E88B5C /* LoreCatalog.json */,
+				6DC1C58AE9B9DB5ADE1EB049 /* SpokenDialogue.json */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -332,6 +347,9 @@
 				7C86A376C9311B9A96931763 /* LoreCatalog.swift */,
 				91D4B8399E4D0BB95638F44A /* LoreModels.swift */,
 				69974EDD211C54A56DFAEA29 /* LoreProgressResolver.swift */,
+				A9B373ACCB24E702DBE0F0C4 /* LoreReaderController.swift */,
+				999EEF1DA444150B1FC0F971 /* LoreSpeechService.swift */,
+				C4BB70A08450EF5CC9113E5B /* SpokenDialogueCatalog.swift */,
 				642AC3C6A33B0718DA986400 /* Resources */,
 			);
 			path = Lore;
@@ -478,6 +496,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				28AFF37FD651B145A307738E /* LoreCatalog.json in Resources */,
+				83EE8DE484A58EA043742673 /* SpokenDialogue.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -502,6 +521,7 @@
 				1597213C63418464F67B79D7 /* LootSystemTests.swift in Sources */,
 				B5770621EE102360E5B0C4EF /* LoreCatalogTests.swift in Sources */,
 				B1F70CA677EE4E3ACBA45C0D /* LoreProgressResolverTests.swift in Sources */,
+				A159D58FDCEB43F0A3704215 /* LoreReaderControllerTests.swift in Sources */,
 				7A1210EF826C3FCA176A0265 /* ManagementNavigationTests.swift in Sources */,
 				D521FBC1567FD7461CA6769D /* ManagementViewTests.swift in Sources */,
 				AD5E43CA462AEAC55F3C6389 /* OverlayPlacementTests.swift in Sources */,
@@ -520,6 +540,7 @@
 				33154951F0E79044E3813540 /* SettingsStoreTests.swift in Sources */,
 				6201316CE93A767628A3D782 /* SimulationDriverTests.swift in Sources */,
 				DABBB93F85FF86E04127FEBB /* SimulationDurationTests.swift in Sources */,
+				24AD24825B1F664054AB63D5 /* SpokenDialogueCatalogTests.swift in Sources */,
 				FCB6F0934214BE0DB5368C09 /* SpriteCatalogTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -553,6 +574,8 @@
 				83C736E2594D0C6CF631648B /* LoreCatalog.swift in Sources */,
 				480DE49077DE151516C19CE2 /* LoreModels.swift in Sources */,
 				66D79C83C8FEC1C00BCF16F4 /* LoreProgressResolver.swift in Sources */,
+				4C056A09D99AF56B48F5C316 /* LoreReaderController.swift in Sources */,
+				F2F24D98A41DFAE2EE387DF8 /* LoreSpeechService.swift in Sources */,
 				5ED67E564BFA31B5C825BD32 /* ManagementRootView.swift in Sources */,
 				3A542757650903BEA6A4ED63 /* ManagementRoute.swift in Sources */,
 				5DABAB8DA311B4E565B3D437 /* ManagementSupport.swift in Sources */,
@@ -576,6 +599,7 @@
 				1A2D23F1C1E4064021DC8911 /* SettingsView.swift in Sources */,
 				3B791FA3114B5471B8CCF050 /* SimulationDriver.swift in Sources */,
 				1AAFD4151665282A44585C20 /* SimulationDuration.swift in Sources */,
+				496A72C1F00B67DB4F85041B /* SpokenDialogueCatalog.swift in Sources */,
 				9B8BBEA8B49EAF2D96149DF1 /* SpriteCatalog.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
