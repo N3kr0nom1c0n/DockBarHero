@@ -40,22 +40,20 @@ final class LoreBookLayoutTests: XCTestCase {
         XCTAssertNil(LoreBookLayout.spread(pageCount: 2, currentIndex: 2))
     }
 
-    func testCaptionHeightIsBoundedAcrossSupportedWindowHeights() {
-        XCTAssertEqual(LoreBookLayout.captionHeight(forPageHeight: 300), 150)
-        XCTAssertEqual(LoreBookLayout.captionHeight(forPageHeight: 500), 180)
-        XCTAssertEqual(LoreBookLayout.captionHeight(forPageHeight: 900), 190)
+    func testPageCanvasInsetsRemainLegible() {
+        XCTAssertEqual(LoreBookLayout.pageCanvasInsets(forPageWidth: 320), 8)
+        XCTAssertEqual(LoreBookLayout.pageCanvasInsets(forPageWidth: 520), 12)
     }
 
-    func testPageRegionsConsumeTheAvailableHeightWithoutOverlap() {
-        let regions = LoreBookLayout.pageRegions(forPageHeight: 500, dividerHeight: 1)
+    func testPanelGutterIsBounded() {
+        XCTAssertEqual(LoreBookLayout.panelGutter(forPageWidth: 320), 5)
+        XCTAssertEqual(LoreBookLayout.panelGutter(forPageWidth: 520), 8)
+        XCTAssertEqual(LoreBookLayout.panelGutter(forPageWidth: 900), 8)
+    }
 
-        XCTAssertEqual(regions.artworkHeight, 319)
-        XCTAssertEqual(regions.dividerHeight, 1)
-        XCTAssertEqual(regions.captionHeight, 180)
-        XCTAssertEqual(
-            regions.artworkHeight + regions.dividerHeight + regions.captionHeight,
-            500
-        )
+    func testLongCopyInANarrowPanelUsesPageCallout() {
+        XCTAssertTrue(LoreBookLayout.usesPageCallout(characterCount: 80, panelWidth: 160))
+        XCTAssertFalse(LoreBookLayout.usesPageCallout(characterCount: 40, panelWidth: 220))
     }
 
     func testDefaultManagementWindowCanShowSpreadBesideSidebar() {

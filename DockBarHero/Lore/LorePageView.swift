@@ -3,31 +3,34 @@ import SwiftUI
 struct LorePageView: View {
     let page: ResolvedLorePage
     let isBookOpen: Bool
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var frames: [CGImage] = []
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var motionFrames: [CGImage] = []
+    @State private var contextCells: [CGImage] = []
+    @State private var didLoadContext = false
 
     var body: some View {
         GeometryReader { geometry in
-            let regions = LoreBookLayout.pageRegions(
-                forPageHeight: geometry.size.height,
-                dividerHeight: 1
+            let inset = LoreBookLayout.pageCanvasInsets(forPageWidth: geometry.size.width)
+            let canvasSize = CGSize(
+                width: max(0, geometry.size.width - inset * 2),
+                height: max(0, geometry.size.height - inset * 2)
             )
 
-            VStack(spacing: 0) {
-                artwork
-                    .frame(maxWidth: .infinity)
-                    .frame(height: regions.artworkHeight)
-                    .background(Color.black.opacity(0.9))
-                    .clipped()
-                    .accessibilityLabel(page.accessibilityDescription)
-
-                Divider()
-                    .frame(height: regions.dividerHeight)
-                    .overlay(Color.black.opacity(0.35))
-
-                caption
-                    .frame(height: regions.captionHeight, alignment: .topLeading)
+            Group {
+                if !didLoadContext {
+                    ProgressView()
+                        .controlSize(.small)
+                        .accessibilityLabel("Loading manga page")
+                } else if hasRequiredContextCells {
+                    mangaCanvas(size: canvasSize)
+                } else {
+                    missingArtworkDiagnostic
+                }
             }
+            .frame(width: canvasSize.width, height: canvasSize.height)
+            .padding(inset)
             .background(Color(red: 0.96, green: 0.89, blue: 0.72))
             .clipShape(RoundedRectangle(cornerRadius: 4))
             .overlay(
@@ -35,68 +38,222 @@ struct LorePageView: View {
                     .stroke(Color.black.opacity(0.5), lineWidth: 2)
             )
         }
-        .task(id: page.spriteSheetName) {
-            frames = (try? LoreSpriteSheet.frames(named: page.spriteSheetName, frameCount: page.frameCount)) ?? []
+        .task(id: "\(page.spriteSheetName)|\(page.composition.contextSheetName)") {
+            didLoadContext = false
+            motionFrames = (try? LoreSpriteSheet.frames(
+                named: page.spriteSheetName,
+                frameCount: page.frameCount
+            )) ?? []
+            contextCells = (try? LoreContextSheet.cells(
+                named: page.composition.contextSheetName
+            )) ?? []
+            didLoadContext = true
         }
     }
 
-    private var caption: some View {
-        ViewThatFits(in: .vertical) {
-            captionContent(titleSize: 22, bodySize: 15, spacing: 8, padding: 16)
-            captionContent(titleSize: 19, bodySize: 13, spacing: 6, padding: 12)
+    private var hasRequiredContextCells: Bool {
+        contextCells.count == 6 && page.composition.panels.allSatisfy { panel in
+            panel.role != .still || panel.sourceCell.map(contextCells.indices.contains) == true
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(Color(red: 0.98, green: 0.93, blue: 0.82))
-        .foregroundStyle(Color(red: 0.12, green: 0.08, blue: 0.06))
-        .textSelection(.enabled)
     }
 
-    private func captionContent(
-        titleSize: CGFloat,
-        bodySize: CGFloat,
-        spacing: CGFloat,
-        padding: CGFloat
+    private var missingArtworkDiagnostic: some View {
+        ZStack {
+            Color.black.opacity(0.86)
+            VStack(spacing: 8) {
+                Image(systemName: "photo.badge.exclamationmark")
+                    .font(.largeTitle)
+                    .accessibilityHidden(true)
+                Text("THE ILLUSTRATOR HAS BEEN EATEN")
+                    .font(.caption.bold())
+            }
+            .foregroundStyle(.white.opacity(0.8))
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("The illustrator has been eaten. This manga page is unavailable.")
+    }
+
+    private func mangaCanvas(size: CGSize) -> some View {
+        let template = LoreMangaLayout.template(for: page.composition.layoutID)
+        let gutter = LoreBookLayout.panelGutter(forPageWidth: size.width)
+        let panels = page.composition.panels.sorted { $0.readingOrder < $1.readingOrder }
+
+        return ZStack(alignment: .topLeading) {
+            ForEach(panels, id: \.id) { panel in
+                if let slot = template.slot(id: panel.slotID),
+                   panel.role != .gag || panel.sourceCell.map(contextCells.indices.contains) == true {
+                    let rect = panelRect(for: slot, canvasSize: size, gutter: gutter)
+                    panelView(panel, slot: slot, rect: rect)
+                        .frame(width: rect.width, height: rect.height)
+                        .position(x: rect.midX, y: rect.midY)
+                }
+            }
+
+            ForEach(page.composition.textOverlays, id: \.id) { overlay in
+                if let panel = page.composition.panels.first(where: { $0.id == overlay.panelID }),
+                   let slot = template.slot(id: panel.slotID),
+                   panel.role != .gag || panel.sourceCell.map(contextCells.indices.contains) == true {
+                    let rect = panelRect(for: slot, canvasSize: size, gutter: gutter)
+                    if LoreBookLayout.usesPageCallout(
+                        characterCount: overlay.text.count,
+                        panelWidth: rect.width
+                    ) {
+                        pageCallout(overlay, panel: panel, panelRect: rect, canvasSize: size)
+                    }
+                }
+            }
+        }
+        .frame(width: size.width, height: size.height)
+        .accessibilityElement(children: .contain)
+    }
+
+    private func panelView(
+        _ panel: LorePanelDefinition,
+        slot: LoreMangaPanelSlot,
+        rect: CGRect
     ) -> some View {
-        VStack(alignment: .leading, spacing: spacing) {
-            Text(page.title)
-                .font(.system(size: titleSize, weight: .black, design: .serif))
-                .fixedSize(horizontal: false, vertical: true)
-            Text(page.body)
-                .font(.system(size: bodySize, weight: .medium, design: .serif))
-                .lineSpacing(3)
-                .fixedSize(horizontal: false, vertical: true)
+        ZStack {
+            panelArtwork(for: panel)
+                .clipShape(LoreMangaPanelShape(points: slot.clipPolygon))
+                .overlay(
+                    LoreMangaPanelShape(points: slot.clipPolygon)
+                        .stroke(Color.black, lineWidth: 2)
+                )
+
+            ForEach(attachedOverlays(for: panel, panelWidth: rect.width), id: \.id) { overlay in
+                LoreMangaTextOverlay(overlay: overlay, compact: rect.width < 220)
+                    .frame(maxWidth: max(40, min(280, rect.width - 12)))
+                    .frame(
+                        maxWidth: .infinity,
+                        maxHeight: .infinity,
+                        alignment: alignment(for: overlay.placement)
+                    )
+                    .padding(6)
+                    .accessibilitySortPriority(accessibilityPriority(for: panel, overlay: overlay))
+            }
         }
-        .padding(padding)
+        .accessibilityElement(children: .contain)
+        .accessibilitySortPriority(Double(10_000 - panel.readingOrder))
+    }
+
+    private func attachedOverlays(
+        for panel: LorePanelDefinition,
+        panelWidth: CGFloat
+    ) -> [ResolvedLoreTextOverlay] {
+        page.composition.textOverlays.filter {
+            $0.panelID == panel.id && !LoreBookLayout.usesPageCallout(
+                characterCount: $0.text.count,
+                panelWidth: panelWidth
+            )
+        }
     }
 
     @ViewBuilder
-    private var artwork: some View {
-        if frames.isEmpty {
-            ZStack {
-                Color.black.opacity(0.86)
-                VStack(spacing: 8) {
-                    Image(systemName: "photo.badge.exclamationmark")
-                        .font(.largeTitle)
-                    Text("THE ILLUSTRATOR HAS BEEN EATEN")
-                        .font(.caption.bold())
+    private func panelArtwork(for panel: LorePanelDefinition) -> some View {
+        if panel.role == .motion, let first = motionFrames.first {
+            if reduceMotion || !isBookOpen || scenePhase != .active || motionFrames.count == 1 {
+                panelImage(first, focalPoint: panel.focalPoint)
+            } else {
+                TimelineView(.animation(
+                    minimumInterval: Double(page.frameDurationMilliseconds) / 1_000
+                )) { context in
+                    let duration = Double(page.frameDurationMilliseconds) / 1_000
+                    let index = Int(context.date.timeIntervalSinceReferenceDate / duration) % motionFrames.count
+                    panelImage(motionFrames[index], focalPoint: panel.focalPoint)
                 }
-                .foregroundStyle(.white.opacity(0.8))
             }
-        } else if reduceMotion || !isBookOpen || frames.count == 1 {
-            frameImage(frames[0])
-        } else {
-            TimelineView(.animation(minimumInterval: Double(page.frameDurationMilliseconds) / 1_000)) { context in
-                let duration = Double(page.frameDurationMilliseconds) / 1_000
-                let index = Int(context.date.timeIntervalSinceReferenceDate / duration) % frames.count
-                frameImage(frames[index])
-            }
+        } else if panel.role == .motion, let anchor = contextCells.first {
+            panelImage(anchor, focalPoint: panel.focalPoint)
+        } else if let sourceCell = panel.sourceCell, contextCells.indices.contains(sourceCell) {
+            panelImage(contextCells[sourceCell], focalPoint: panel.focalPoint)
         }
     }
 
-    private func frameImage(_ image: CGImage) -> some View {
-        Image(decorative: image, scale: 1)
-            .resizable()
-            .scaledToFit()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+    private func panelImage(_ image: CGImage, focalPoint: LoreFocalPoint) -> some View {
+        GeometryReader { geometry in
+            let sourceSize = CGSize(width: image.width, height: image.height)
+            let scale = max(
+                geometry.size.width / max(1, sourceSize.width),
+                geometry.size.height / max(1, sourceSize.height)
+            )
+            let renderedSize = CGSize(
+                width: sourceSize.width * scale,
+                height: sourceSize.height * scale
+            )
+            let overflow = CGSize(
+                width: max(0, renderedSize.width - geometry.size.width),
+                height: max(0, renderedSize.height - geometry.size.height)
+            )
+            let focalX = min(1, max(0, focalPoint.x))
+            let focalY = min(1, max(0, focalPoint.y))
+
+            Image(decorative: image, scale: 1)
+                .resizable()
+                .frame(width: renderedSize.width, height: renderedSize.height)
+                .position(
+                    x: geometry.size.width / 2 + (0.5 - focalX) * overflow.width,
+                    y: geometry.size.height / 2 + (0.5 - focalY) * overflow.height
+                )
+                .accessibilityHidden(true)
+        }
+    }
+
+    private func pageCallout(
+        _ overlay: ResolvedLoreTextOverlay,
+        panel: LorePanelDefinition,
+        panelRect: CGRect,
+        canvasSize: CGSize
+    ) -> some View {
+        LoreMangaTextOverlay(overlay: overlay, compact: true)
+            .frame(maxWidth: min(280, max(40, canvasSize.width - 12)))
+            .background(Color(red: 0.98, green: 0.93, blue: 0.82))
+            .frame(
+                width: max(0, canvasSize.width - 12),
+                height: max(0, canvasSize.height - 12),
+                alignment: nearestPageEdgeAlignment(for: panelRect, canvasSize: canvasSize)
+            )
+            .position(x: canvasSize.width / 2, y: canvasSize.height / 2)
+            .accessibilitySortPriority(accessibilityPriority(for: panel, overlay: overlay))
+    }
+
+    private func panelRect(
+        for slot: LoreMangaPanelSlot,
+        canvasSize: CGSize,
+        gutter: CGFloat
+    ) -> CGRect {
+        CGRect(
+            x: slot.frame.x * canvasSize.width,
+            y: slot.frame.y * canvasSize.height,
+            width: slot.frame.width * canvasSize.width,
+            height: slot.frame.height * canvasSize.height
+        ).insetBy(dx: gutter / 2, dy: gutter / 2)
+    }
+
+    private func alignment(for placement: LoreTextPlacement) -> Alignment {
+        switch placement {
+        case .topLeading: .topLeading
+        case .topTrailing: .topTrailing
+        case .bottomLeading: .bottomLeading
+        case .bottomTrailing: .bottomTrailing
+        case .center: .center
+        }
+    }
+
+    private func nearestPageEdgeAlignment(for rect: CGRect, canvasSize: CGSize) -> Alignment {
+        let candidates: [(distance: CGFloat, alignment: Alignment)] = [
+            (rect.midX, rect.midY < canvasSize.height / 2 ? .topLeading : .bottomLeading),
+            (canvasSize.width - rect.midX, rect.midY < canvasSize.height / 2 ? .topTrailing : .bottomTrailing),
+            (rect.midY, rect.midX < canvasSize.width / 2 ? .topLeading : .topTrailing),
+            (canvasSize.height - rect.midY, rect.midX < canvasSize.width / 2 ? .bottomLeading : .bottomTrailing)
+        ]
+        return candidates.min(by: { $0.distance < $1.distance })?.alignment ?? .topLeading
+    }
+
+    private func accessibilityPriority(
+        for panel: LorePanelDefinition,
+        overlay: ResolvedLoreTextOverlay
+    ) -> Double {
+        let overlayOrder = page.composition.textOverlays.firstIndex(where: { $0.id == overlay.id }) ?? 0
+        return Double(10_000 - panel.readingOrder * 100 - overlayOrder)
     }
 }

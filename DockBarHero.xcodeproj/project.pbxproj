@@ -71,6 +71,7 @@
 		69BA3424D743C50C2B50D40C /* SaveDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41781EC2DFD16E39F990371 /* SaveDocumentTests.swift */; };
 		6A2F99B10DBA2312243220D4 /* LoreMangaLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D492E14395BAA5B3F6DD4C5 /* LoreMangaLayoutTests.swift */; };
 		6CAB3CCC1B8160B05C74318F /* EncounterSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE4C396608E15CDFE23EC464 /* EncounterSchedule.swift */; };
+		74E681D5A9C8CFE10F98D103 /* LoreMangaTextOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D35B7DD2F88FAA8D4270A84 /* LoreMangaTextOverlay.swift */; };
 		778E1BF16B6F1D17E10BB18C /* volume1-level5-safe.png in Resources */ = {isa = PBXBuildFile; fileRef = 99643AE7B1875E68D893EC37 /* volume1-level5-safe.png */; };
 		78C299D366031B1BC4DF5F8B /* InventoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C358270A44F43A95C3131E0C /* InventoryView.swift */; };
 		78CC9D1FFD4DD6B01B6DC529 /* SaveStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57A9EA78A8A709B76D4D2E9F /* SaveStore.swift */; };
@@ -123,6 +124,7 @@
 		CC5249441D0267288AAF4690 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A704FA474D0443A40224B764 /* SettingsStore.swift */; };
 		CEDF2A499DB305DF5ACF02C9 /* SettingsSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F1ACAF83DE0C417D08CC08E /* SettingsSessionTests.swift */; };
 		D12F51121C8BCBAB20F16BE5 /* EnvironmentMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47C35A975941EEBB55C9FF53 /* EnvironmentMonitorTests.swift */; };
+		D4513337D26E2073DD1F2E53 /* LoreMangaPanelShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A6B29567BADF5C6DF4D023 /* LoreMangaPanelShape.swift */; };
 		D521FBC1567FD7461CA6769D /* ManagementViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E7699A4FA7579E552E49A7A /* ManagementViewTests.swift */; };
 		D7A694B5677D9C181B58AF80 /* DamageMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC6ED814FDE7272DED6E5248 /* DamageMetrics.swift */; };
 		DABBB93F85FF86E04127FEBB /* SimulationDurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7262122A992B17AD88488FCD /* SimulationDurationTests.swift */; };
@@ -220,6 +222,7 @@
 		62AD3C0CF08617FD9E394840 /* volume1-level1-context-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level1-context-safe.png"; sourceTree = "<group>"; };
 		64023A3444C30EDC620CB4AC /* InventoryResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryResolverTests.swift; sourceTree = "<group>"; };
 		650F6F2482F1BCA13D22404A /* volume1-level10-context-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level10-context-safe.png"; sourceTree = "<group>"; };
+		66A6B29567BADF5C6DF4D023 /* LoreMangaPanelShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreMangaPanelShape.swift; sourceTree = "<group>"; };
 		697D836989C5878F5D1E9937 /* OverlayPlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPlacementTests.swift; sourceTree = "<group>"; };
 		69974EDD211C54A56DFAEA29 /* LoreProgressResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreProgressResolver.swift; sourceTree = "<group>"; };
 		6B90A438265DB89B7E94E759 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -246,6 +249,7 @@
 		94FFC10A209C79F066CF303D /* ProgressionSafetyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionSafetyTests.swift; sourceTree = "<group>"; };
 		99643AE7B1875E68D893EC37 /* volume1-level5-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level5-safe.png"; sourceTree = "<group>"; };
 		999EEF1DA444150B1FC0F971 /* LoreSpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreSpeechService.swift; sourceTree = "<group>"; };
+		9D35B7DD2F88FAA8D4270A84 /* LoreMangaTextOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreMangaTextOverlay.swift; sourceTree = "<group>"; };
 		9D492E14395BAA5B3F6DD4C5 /* LoreMangaLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreMangaLayoutTests.swift; sourceTree = "<group>"; };
 		A24B45A0A0DDAC3A23BF00F8 /* LoreContextSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreContextSheetTests.swift; sourceTree = "<group>"; };
 		A28CE908CD1CA83A15254ABB /* ClassActionCooldownTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassActionCooldownTests.swift; sourceTree = "<group>"; };
@@ -516,6 +520,8 @@
 				7C86A376C9311B9A96931763 /* LoreCatalog.swift */,
 				DE7D372E21F25DBC9F08EB36 /* LoreContextSheet.swift */,
 				7D2A47D4C8CD3356F8D3098A /* LoreMangaLayout.swift */,
+				66A6B29567BADF5C6DF4D023 /* LoreMangaPanelShape.swift */,
+				9D35B7DD2F88FAA8D4270A84 /* LoreMangaTextOverlay.swift */,
 				91D4B8399E4D0BB95638F44A /* LoreModels.swift */,
 				F6343507187CF69D47ABD31F /* LorePageView.swift */,
 				69974EDD211C54A56DFAEA29 /* LoreProgressResolver.swift */,
@@ -797,6 +803,8 @@
 				83C736E2594D0C6CF631648B /* LoreCatalog.swift in Sources */,
 				9227C3C16ED3D6857ABB7F1C /* LoreContextSheet.swift in Sources */,
 				4377B91DA895F66C07EEF4B5 /* LoreMangaLayout.swift in Sources */,
+				D4513337D26E2073DD1F2E53 /* LoreMangaPanelShape.swift in Sources */,
+				74E681D5A9C8CFE10F98D103 /* LoreMangaTextOverlay.swift in Sources */,
 				480DE49077DE151516C19CE2 /* LoreModels.swift in Sources */,
 				1B624E5F3398AD5F9FD48707 /* LorePageView.swift in Sources */,
 				66D79C83C8FEC1C00BCF16F4 /* LoreProgressResolver.swift in Sources */,
