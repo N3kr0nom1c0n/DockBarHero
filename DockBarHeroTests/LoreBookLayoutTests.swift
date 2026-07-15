@@ -56,6 +56,11 @@ final class LoreBookLayoutTests: XCTestCase {
         XCTAssertFalse(LoreBookLayout.usesPageCallout(characterCount: 40, panelWidth: 220))
     }
 
+    func testLevelOneCleanAndUnfilteredSpeechStayAttachedToTheirPanel() {
+        XCTAssertFalse(LoreBookLayout.usesPageCallout(characterCount: 55, panelWidth: 160))
+        XCTAssertFalse(LoreBookLayout.usesPageCallout(characterCount: 59, panelWidth: 160))
+    }
+
     func testBookReactionsAlwaysUseReservedHeaderSpace() {
         let wide = LoreBookLayout.reactionPolicy(forContentWidth: 900)
         let compact = LoreBookLayout.reactionPolicy(forContentWidth: 560)

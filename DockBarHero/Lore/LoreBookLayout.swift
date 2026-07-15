@@ -50,7 +50,10 @@ enum LoreBookLayout {
     }
 
     static func usesPageCallout(characterCount: Int, panelWidth: CGFloat) -> Bool {
-        panelWidth < 180 && characterCount > 55
+        // Compact manga balloons remain readable through roughly three short lines.
+        // Keep both language variants attached until the copy truly needs page space;
+        // otherwise a few censorship-rewrite characters can make a bubble teleport.
+        panelWidth < 180 && characterCount > 64
     }
 
     static func reactionPolicy(forContentWidth width: CGFloat) -> ReactionPolicy {
