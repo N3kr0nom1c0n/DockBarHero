@@ -27,14 +27,34 @@ final class LoreReaderControllerTests: XCTestCase {
 
     func testVolumePreviewUsesReversedGainAndReplacesPreview() throws {
         let speech = LoreSpeechFake()
-        let controller = try makeController(speech: speech)
+        var now = 0.0
+        let controller = try makeController(speech: speech, now: { now })
         controller.update(settings: .spokenFixture, pages: [.fixture])
         controller.applicationBecameActive()
         controller.open()
         controller.previewVolume(detent: 0)
+        now = 0.6
         controller.previewVolume(detent: 10)
         XCTAssertEqual(speech.previews.map(\.gain), [1.0, 0.1])
         XCTAssertEqual(speech.stopPreviewCount, 2)
+    }
+
+    func testRapidVolumePreviewThrottlesAudioButKeepsTextReaction() throws {
+        let speech = LoreSpeechFake()
+        var now = 0.0
+        let controller = try makeController(speech: speech, now: { now })
+        controller.update(settings: .spokenFixture, pages: [.fixture])
+        controller.applicationBecameActive()
+        controller.open()
+
+        controller.previewVolume(detent: 0)
+        controller.previewVolume(detent: 1)
+        now = 0.6
+        controller.previewVolume(detent: 2)
+
+        XCTAssertEqual(speech.previews.map(\.gain), [1.0, 0.82])
+        XCTAssertEqual(speech.stopPreviewCount, 2)
+        XCTAssertEqual(controller.reactionText, "Oh ho ho.")
     }
 
     func testInactiveApplicationIsSilentAndClearsQueues() throws {
@@ -182,10 +202,11 @@ final class LoreSpeechFake: LoreSpeechControlling {
 @MainActor
 private func makeController(
     speech: LoreSpeechControlling,
-    cues: [DialogueCue] = [.fixture]
+    cues: [DialogueCue] = [.fixture],
+    now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate }
 ) throws -> LoreReaderController {
     let catalog = try SpokenDialogueCatalog.validated(.init(schemaVersion: 1, speakers: [.fixture], cues: cues))
-    return LoreReaderController(dialogue: catalog, speech: speech)
+    return LoreReaderController(dialogue: catalog, speech: speech, now: now)
 }
 
 extension AppSettings {

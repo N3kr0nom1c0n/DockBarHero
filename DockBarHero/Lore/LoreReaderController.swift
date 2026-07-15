@@ -1,4 +1,5 @@
 import Combine
+import Foundation
 
 @MainActor
 protocol LoreReaderControlling: AnyObject {
@@ -32,21 +33,29 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
     @Published private(set) var currentPageID: LorePageID?
     @Published private(set) var reactionText = ""
     @Published private(set) var isSpeaking = false
+    @Published private(set) var applicationIsActive = false
     @Published private(set) var pages: [ResolvedLorePage] = []
     var onAutoReadPage: ((LorePageID) -> Void)?
 
     private let dialogue: SpokenDialogueCatalog
     private let speech: LoreSpeechControlling
+    private let now: () -> TimeInterval
     private var settings = AppSettings.defaults
-    private var applicationIsActive = false
     private var cueIndex = 0
     private var playbackGeneration: UInt = 0
     private var giggleIndex = 0
+    private var lastGigglePreviewTime = -Double.infinity
     private let giggles = ["Heh.", "Hehehehe.", "Oh ho ho."]
+    private let minimumGigglePreviewInterval = 0.5
 
-    init(dialogue: SpokenDialogueCatalog, speech: LoreSpeechControlling) {
+    init(
+        dialogue: SpokenDialogueCatalog,
+        speech: LoreSpeechControlling,
+        now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate }
+    ) {
         self.dialogue = dialogue
         self.speech = speech
+        self.now = now
     }
 
     func update(settings: AppSettings, pages: [ResolvedLorePage]) {
@@ -72,6 +81,7 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
         guard isOpen else { return }
         isOpen = false
         reactionText = "Fine. I was done talking anyway."
+        lastGigglePreviewTime = -Double.infinity
         stopPlayback()
     }
 
@@ -82,6 +92,7 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
 
     func applicationBecameInactive() {
         applicationIsActive = false
+        lastGigglePreviewTime = -Double.infinity
         stopPlayback()
     }
 
@@ -123,6 +134,9 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
         giggleIndex += 1
         reactionText = text
         guard canSpeak else { return }
+        let timestamp = now()
+        guard timestamp - lastGigglePreviewTime >= minimumGigglePreviewInterval else { return }
+        lastGigglePreviewTime = timestamp
         speech.stopPreview()
         speech.previewGiggle(text, gain: BookVolumeMapping.gain(for: detent))
     }

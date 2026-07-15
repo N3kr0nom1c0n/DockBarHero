@@ -208,7 +208,7 @@ final class PrototypeScene: SKScene {
         if let rollingDPS = childNode(withName: "rollingDPS") as? SKLabelNode {
             setOutlinedText(
                 String(
-                    format: "%.1f DPS",
+                    format: "%.1f DPS AVG",
                     locale: Locale(identifier: "en_US_POSIX"),
                     presentation.rollingDPS
                 ),
@@ -292,13 +292,19 @@ final class PrototypeScene: SKScene {
         let enemyX = size.width * 0.78
         let heroLeft: CGFloat = 8
         let heroRight = size.width / 2 - areaTitleLaneWidth / 2 - 8
-        let heroWidth = max(1, heroRight - heroLeft)
-        let heroCellWidth = heroWidth / CGFloat(max(1, renderedHeroClasses.count))
-        let heroHealthBarWidth = min(maximumHealthBarWidth, max(8, heroCellWidth - 6))
-        let actorWidth = min(actorSize.width, max(1, heroCellWidth - 6))
+        let availableHeroWidth = max(1, heroRight - heroLeft)
+        let heroCount = max(1, renderedHeroClasses.count)
+        let heroFormationWidth = renderedHeroClasses.count > 1
+            ? min(availableHeroWidth, CGFloat(heroCount) * 80)
+            : availableHeroWidth
+        let heroStart = heroLeft + (availableHeroWidth - heroFormationWidth) / 2
+        let heroCellWidth = heroFormationWidth / CGFloat(heroCount)
+        let heroMaximumHealthBarWidth = renderedHeroClasses.count > 1 ? 72 : maximumHealthBarWidth
+        let heroHealthBarWidth = min(heroMaximumHealthBarWidth, max(8, heroCellWidth - 8))
+        let actorWidth = min(actorSize.width, max(1, heroCellWidth - 12))
         let renderedActorSize = CGSize(width: actorWidth, height: actorWidth / 1.5)
         for slot in renderedHeroClasses.indices {
-            let x = heroLeft + heroCellWidth * (CGFloat(slot) + 0.5)
+            let x = heroStart + heroCellWidth * (CGFloat(slot) + 0.5)
             let prefix = heroPrefix(slot)
             if let actor = childNode(withName: prefix) as? SKSpriteNode {
                 actor.position = CGPoint(x: x, y: 32)
@@ -351,7 +357,13 @@ final class PrototypeScene: SKScene {
         let availableWidth = rightBoundary - leftBoundary
         let showsFarming = !status.isHidden
         let showsAuthoredFarming = !identity.isHidden && showsFarming
-        let maximumFontSize: CGFloat = showsAuthoredFarming ? 8 : 10
+        let maximumFontSize: CGFloat = if showsAuthoredFarming {
+            8
+        } else if identity.isHidden {
+            12
+        } else {
+            10
+        }
         fitEnemyLabel(identity, availableWidth: availableWidth, maximumFontSize: maximumFontSize)
         fitEnemyLabel(level, availableWidth: availableWidth, maximumFontSize: maximumFontSize)
         fitEnemyLabel(status, availableWidth: availableWidth, maximumFontSize: maximumFontSize)
@@ -385,9 +397,16 @@ final class PrototypeScene: SKScene {
         availableWidth: CGFloat,
         maximumFontSize: CGFloat
     ) {
-        node.fontSize = maximumFontSize
+        setFontSize(maximumFontSize, on: node)
         guard node.frame.width > availableWidth, node.frame.width > 0 else { return }
-        node.fontSize = max(8, node.fontSize * availableWidth / node.frame.width)
+        setFontSize(max(8, node.fontSize * availableWidth / node.frame.width), on: node)
+    }
+
+    private func setFontSize(_ fontSize: CGFloat, on label: SKLabelNode) {
+        label.fontSize = fontSize
+        for outline in label.children.compactMap({ $0 as? SKLabelNode }) {
+            outline.fontSize = fontSize
+        }
     }
 
     private func positionEnemyLabel(_ node: SKLabelNode, minimumY: CGFloat) {
@@ -489,7 +508,12 @@ final class PrototypeScene: SKScene {
         guard renderedHeroClasses.count > 1 else { return false }
         let heroLeft: CGFloat = 8
         let heroRight = size.width / 2 - areaTitleLaneWidth / 2 - 8
-        let cellWidth = max(1, heroRight - heroLeft) / CGFloat(renderedHeroClasses.count)
+        let availableHeroWidth = max(1, heroRight - heroLeft)
+        let heroFormationWidth = min(
+            availableHeroWidth,
+            CGFloat(renderedHeroClasses.count) * 80
+        )
+        let cellWidth = heroFormationWidth / CGFloat(renderedHeroClasses.count)
         return cellWidth < 90
     }
 

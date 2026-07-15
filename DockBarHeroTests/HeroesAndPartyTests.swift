@@ -115,6 +115,31 @@ final class HeroesAndPartyTests: XCTestCase {
         XCTAssertEqual(two.enemy, three.enemy)
     }
 
+    func testBoss100WipesLevel240TankAndDPSWithoutEquipment() throws {
+        let simulation = try resolvedBoss100Outcome(
+            heroLevel: 240,
+            classes: [.tank, .dps],
+            equipmentLevel: nil
+        )
+
+        XCTAssertTrue(simulation.events.contains(.heroDown(slot: 0)))
+        XCTAssertTrue(simulation.events.contains(.heroDown(slot: 1)))
+        XCTAssertTrue(simulation.events.contains(.defeat(enemyLevel: 100)))
+        XCTAssertFalse(simulation.events.contains(.victory(defeatedLevel: 100)))
+        XCTAssertLessThan(simulation.elapsedSeconds, 6)
+    }
+
+    func testBoss100AcceptsLevel240TankAndDPSWithBossLevelEquipment() throws {
+        let simulation = try resolvedBoss100Outcome(
+            heroLevel: 240,
+            classes: [.tank, .dps],
+            equipmentLevel: 100
+        )
+
+        XCTAssertTrue(simulation.events.contains(.victory(defeatedLevel: 100)))
+        XCTAssertFalse(simulation.events.contains(.defeat(enemyLevel: 100)))
+    }
+
     private func boss25State(classID: HeroClassID) throws -> GameState {
         var state = try activeState(level: 25, classes: [classID])
         let weapon = Item(
@@ -137,21 +162,62 @@ final class HeroesAndPartyTests: XCTestCase {
         return state
     }
 
+    private func resolvedBoss100Outcome(
+        heroLevel: Int,
+        classes: [HeroClassID],
+        equipmentLevel: Int?
+    ) throws -> (events: [GameEvent], elapsedSeconds: Int) {
+        var simulation = GameSimulation(state: try activeState(
+            enemyLevel: 100,
+            heroLevel: heroLevel,
+            classes: classes,
+            equipmentLevel: equipmentLevel
+        ))
+        var events: [GameEvent] = []
+        for elapsedSeconds in 0..<600 {
+            events += try simulation.advance(by: .nanoseconds(1_000_000_000))
+            if events.contains(.victory(defeatedLevel: 100)) ||
+                events.contains(.defeat(enemyLevel: 100)) {
+                return (events, elapsedSeconds + 1)
+            }
+        }
+        return (events, 600)
+    }
+
     private func activeState(level: Int, classes: [HeroClassID]) throws -> GameState {
+        try activeState(enemyLevel: level, heroLevel: level, classes: classes, equipmentLevel: nil)
+    }
+
+    private func activeState(
+        enemyLevel: Int,
+        heroLevel: Int,
+        classes: [HeroClassID],
+        equipmentLevel: Int?
+    ) throws -> GameState {
         let balance = BalanceConfiguration.standard
         let progression = ProgressionConfiguration.standard
-        let tier = try XCTUnwrap(EncounterSchedule.standard.tier(for: level))
+        let tier = try XCTUnwrap(EncounterSchedule.standard.tier(for: enemyLevel))
         var heroes: [HeroState] = []
-        for classID in classes {
+        var inventory: [Item] = []
+        var nextItemID: UInt64 = 1
+        for (slot, classID) in classes.enumerated() {
             let definition = progression.classDefinition(for: classID)
             let maximumHealth = try progression.scaledStat(
                 raw: definition.baseHealth,
-                level: level,
+                level: heroLevel,
                 growthBasisPoints: definition.healthGrowthBasisPoints
             )
+            let equipment = try equipmentLevel.map {
+                try equipmentState(
+                    level: $0,
+                    heroSlot: slot,
+                    nextItemID: &nextItemID,
+                    inventory: &inventory
+                )
+            } ?? EquipmentState(weaponID: nil, armorID: nil)
             heroes.append(HeroState(
                 classID: classID,
-                level: level,
+                level: heroLevel,
                 currentXP: 0,
                 combat: CombatantState(
                     id: .hero,
@@ -162,7 +228,7 @@ final class HeroesAndPartyTests: XCTestCase {
                     attackInterval: balance.heroAttackInterval,
                     timeUntilNextAttack: balance.heroAttackInterval
                 ),
-                equipment: EquipmentState(weaponID: nil, armorID: nil)
+                equipment: equipment
             ))
         }
         let unlocks: PartyUnlockState = switch heroes.count {
@@ -172,9 +238,9 @@ final class HeroesAndPartyTests: XCTestCase {
         }
         return GameState(
             party: PartyState(heroes: heroes, unlocks: unlocks),
-            enemy: try XCTUnwrap(balance.enemy(level: level, tier: tier, progression: progression)),
+            enemy: try XCTUnwrap(balance.enemy(level: enemyLevel, tier: tier, progression: progression)),
             encounter: EncounterState(
-                enemyLevel: level,
+                enemyLevel: enemyLevel,
                 tier: tier,
                 phase: .active,
                 activeElapsed: .zero,
@@ -182,16 +248,44 @@ final class HeroesAndPartyTests: XCTestCase {
                 reviveRemaining: .zero
             ),
             campaign: CampaignState(
-                highestUnlockedLevel: level,
-                selectedLevel: level,
+                highestUnlockedLevel: enemyLevel,
+                selectedLevel: enemyLevel,
                 queuedLevel: nil,
                 mode: .push,
                 consecutiveDefeats: 0
             ),
             economy: EconomyState(gold: 0),
-            inventory: [],
+            inventory: inventory,
             autoEquipEnabled: true,
-            lootSequence: 0
+            lootSequence: nextItemID - 1
         )
+    }
+
+    private func equipmentState(
+        level: Int,
+        heroSlot: Int,
+        nextItemID: inout UInt64,
+        inventory: inout [Item]
+    ) throws -> EquipmentState {
+        let weaponID = ItemID(rawValue: nextItemID)
+        nextItemID += 1
+        let armorID = ItemID(rawValue: nextItemID)
+        nextItemID += 1
+        let weapon = Item(
+            id: weaponID,
+            level: level,
+            slot: .weapon,
+            primaryStat: try XCTUnwrap(BalanceConfiguration.standard.itemPrimaryStat(level: level, slot: .weapon)),
+            creationSequence: weaponID.rawValue
+        )
+        let armor = Item(
+            id: armorID,
+            level: level,
+            slot: .armor,
+            primaryStat: try XCTUnwrap(BalanceConfiguration.standard.itemPrimaryStat(level: level, slot: .armor)),
+            creationSequence: armorID.rawValue
+        )
+        inventory.append(contentsOf: [weapon, armor])
+        return EquipmentState(weaponID: weaponID, armorID: armorID)
     }
 }

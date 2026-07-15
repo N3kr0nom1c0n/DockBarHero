@@ -556,6 +556,35 @@ final class AppModelTests: XCTestCase {
         )
         XCTAssertNil(AppLaunchOptions.managementRoute(arguments: ["DockBarHero"]))
     }
+
+    func testBundleDoesNotForceAgentOnlyActivationPolicy() {
+        XCTAssertNil(Bundle.main.object(forInfoDictionaryKey: "LSUIElement"))
+    }
+
+    func testManagementDockPresenceTransitionsBetweenAccessoryAndRegularPolicies() {
+        let application = FakeApplicationActivation()
+        let presence = ManagementDockPresenceController(application: application)
+
+        presence.configureForLaunch()
+        presence.managementWindowWillOpen()
+        presence.managementWindowDidClose()
+
+        XCTAssertEqual(application.policies, [.accessory, .regular, .accessory])
+        XCTAssertEqual(application.activateCount, 1)
+    }
+
+    func testDockReopenShowsExistingManagementWindowWithoutCreatingApplicationInstances() {
+        let application = FakeApplicationActivation()
+        let presence = ManagementDockPresenceController(application: application)
+        var openCount = 0
+
+        let handled = presence.handleDockReopen(openManagementWindow: { openCount += 1 })
+
+        XCTAssertTrue(handled)
+        XCTAssertEqual(openCount, 1)
+        XCTAssertEqual(application.policies, [])
+        XCTAssertEqual(application.activateCount, 0)
+    }
 }
 
 @MainActor
@@ -627,6 +656,20 @@ private final class FakeWindow: OverlayWindowControlling {
     func setFrame(_ frame: CGRect) { frames.append(frame) }
     func setVisible(_ isVisible: Bool) { visibility.append(isVisible) }
     func setInputEnabled(_ isEnabled: Bool) { inputEnabled.append(isEnabled) }
+}
+
+private final class FakeApplicationActivation: ApplicationActivationControlling {
+    var policies: [NSApplication.ActivationPolicy] = []
+    var activateCount = 0
+
+    func setActivationPolicy(_ activationPolicy: NSApplication.ActivationPolicy) -> Bool {
+        policies.append(activationPolicy)
+        return true
+    }
+
+    func activate() {
+        activateCount += 1
+    }
 }
 
 @MainActor

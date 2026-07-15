@@ -3,9 +3,9 @@ import SwiftUI
 struct LorePageView: View {
     let page: ResolvedLorePage
     let isBookOpen: Bool
+    let applicationIsActive: Bool
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.scenePhase) private var scenePhase
     @State private var motionFrames: [CGImage] = []
     @State private var contextCells: [CGImage] = []
     @State private var didLoadContext = false
@@ -129,7 +129,10 @@ struct LorePageView: View {
 
             ForEach(attachedOverlays(for: panel, panelWidth: rect.width), id: \.id) { overlay in
                 LoreMangaTextOverlay(overlay: overlay, compact: rect.width < 220)
-                    .frame(maxWidth: max(40, min(280, rect.width - 12)))
+                    .frame(maxWidth: LoreBookLayout.attachedOverlayMaximumWidth(
+                        style: overlay.style,
+                        panelWidth: rect.width
+                    ))
                     .frame(
                         maxWidth: .infinity,
                         maxHeight: .infinity,
@@ -155,7 +158,12 @@ struct LorePageView: View {
     @ViewBuilder
     private func panelArtwork(for panel: LorePanelDefinition) -> some View {
         if panel.role == .motion, let first = motionFrames.first {
-            if reduceMotion || !isBookOpen || scenePhase != .active || motionFrames.count == 1 {
+            if !LoreMotionPanelPlayback.shouldAnimate(
+                frameCount: motionFrames.count,
+                isBookOpen: isBookOpen,
+                applicationIsActive: applicationIsActive,
+                reduceMotion: reduceMotion
+            ) {
                 panelImage(first, focalPoint: panel.focalPoint)
             } else {
                 TimelineView(.animation(
@@ -209,7 +217,9 @@ struct LorePageView: View {
         canvasSize: CGSize
     ) -> some View {
         LoreMangaTextOverlay(overlay: overlay, compact: true)
-            .frame(maxWidth: min(280, max(40, canvasSize.width - 12)))
+            .frame(maxWidth: LoreBookLayout.pageCalloutMaximumWidth(
+                forCanvasWidth: canvasSize.width
+            ))
             .background(Color(red: 0.98, green: 0.93, blue: 0.82))
             .frame(
                 width: max(0, canvasSize.width - 12),

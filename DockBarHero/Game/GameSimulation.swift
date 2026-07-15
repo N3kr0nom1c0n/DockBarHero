@@ -65,7 +65,8 @@ struct GameSimulation {
             heroDefense: (try? combatResolver.effectiveDefense(for: .hero, in: state)) ?? fallbackHero?.baseDefense ?? 0,
             rollingDPS: damageMetrics.rollingDPS(
                 at: simulationTime,
-                encounterElapsed: state.encounter.activeElapsed
+                encounterElapsed: state.encounter.activeElapsed,
+                totalDamage: state.encounter.heroDamage
             ),
             encounterDPS: DamageMetrics.encounterAverage(
                 totalDamage: state.encounter.heroDamage,

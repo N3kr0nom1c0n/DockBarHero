@@ -23,12 +23,56 @@ enum AppLaunchOptions {
 }
 
 @MainActor
+protocol ApplicationActivationControlling: AnyObject {
+    @discardableResult
+    func setActivationPolicy(_ activationPolicy: NSApplication.ActivationPolicy) -> Bool
+    func activate()
+}
+
+extension NSApplication: ApplicationActivationControlling {}
+
+@MainActor
+final class ManagementDockPresenceController {
+    private let application: ApplicationActivationControlling
+
+    init(application: ApplicationActivationControlling = NSApplication.shared) {
+        self.application = application
+    }
+
+    func configureForLaunch() {
+        application.setActivationPolicy(.accessory)
+    }
+
+    func managementWindowWillOpen() {
+        application.setActivationPolicy(.regular)
+        application.activate()
+    }
+
+    func managementWindowDidClose() {
+        application.setActivationPolicy(.accessory)
+    }
+
+    func handleDockReopen(openManagementWindow: () -> Void) -> Bool {
+        openManagementWindow()
+        return true
+    }
+}
+
+@MainActor
 final class ManagementWindowController: NSWindowController, NSWindowDelegate {
+    private let onOpen: () -> Void
     private let onClose: () -> Void
     private var initialSizingGate = InitialManagementWindowSizingGate()
 
-    init(model: AppModel) {
-        onClose = { [weak model] in model?.managementWindowDidClose() }
+    init(
+        model: AppModel,
+        dockPresence: ManagementDockPresenceController = ManagementDockPresenceController()
+    ) {
+        onOpen = { dockPresence.managementWindowWillOpen() }
+        onClose = { [weak model, dockPresence] in
+            model?.managementWindowDidClose()
+            dockPresence.managementWindowDidClose()
+        }
         let content = NSHostingController(rootView: ManagementRootView(model: model))
         content.sizingOptions = [.minSize]
         let window = NSWindow(contentViewController: content)
@@ -47,12 +91,12 @@ final class ManagementWindowController: NSWindowController, NSWindowDelegate {
     }
 
     func open() {
+        onOpen()
         showWindow(nil)
         if initialSizingGate.shouldApplyInitialSize() {
             window?.setContentSize(ManagementWindowSizing.initialContentSize)
         }
         window?.makeKeyAndOrderFront(nil)
-        NSApplication.shared.activate()
     }
 
     func windowWillClose(_ notification: Notification) {
@@ -97,6 +141,7 @@ struct TerminationRequestGate {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let model: AppModel
+    private let dockPresence = ManagementDockPresenceController()
     private let managementWindowController: ManagementWindowController
     private var terminationGate = TerminationRequestGate()
 
@@ -129,7 +174,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             loreCatalog: loreCatalog, loreReader: loreReader
         )
         self.model = model
-        managementWindowController = ManagementWindowController(model: model)
+        managementWindowController = ManagementWindowController(model: model, dockPresence: dockPresence)
         super.init()
         model.onManagementWindowRequest = { [weak managementWindowController] in
             managementWindowController?.open()
@@ -137,7 +182,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApplication.shared.setActivationPolicy(.accessory)
+        dockPresence.configureForLaunch()
         model.start()
         do {
             let scene = try PrototypeSceneHost()
@@ -166,6 +211,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidResignActive(_ notification: Notification) {
         model.loreReader.applicationBecameInactive()
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        dockPresence.handleDockReopen { managementWindowController.open() }
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {

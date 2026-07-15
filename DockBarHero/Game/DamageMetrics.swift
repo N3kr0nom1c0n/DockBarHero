@@ -4,7 +4,7 @@ struct DamageMetrics {
         let damage: Int
     }
 
-    private static let rollingWindow = SimulationDuration.nanoseconds(5_000_000_000)
+    private static let rollingWindow = SimulationDuration.nanoseconds(60_000_000_000)
     private var samples: [Sample] = []
 
     mutating func record(damage: Int, at timestamp: SimulationDuration) {
@@ -22,13 +22,21 @@ struct DamageMetrics {
         }
     }
 
-    func rollingDPS(at now: SimulationDuration, encounterElapsed: SimulationDuration) -> Double {
+    func rollingDPS(
+        at now: SimulationDuration,
+        encounterElapsed: SimulationDuration,
+        totalDamage: Int = 0
+    ) -> Double {
         guard encounterElapsed > .zero else { return 0 }
 
         let windowStart = lowerBound(for: now)
         let damage = samples
             .filter { $0.timestamp > windowStart && $0.timestamp <= now }
             .reduce(0) { $0 + $1.damage }
+        if damage == 0, totalDamage > 0 {
+            return Self.encounterAverage(totalDamage: totalDamage, elapsed: encounterElapsed)
+        }
+
         let denominator = min(Self.rollingWindow.rawValue, encounterElapsed.rawValue)
         guard denominator > 0 else { return 0 }
 

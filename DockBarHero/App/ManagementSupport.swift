@@ -29,6 +29,8 @@ enum ManagementIntent {
 }
 
 enum ManagementFormat {
+    static let currentDeathStreakTitle = "Current Death Streak"
+
     static func dps(_ value: Double) -> String { String(format: "%.1f", value) }
     static func heroLevel(_ level: Int) -> String { "Hero Lv. \(level)" }
     static func enemyLevel(_ level: Int) -> String { "Enemy Lv. \(level)" }

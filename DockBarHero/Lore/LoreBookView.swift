@@ -153,7 +153,11 @@ private struct LoreBookReaderView: View {
     }
 
     private func page(_ page: ResolvedLorePage) -> some View {
-        LorePageView(page: page, isBookOpen: controller.isOpen)
+        LorePageView(
+            page: page,
+            isBookOpen: controller.isOpen,
+            applicationIsActive: controller.applicationIsActive
+        )
             .onTapGesture { controller.select(page.id) }
     }
 
@@ -179,8 +183,9 @@ private struct LoreBookReaderView: View {
                 .frame(width: 100)
         }
         .buttonStyle(.bordered)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 6)
+        .padding(.horizontal, LoreBookLayout.controlsPadding.horizontal)
+        .padding(.top, LoreBookLayout.controlsPadding.top)
+        .padding(.bottom, LoreBookLayout.controlsPadding.bottom)
         .background(Color(red: 0.78, green: 0.61, blue: 0.36))
         .frame(minHeight: 92)
     }

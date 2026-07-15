@@ -56,6 +56,26 @@ final class LoreBookLayoutTests: XCTestCase {
         XCTAssertFalse(LoreBookLayout.usesPageCallout(characterCount: 40, panelWidth: 220))
     }
 
+    func testAttachedMangaTextUsesCompactWidthCaps() {
+        XCTAssertEqual(
+            LoreBookLayout.attachedOverlayMaximumWidth(style: .speech, panelWidth: 420),
+            220
+        )
+        XCTAssertEqual(
+            LoreBookLayout.attachedOverlayMaximumWidth(style: .narration, panelWidth: 420),
+            240
+        )
+        XCTAssertEqual(
+            LoreBookLayout.attachedOverlayMaximumWidth(style: .speech, panelWidth: 160),
+            140
+        )
+    }
+
+    func testPageCalloutsRemainCompactInsteadOfCoveringTheCanvas() {
+        XCTAssertEqual(LoreBookLayout.pageCalloutMaximumWidth(forCanvasWidth: 620), 240)
+        XCTAssertEqual(LoreBookLayout.pageCalloutMaximumWidth(forCanvasWidth: 180), 156)
+    }
+
     func testLevelOneCleanAndUnfilteredSpeechStayAttachedToTheirPanel() {
         XCTAssertFalse(LoreBookLayout.usesPageCallout(characterCount: 55, panelWidth: 160))
         XCTAssertFalse(LoreBookLayout.usesPageCallout(characterCount: 59, panelWidth: 160))
@@ -71,6 +91,57 @@ final class LoreBookLayoutTests: XCTestCase {
         XCTAssertEqual(compact.arrangement, .stacked)
         XCTAssertGreaterThan(wide.maximumBubbleWidth, 0)
         XCTAssertGreaterThan(compact.maximumBubbleWidth, 0)
+    }
+
+    func testControlsReserveExtraBottomSpaceBelowVolumeKnob() {
+        let padding = LoreBookLayout.controlsPadding
+
+        XCTAssertEqual(padding.top, 6)
+        XCTAssertGreaterThanOrEqual(padding.bottom, padding.top + 6)
+    }
+
+    func testMotionPanelAnimatesOnlyWhenBookAndApplicationAreActive() {
+        XCTAssertTrue(
+            LoreMotionPanelPlayback.shouldAnimate(
+                frameCount: 4,
+                isBookOpen: true,
+                applicationIsActive: true,
+                reduceMotion: false
+            )
+        )
+
+        XCTAssertFalse(
+            LoreMotionPanelPlayback.shouldAnimate(
+                frameCount: 4,
+                isBookOpen: false,
+                applicationIsActive: true,
+                reduceMotion: false
+            )
+        )
+        XCTAssertFalse(
+            LoreMotionPanelPlayback.shouldAnimate(
+                frameCount: 4,
+                isBookOpen: true,
+                applicationIsActive: false,
+                reduceMotion: false
+            )
+        )
+        XCTAssertFalse(
+            LoreMotionPanelPlayback.shouldAnimate(
+                frameCount: 4,
+                isBookOpen: true,
+                applicationIsActive: true,
+                reduceMotion: true
+            )
+        )
+        XCTAssertFalse(
+            LoreMotionPanelPlayback.shouldAnimate(
+                frameCount: 1,
+                isBookOpen: true,
+                applicationIsActive: true,
+                reduceMotion: false
+            )
+        )
     }
 
     func testDefaultManagementWindowCanShowSpreadBesideSidebar() {

@@ -26,7 +26,14 @@ enum LoreBookLayout {
         let rightIndex: Int
     }
 
+    struct ControlsPadding: Equatable {
+        let top: CGFloat
+        let bottom: CGFloat
+        let horizontal: CGFloat
+    }
+
     static let minimumSpreadWidth: CGFloat = 720
+    static let controlsPadding = ControlsPadding(top: 6, bottom: 12, horizontal: 14)
 
     static func mode(forContentWidth width: CGFloat) -> Mode {
         width >= minimumSpreadWidth ? .spread : .singlePage
@@ -56,6 +63,25 @@ enum LoreBookLayout {
         panelWidth < 180 && characterCount > 64
     }
 
+    static func attachedOverlayMaximumWidth(
+        style: LoreTextOverlayStyle,
+        panelWidth: CGFloat
+    ) -> CGFloat {
+        let availableWidth = max(40, panelWidth - 20)
+        switch style {
+        case .speech:
+            return min(220, availableWidth)
+        case .title, .narration:
+            return min(240, availableWidth)
+        case .soundEffect:
+            return min(180, availableWidth)
+        }
+    }
+
+    static func pageCalloutMaximumWidth(forCanvasWidth width: CGFloat) -> CGFloat {
+        min(240, max(40, width - 24))
+    }
+
     static func reactionPolicy(forContentWidth width: CGFloat) -> ReactionPolicy {
         if width >= 760 {
             return ReactionPolicy(
@@ -69,5 +95,16 @@ enum LoreBookLayout {
             arrangement: .stacked,
             maximumBubbleWidth: min(420, max(240, width - 48))
         )
+    }
+}
+
+enum LoreMotionPanelPlayback {
+    static func shouldAnimate(
+        frameCount: Int,
+        isBookOpen: Bool,
+        applicationIsActive: Bool,
+        reduceMotion: Bool
+    ) -> Bool {
+        frameCount > 1 && isBookOpen && applicationIsActive && !reduceMotion
     }
 }

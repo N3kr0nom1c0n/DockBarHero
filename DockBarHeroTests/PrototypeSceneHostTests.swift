@@ -169,6 +169,46 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertNil(status.text)
     }
 
+    func testReviewedProceduralFarmingLabelsStayReadableAndSeparated() throws {
+        let host = try PrototypeSceneHost(size: CGSize(width: 1_140, height: 96))
+        var state = GameState.newGame(balance: .standard)
+        state.campaign.highestUnlockedLevel = 100
+        state.campaign.selectedLevel = 74
+        state.campaign.mode = .farming
+        state.encounter.enemyLevel = 74
+        state.encounter.tier = .normal
+        var presentation = GameSimulation(state: state).presentation
+        presentation.campaign = nil
+
+        host.render(.active(presentation))
+
+        let enemy = try requiredNode("enemy", in: host.scene, file: #filePath, line: #line)
+        let enemyHealth = try requiredNode("enemyHealthBackground", in: host.scene, file: #filePath, line: #line)
+        let level = try XCTUnwrap(
+            host.scene.childNode(withName: "//enemyLevel") as? SKLabelNode
+        )
+        let status = try XCTUnwrap(
+            host.scene.childNode(withName: "//farmingStatus") as? SKLabelNode
+        )
+        let rollingDPS = try requiredNode("rollingDPS", in: host.scene, file: #filePath, line: #line)
+
+        XCTAssertEqual(level.text, "Normal · Enemy Lv. 74")
+        XCTAssertEqual(status.text, "FARMING • FRONTIER 100")
+        XCTAssertEqual(level.fontSize, 12, accuracy: 0.001)
+        XCTAssertEqual(status.fontSize, 12, accuracy: 0.001)
+
+        for frame in [enemy.frame, enemyHealth.frame, level.frame, status.frame, rollingDPS.frame] {
+            assertFrameIsOnRail(frame, width: host.scene.size.width, file: #filePath, line: #line)
+        }
+        XCTAssertFalse(level.frame.intersects(status.frame))
+        XCTAssertFalse(level.frame.intersects(enemy.frame))
+        XCTAssertFalse(status.frame.intersects(enemy.frame))
+        XCTAssertFalse(level.frame.intersects(enemyHealth.frame))
+        XCTAssertFalse(status.frame.intersects(enemyHealth.frame))
+        XCTAssertFalse(level.frame.intersects(rollingDPS.frame))
+        XCTAssertFalse(status.frame.intersects(rollingDPS.frame))
+    }
+
     func testEnemyLabelsUseAccessibleCondensedFontWithoutSerifFallback() throws {
         let host = try PrototypeSceneHost(size: CGSize(width: 400, height: 96))
         var state = GameState.newGame(balance: .standard)
@@ -524,7 +564,7 @@ final class PrototypeSceneHostTests: XCTestCase {
 
         XCTAssertEqual(enemyLevel.text, "Normal · Enemy Lv. 7")
         XCTAssertTrue(host.scene.childNode(withName: "//enemyIdentity")?.isHidden == true)
-        XCTAssertEqual(rollingDPS.text, "12.3 DPS")
+        XCTAssertEqual(rollingDPS.text, "12.3 DPS AVG")
         XCTAssertEqual(heroHealthFill.xScale, 0.75, accuracy: 0.001)
         XCTAssertEqual(enemyHealthFill.xScale, 0.4, accuracy: 0.001)
 
@@ -756,6 +796,56 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertNotNil(host.scene.childNode(withName: "//hero-2Level"))
     }
 
+    func testThreeHeroFormationStaysGroupedWithCompactHealthBars() throws {
+        let host = try PrototypeSceneHost(size: CGSize(width: 1_140, height: 96))
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        let dps = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        let healer = GameState.newGame(classID: .healer, balance: .standard, progression: .standard).party.heroes[0]
+        state.party = PartyState(heroes: [state.party.heroes[0], dps, healer], unlocks: .complete)
+
+        host.render(.active(GameSimulation(state: state).presentation))
+
+        let heroes = try (0..<3).map { slot in
+            try requiredNode(slot == 0 ? "hero" : "hero-\(slot)", in: host.scene, file: #filePath, line: #line)
+        }
+        let healthBars = try (0..<3).map { slot in
+            let prefix = slot == 0 ? "hero" : "hero-\(slot)"
+            return try requiredNode("\(prefix)HealthBackground", in: host.scene, file: #filePath, line: #line)
+        }
+        let heroSpan = heroes.map(\.frame).reduce(CGRect.null) { $0.union($1) }
+
+        XCTAssertLessThanOrEqual(heroSpan.width, 220)
+        for healthBar in healthBars {
+            XCTAssertLessThanOrEqual(healthBar.frame.width, 72)
+        }
+    }
+
+    func testClusteredTwoHeroFormationUsesCompactNonOverlappingLabels() throws {
+        let host = try PrototypeSceneHost(size: CGSize(width: 800, height: 96))
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        var dps = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        state.party.heroes[0].level = 262
+        dps.level = 262
+        state.party = PartyState(heroes: [state.party.heroes[0], dps], unlocks: .secondUnlocked)
+
+        host.render(.active(GameSimulation(state: state).presentation))
+
+        let firstLevel = try XCTUnwrap(host.scene.childNode(withName: "//heroLevel") as? SKLabelNode)
+        let secondLevel = try XCTUnwrap(host.scene.childNode(withName: "//hero-1Level") as? SKLabelNode)
+        let firstAction = try XCTUnwrap(host.scene.childNode(withName: "//heroAction") as? SKLabelNode)
+        let secondAction = try XCTUnwrap(host.scene.childNode(withName: "//hero-1Action") as? SKLabelNode)
+
+        XCTAssertEqual(firstLevel.text, "Lv. 262")
+        XCTAssertEqual(secondLevel.text, "Lv. 262")
+        XCTAssertEqual(firstAction.text, "G")
+        XCTAssertEqual(secondAction.text, "PS")
+        assertPairwiseDisjoint(
+            [firstLevel.frame, secondLevel.frame, firstAction.frame, secondAction.frame],
+            file: #filePath,
+            line: #line
+        )
+    }
+
     func testSlotAddressedEventsAnimateExactHero() throws {
         let host = try PrototypeSceneHost()
         var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
@@ -786,7 +876,7 @@ final class PrototypeSceneHostTests: XCTestCase {
         )
         XCTAssertEqual(
             (host.scene.childNode(withName: "//hero-1Action") as? SKLabelNode)?.text,
-            "M READY"
+            "M"
         )
     }
 

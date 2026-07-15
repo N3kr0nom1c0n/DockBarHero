@@ -40,7 +40,7 @@ struct OverviewView: View {
                         : "Down")
                     labeledValue("Attack", "\(stats?.attack ?? hero.combat.baseAttack)")
                     labeledValue("Defense", "\(stats?.defense ?? hero.combat.baseDefense)")
-                    labeledValue("Deaths", "\(hero.consecutiveDeaths)")
+                    labeledValue(ManagementFormat.currentDeathStreakTitle, "\(hero.consecutiveDeaths)")
                 }
             }
             HStack(spacing: 24) {
@@ -100,7 +100,7 @@ struct OverviewView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Damage per second").font(.headline)
             HStack(spacing: 32) {
-                metric("Rolling", ManagementFormat.dps(presentation.rollingDPS))
+                metric("Stable average", ManagementFormat.dps(presentation.rollingDPS))
                 metric("Encounter average", ManagementFormat.dps(presentation.encounterDPS))
             }
         }

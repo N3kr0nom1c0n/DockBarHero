@@ -36,6 +36,8 @@
 - Long authored names remain clipped or marquee within their own lane.
 - Add geometry tests for wide and narrow layouts and live-check both light and dark desktop backgrounds.
 
+**Verified implementation:** Fixed in `DockBarHero/Rendering/PrototypeScene.swift` with regression coverage in `DockBarHeroTests/PrototypeSceneHostTests.swift`. Red/green proof covered the reviewed Level 74 / Frontier 100 procedural farming case; `PrototypeSceneHostTests` passed 43/43; `./script/build_and_run.sh --verify` built and launched the exact app bundle; owner live-check accepted the rail visually.
+
 **Likely surfaces:** `DockBarHero/Rendering/PrototypeScene.swift`, `DockBarHeroTests/PrototypeSceneHostTests.swift`
 
 ### A2. Replace the twitchy DPS readout
@@ -44,13 +46,15 @@
 
 **Owner direction:** Real-time DPS is not useful enough. Prefer a stable recent average, such as the last 60 seconds; total damage may also be useful.
 
-**Candidate presentation:** Primary `60s DPS`, with total run or encounter damage available in management rather than crowding the rail.
+**Candidate presentation:** Primary stable DPS average, with total run or encounter damage available in management rather than crowding the rail.
 
 **Required outcome:**
 
 - Define exact sample window, startup behavior before 60 seconds, encounter-boundary behavior, and whether farming transitions reset it.
 - Keep metric state bounded and deterministic.
 - Avoid rapid zero/high-number flicker.
+
+**Implementation record:** Rail primary now shows `DPS AVG`. The metric uses the last 60 seconds with startup dividing by elapsed encounter time until the window is full; if the recent window has no damage but the active encounter has prior hero damage, it falls back to encounter average instead of dipping to zero. Samples exactly at the lower bound are excluded. Victory/defeat reset the metric with the encounter. Management keeps encounter average for context and labels the primary value as `Stable average`. Focused red/green covered the fallback and rail label; `DamageMetricsTests`, DPS reset coverage in `GameSimulationTests`, `PrototypeSceneHostTests`, and `ManagementViewTests` passed.
 
 **Likely surfaces:** `DockBarHero/Game/DamageMetrics.swift`, `DockBarHero/Game/GameModels.swift`, `DockBarHero/Rendering/PrototypeScene.swift`, `DockBarHero/App/OverviewView.swift`
 
@@ -65,6 +69,8 @@
 
 **Required outcome:** The label and stored statistic must have the same scope and reset rules.
 
+**Implementation record:** Chose the lower-risk scoped-label path rather than adding a new durable counter. Overview now labels `HeroState.consecutiveDeaths` as `Current Death Streak` through a tested `ManagementFormat` contract, so the displayed value matches its resettable streak semantics. Red/green covered the missing label contract; `ManagementViewTests`, `RewardResolverTests`, and `SaveDocumentTests` passed.
+
 **Likely surfaces:** `DockBarHero/App/OverviewView.swift`, `DockBarHero/Game/GameModels.swift`, reward/defeat resolvers, save validation and fixtures
 
 ### A4. Audit Level 100 boss balance
@@ -76,6 +82,8 @@
 - Capture hero class, stats, equipment, abilities/cooldowns, party unlock state, boss stats, damage order, and defeat sequence.
 - Determine whether the cause is scaling math, missing third-party-slot progression, poor equipment, inactive class actions, boss tuning, or a combination.
 - Compare Boss 100 time-to-kill and incoming damage against nearby Normal/Elite encounters and intended progression pacing.
+
+**Diagnostic record:** Focused fixtures in `DockBarHeroTests/HeroesAndPartyTests.swift` show Level 240 Tank+DPS with no equipment lose to Boss 100 in under 6 seconds, while the same party with Level 100 weapon/armor equipment defeats Boss 100. `HeroesAndPartyTests` passed 8/8. This points to equipment progression and combat-state visibility as the gate rather than raw hero level alone; acceptance and any tuning are still pending.
 
 **Required outcome:** Boss 100 is a meaningful gate without invalidating roughly 140 levels of hero advantage. Balance changes require deterministic regression fixtures.
 
@@ -105,6 +113,8 @@
 - Closing the management window removes the Dock icon and returns the app to menu-bar/overlay behavior.
 - The transition must not steal focus during passive gameplay or create duplicate app processes/windows.
 
+**Implementation record:** Removed the hard-coded generated `LSUIElement` plist key and moved Dock/menu-bar presence to runtime activation policy. Plain launch now configures `.accessory`; management open switches to `.regular` and activates the existing singleton management window; close returns to `.accessory`; Dock reopen routes through the same existing window opener. Red/green covered policy transitions, Dock reopen routing, and the generated plist contract; `AppModelTests` passed 40/40. Canonical verify build passed. Live process probe on the exact `.build/RunDerivedData` bundle reported plain launch `background only=true` and management launch `background only=false` with windows.
+
 **Likely surfaces:** `DockBarHero/App/AppDelegate.swift`, management window controller/delegate, activation-policy tests and live Mac QA
 
 ### B3. Add hero conversations on the rail
@@ -132,6 +142,8 @@
 - Muting Book audio or all audio suppresses the sound while retaining accessible textual feedback.
 - The reaction respects Book volume and stops when the Book closes.
 
+**Implementation record:** `LoreReaderController` now routes Book volume previews through the recorded giggle preview path when the Book is open, the app is active, and spoken dialogue is enabled. Text reactions still update on every knob movement, but audio previews are throttled to one sample per 0.5 seconds and replace the previous preview before playing. Closing the Book or deactivating the app clears playback state. Red/green coverage in `LoreReaderControllerTests` verifies reversed gain, preview replacement, throttling, and silent text-only feedback when speech is disabled; `LoreAudioManifestTests` verifies bundled preview assets resolve through the manifest. Focused Book audio tests passed 21/21, and `./script/build_and_run.sh --verify` built and launched the app. Automated verification covers routing and manifest integrity; final subjective audibility still needs a manual listen on the running app.
+
 **Likely surfaces:** `DockBarHero/Lore/BookVolumePotentiometer.swift`, `LoreBookView.swift`, lore audio service/manifest, App settings/model
 
 ### C2. Restore manga motion-panel animation
@@ -147,6 +159,8 @@
 - Reduced Motion intentionally freezes the motion region and clearly explains why in Settings/accessibility copy.
 - Closing the Book or deactivating the app pauses work; reopening resumes correctly.
 
+**Implementation record:** Motion-panel playback now uses the app's own `LoreReaderController.applicationIsActive` lifecycle signal instead of the weaker SwiftUI `scenePhase` environment from the AppKit-hosted management window. The view animates only when the Book is open, the app is active, Reduced Motion is off, and multiple sprite frames are loaded; otherwise it freezes on the first motion frame. The motion predicate is centralized in `LoreMotionPanelPlayback` and covered by red/green tests. Focused verification passed for `LoreBookLayoutTests`, `LoreReaderControllerTests`, `LoreSpriteSheetTests`, and the bundled catalog motion-panel placement test. Manual visual confirmation of the moving panel is still recommended.
+
 **Likely surfaces:** `DockBarHero/Lore/LorePageView.swift`, lore catalog/resources, animation settings and tests
 
 ### C3. Reduce speech-bubble artwork coverage
@@ -158,11 +172,15 @@
 - Long lines wrap compactly and cannot cover the motion panel's focal subject.
 - Validate every current page at wide and compact Book sizes.
 
+**Implementation record:** Replaced hard-coded 280 px manga overlay caps with tested `LoreBookLayout` width policies. Attached speech balloons now cap at 220 px, narration/title overlays cap at 240 px, narrow panels reserve 20 px of panel margin, and page callouts cap at 240 px with 24 px canvas margin. Existing authored overlay placements still drive the panel alignment, so this reduces coverage without moving copy to a single global position or changing page assets. Red/green covered compact attached overlays and page callouts; `LoreBookLayoutTests`, `LoreMangaLayoutTests`, and `LoreMangaAccessibilityTests` passed 23/23. Manual visual review is still recommended for every current page at wide and compact Book sizes.
+
 **Likely surfaces:** `DockBarHero/Lore/LoreMangaTextOverlay.swift`, composition sidecars, `LorePageView.swift`
 
 ### C4. Add bottom padding below the volume knob
 
 **Required outcome:** Move the knob a few pixels farther from the Book's bottom border without shrinking its hit target or breaking compact layout.
+
+**Implementation record:** Added a tested `LoreBookLayout.controlsPadding` contract and applied asymmetric control-bar padding in `LoreBookView`: top remains 6 px, bottom is 12 px, and horizontal remains 14 px. This moves the volume knob farther from the Book's bottom edge while preserving the existing 92 px minimum control height and hit target. Red/green covered the missing layout contract first; `LoreBookLayoutTests` plus `BookVolumePotentiometerTests` passed 13/13.
 
 **Likely surface:** `DockBarHero/Lore/LoreBookView.swift`
 
@@ -283,12 +301,12 @@
 
 This review backlog is complete only when each checkbox below has a linked approved spec or verified implementation record:
 
-- [ ] Rail typography is readable and collision-free.
+- [x] Rail typography is readable and collision-free.
 - [ ] DPS presentation uses the approved stable metric.
-- [ ] Death statistics are correctly scoped and labeled.
+- [x] Death statistics are correctly scoped and labeled.
 - [ ] Boss 100 balance is diagnosed and accepted.
 - [ ] Three-hero formation and unlock presentation are accepted.
-- [ ] Management has temporary Dock presence while open.
+- [x] Management has temporary Dock presence while open.
 - [ ] Hero text/voice conversations and audio controls are accepted.
 - [ ] Book giggle, motion panel, bubbles, padding, and speech UX are accepted.
 - [ ] Cohesive story and Map designs are approved before new manga art.
