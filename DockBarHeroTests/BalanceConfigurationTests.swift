@@ -33,12 +33,26 @@ final class BalanceConfigurationTests: XCTestCase {
         XCTAssertEqual(state.party.heroes[0].level, 1)
         XCTAssertEqual(state.party.heroes[0].currentXP, 0)
         XCTAssertEqual(state.party.heroes[0].combat.maxHealth, 130)
+        XCTAssertEqual(state.party.unlocks, .locked)
+        XCTAssertEqual(state.party.heroes[0].encounterAliveDuration, .zero)
+        XCTAssertFalse(state.party.heroes[0].wasDownThisEncounter)
+        XCTAssertEqual(state.party.heroes[0].consecutiveDeaths, 0)
         XCTAssertEqual(state.campaign.highestUnlockedLevel, 1)
         XCTAssertEqual(state.campaign.selectedLevel, 1)
         XCTAssertNil(state.campaign.queuedLevel)
         XCTAssertEqual(state.campaign.mode, .push)
         XCTAssertEqual(state.campaign.consecutiveDefeats, 0)
         XCTAssertEqual(state.economy.gold, 0)
+    }
+
+    func testPartyStateRejectsDecodedMoreThanThreeHeroes() throws {
+        let hero = GameState.newGame(balance: .standard).party.heroes[0]
+        let data = try JSONEncoder().encode(PartyState(
+            heroes: [hero, hero, hero, hero],
+            unlocks: .complete
+        ))
+
+        XCTAssertThrowsError(try JSONDecoder().decode(PartyState.self, from: data))
     }
 
     func testStandardNewGameStartsAtEnemyOneWithAutoEquip() {

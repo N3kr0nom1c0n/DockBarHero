@@ -70,7 +70,8 @@ final class EncounterDirectorTests: XCTestCase {
 
         XCTAssertEqual(result.encounter.enemyLevel, 5)
         XCTAssertEqual(result.encounter.tier, .elite)
-        XCTAssertEqual(result.enemy.maxHealth, 54)
+        XCTAssertEqual(result.enemy.maxHealth, 68)
+        XCTAssertEqual(result.enemy.baseDefense, 3)
     }
 
     func testBeginNextEncounterCreatesNextLevelAndResetsHeroAndTimers() throws {
@@ -85,7 +86,9 @@ final class EncounterDirectorTests: XCTestCase {
 
         XCTAssertEqual(result.encounter.enemyLevel, 2)
         XCTAssertEqual(result.hero.currentHealth, result.hero.maxHealth)
-        XCTAssertEqual(result.enemy, BalanceConfiguration.standard.enemy(level: 2))
+        XCTAssertEqual(result.enemy.maxHealth, 23)
+        XCTAssertEqual(result.enemy.baseAttack, 3)
+        XCTAssertEqual(result.enemy.attackInterval, .nanoseconds(900_000_000))
         XCTAssertEqual(result.encounter.phase, .active)
         XCTAssertEqual(result.encounter.activeElapsed, .zero)
         XCTAssertEqual(result.encounter.heroDamage, 0)
@@ -144,6 +147,32 @@ final class EncounterDirectorTests: XCTestCase {
         XCTAssertEqual(state, original)
     }
 
+    func testEncounterConstructionFailureLeavesPriorStateUnchanged() {
+        var catalog = CampaignCatalog.standard
+        let bat = catalog.enemies.firstIndex { $0.id == .bat }!
+        catalog.enemies[bat] = EnemyDefinition(
+            id: .bat,
+            displayName: "Bat",
+            tier: .normal,
+            spriteID: .bat,
+            profile: EnemyStatProfile(
+                healthBasisPoints: .max,
+                attackBasisPoints: 10_000,
+                defenseBonus: 0,
+                attackIntervalBasisPoints: 10_000
+            )
+        )
+        let director = EncounterDirector(
+            resolver: CampaignResolver(catalog: catalog),
+            enemyFactory: EnemyFactory()
+        )
+        let state = GameState.newGame(balance: .standard)
+        let original = state
+
+        XCTAssertThrowsError(try director.beginNextEncounter(in: state, balance: .standard))
+        XCTAssertEqual(state, original)
+    }
+
     func testBeginReviveRejectsInvalidBalance() {
         let invalidBalance = BalanceConfiguration(
             heroMaxHealth: 100,
@@ -161,6 +190,76 @@ final class EncounterDirectorTests: XCTestCase {
         XCTAssertThrowsError(try EncounterDirector().beginRevive(in: state, balance: invalidBalance)) { error in
             XCTAssertEqual(error as? SimulationError, .invalidBalance)
         }
+    }
+
+    func testCompletingSecondUnlockSeedsHighestLevelAndResumesDeferredVictory() throws {
+        var state = try fixture(frontier: 25, selected: 25, mode: .push)
+        state.party.heroes[0].level = 7
+        state.enemy.currentHealth = 0
+        state.encounter.phase = .awaitingPartyChoice
+        state.party.unlocks = .pendingSecond(PendingPartyUnlock(
+            milestone: .boss25,
+            choices: [.tank, .healer]
+        ))
+
+        let result = try PartyUnlockResolver().completeSecondUnlock(
+            classID: .healer,
+            in: state,
+            balance: .standard
+        )
+
+        XCTAssertEqual(result.party.heroes.map(\.classID), [.dps, .healer])
+        XCTAssertEqual(result.party.heroes[1].level, 7)
+        XCTAssertEqual(result.party.heroes[1].currentXP, 0)
+        XCTAssertEqual(result.party.unlocks, .secondUnlocked)
+        XCTAssertEqual(result.encounter.phase, .active)
+        XCTAssertEqual(result.encounter.enemyLevel, 26)
+    }
+
+    func testNewHeroEquipsStrongestUnusedWeaponAndArmor() throws {
+        var state = try fixture(frontier: 25, selected: 25, mode: .push)
+        let usedWeapon = Item(id: ItemID(rawValue: 1), level: 20, slot: .weapon, primaryStat: 20, creationSequence: 1)
+        let olderTie = Item(id: ItemID(rawValue: 2), level: 10, slot: .weapon, primaryStat: 9, creationSequence: 2)
+        let newerTie = Item(id: ItemID(rawValue: 3), level: 10, slot: .weapon, primaryStat: 9, creationSequence: 3)
+        let armor = Item(id: ItemID(rawValue: 4), level: 8, slot: .armor, primaryStat: 7, creationSequence: 4)
+        state.inventory = [usedWeapon, olderTie, newerTie, armor]
+        state.party.heroes[0].equipment.weaponID = usedWeapon.id
+        state.enemy.currentHealth = 0
+        state.encounter.phase = .awaitingPartyChoice
+        state.party.unlocks = .pendingSecond(PendingPartyUnlock(
+            milestone: .boss25,
+            choices: [.tank, .healer]
+        ))
+
+        let result = try PartyUnlockResolver().completeSecondUnlock(
+            classID: .healer,
+            in: state,
+            balance: .standard
+        )
+
+        XCTAssertEqual(result.party.heroes[1].equipment.weaponID, olderTie.id)
+        XCTAssertEqual(result.party.heroes[1].equipment.armorID, armor.id)
+        XCTAssertEqual(result.party.heroes[0].equipment.weaponID, usedWeapon.id)
+    }
+
+    func testBoss100AutomaticallyAddsFinalMissingClassOnce() throws {
+        var state = try fixture(frontier: 100, selected: 100, mode: .push)
+        let tank = GameState.newGame(classID: .tank, balance: .standard, progression: .standard).party.heroes[0]
+        state.party = PartyState(heroes: [state.party.heroes[0], tank], unlocks: .secondUnlocked)
+
+        let result = try PartyUnlockResolver().addFinalHeroIfEarned(
+            afterDefeating: 100,
+            in: state,
+            balance: .standard
+        )
+
+        XCTAssertEqual(result.party.heroes.map(\.classID), [.dps, .tank, .healer])
+        XCTAssertEqual(result.party.unlocks, .complete)
+        XCTAssertEqual(try PartyUnlockResolver().addFinalHeroIfEarned(
+            afterDefeating: 100,
+            in: result,
+            balance: .standard
+        ), result)
     }
 
     private func fixture(

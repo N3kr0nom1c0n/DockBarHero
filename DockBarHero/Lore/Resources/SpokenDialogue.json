@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "speakers": [
+    {"id":"book","displayName":"The Book","rate":0.45,"pitch":0.90,"preferredVoiceTraits":["theatrical","pompous","defensive"]},
+    {"id":"brick","displayName":"Brünhilda ‘Brick’ Broadside","rate":0.38,"pitch":0.78,"preferredVoiceTraits":["low","tired","deadpan"]},
+    {"id":"kaizen","displayName":"Kaizen Bloodedge Omega","rate":0.52,"pitch":1.08,"preferredVoiceTraits":["anime-conviction","accelerating","dramatic"]},
+    {"id":"mercy","displayName":"Doctor Reverend Sister Mercy Malpractice, DDS","rate":0.40,"pitch":1.02,"preferredVoiceTraits":["warm","clinical","soothing"]},
+    {"id":"kevin","displayName":"Kevin","rate":0.50,"pitch":1.05,"preferredVoiceTraits":["frazzled","unconvincing","panicked"]},
+    {"id":"editor","displayName":"The Editor","rate":0.43,"pitch":0.84,"preferredVoiceTraits":["precise","clipped","compressed"]}
+  ],
+  "cues": [
+    {"id":"prologue.book.wrong-way","speakerID":"book","unfiltered":"Hey, American jackass! This is a manga! You're reading it backwards, ya fuckwad!","clean":"Hey, confused hamburger enthusiast! This is manga! You're reading it backward!","delivery":"Outraged accusation hiding panic","autoReadEligible":true},
+    {"id":"prologue.book.arrow-denial","speakerID":"book","unfiltered":"Slander. The arrow has always pointed left.","clean":"Slander. The arrow has always pointed left.","delivery":"Immediate defensive certainty","autoReadEligible":true},
+    {"id":"book.level1.summary","speakerID":"book","unfiltered":"Four minutes earlier, I requested a qualified hero. The universe clicked Show Similar Results.","clean":"Four minutes earlier, I requested a qualified hero. The universe clicked Show Similar Results.","delivery":"Grand narration curdling into disappointment","autoReadEligible":true},
+    {"id":"kevin.not-kevin","speakerID":"kevin","unfiltered":"I'm not Kevin. Kevin died. This mustache is hereditary.","clean":"I'm not Kevin. Kevin departed. This mustache is hereditary.","delivery":"Poorly concealed panic","autoReadEligible":true},
+    {"id":"book.level5.summary","speakerID":"book","unfiltered":"Behold Kevin's supervisor: Kevin, but larger and legally a separate workplace incident.","clean":"Behold Kevin's supervisor: Kevin, but larger and legally a separate workplace incident.","delivery":"Documentary authority","autoReadEligible":true},
+    {"id":"kevin.supervisor","speakerID":"kevin","unfiltered":"My name is Kévin. The accent mark makes this airtight.","clean":"My name is Kévin. The accent mark makes this airtight.","delivery":"A terrible fake accent","autoReadEligible":true},
+    {"id":"book.level10.summary","speakerID":"book","unfiltered":"The chest was a mimic. Inside it was another mimic pretending to be loot. Both have tenure.","clean":"The chest was a mimic. Inside it was another mimic pretending to be loot. Both have tenure.","delivery":"Increasing personal offense","autoReadEligible":true},
+    {"id":"book.level15.summary","speakerID":"book","unfiltered":"The necromancer raises the dead exclusively for customer-satisfaction surveys.","clean":"The necromancer raises the dead exclusively for customer-satisfaction surveys.","delivery":"Respectful nature documentary","autoReadEligible":true},
+    {"id":"brick.policy-warning","speakerID":"brick","unfiltered":"Vomiting blood on the adventurers is against dungeon policy.","clean":"Vomiting blood on the adventurers is against dungeon policy.","delivery":"Calm customer service","autoReadEligible":true},
+    {"id":"book.level20.summary","speakerID":"book","unfiltered":"The demon requested an emotional-support abomination. Insurance approved six tentacles and no weekends.","clean":"The demon requested an emotional-support abomination. Insurance approved six tentacles and no weekends.","delivery":"Smug administrative narration","autoReadEligible":true},
+    {"id":"mercy.therapy-referral","speakerID":"mercy","unfiltered":"A cursed crown is not a substitute for therapy, sleep, boundaries, or properly supervised mood stabilizers.","clean":"A cursed crown is not a substitute for therapy, sleep, boundaries, or properly supervised medication.","delivery":"Kind clinical certainty","autoReadEligible":true},
+    {"id":"interaction.open","speakerID":"book","unfiltered":"Ah. You require literature to explain your violence.","clean":"Ah. You require literature to explain your violence.","delivery":"Smug welcome","autoReadEligible":false},
+    {"id":"interaction.close","speakerID":"book","unfiltered":"Wait, I wasn't fu—","clean":"Wait, I wasn't fini—","delivery":"Hard cut","autoReadEligible":false},
+    {"id":"interaction.sound-enabled","speakerID":"book","unfiltered":"Oh good. You found my voice. This can only improve things.","clean":"Oh good. You found my voice. This can only improve things.","delivery":"Smug anticipation","autoReadEligible":false},
+    {"id":"interaction.locked-page","speakerID":"book","unfiltered":"That page is locked because the plot hasn't suffered enough yet.","clean":"That page is locked because the plot hasn't suffered enough yet.","delivery":"Patronizing","autoReadEligible":false},
+    {"id":"interaction.volume.giggle-01","speakerID":"book","unfiltered":"Heh.","clean":"Heh.","delivery":"Short smug giggle","autoReadEligible":false},
+    {"id":"interaction.volume.giggle-02","speakerID":"book","unfiltered":"Hehehehe.","clean":"Hehehehe.","delivery":"Delighted and concerning","autoReadEligible":false},
+    {"id":"interaction.volume.giggle-03","speakerID":"book","unfiltered":"Oh ho ho.","clean":"Oh ho ho.","delivery":"Overly theatrical chuckle","autoReadEligible":false}
+  ]
+}

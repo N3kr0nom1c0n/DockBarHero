@@ -9,11 +9,17 @@ enum SaveStatus: Equatable, Sendable {
     case failed(String)
 }
 
+enum SaveFlushResult: Equatable, Sendable {
+    case saved
+    case failed(String)
+}
+
 protocol SaveCoordinating: Sendable {
     func request(_ state: GameState) async
     func flush(_ state: GameState) async
     func request(_ runState: RunState) async
     func flush(_ runState: RunState) async
+    func flushResult(_ runState: RunState) async -> SaveFlushResult
     func waitUntilIdle() async
 }
 
@@ -26,6 +32,11 @@ extension SaveCoordinating {
     func flush(_ runState: RunState) async {
         guard case let .active(state) = runState else { return }
         await flush(state)
+    }
+
+    func flushResult(_ runState: RunState) async -> SaveFlushResult {
+        await flush(runState)
+        return .saved
     }
 
     func waitUntilIdle() async { }
@@ -45,6 +56,7 @@ actor SaveCoordinator: SaveCoordinating, SaveStatusObserving {
     private var pendingState: RunState?
     private var isDraining = false
     private var flushWaiters: [CheckedContinuation<Void, Never>] = []
+    private var lastDrainResult: SaveFlushResult = .saved
 
     init(
         store: any SaveStoring,
@@ -80,6 +92,11 @@ actor SaveCoordinator: SaveCoordinating, SaveStatusObserving {
         }
     }
 
+    func flushResult(_ runState: RunState) async -> SaveFlushResult {
+        await flush(runState)
+        return lastDrainResult
+    }
+
     func flush(_ state: GameState) async {
         await flush(.active(state))
     }
@@ -99,6 +116,7 @@ actor SaveCoordinator: SaveCoordinating, SaveStatusObserving {
     }
 
     private func drain() async {
+        var drainResult: SaveFlushResult = .saved
         while let state = pendingState {
             pendingState = nil
             await publish(.saving)
@@ -106,11 +124,15 @@ actor SaveCoordinator: SaveCoordinating, SaveStatusObserving {
             do {
                 try await store.save(state)
                 await publish(.saved(now()))
+                drainResult = .saved
             } catch {
-                await publish(.failed(String(describing: error)))
+                let message = String(describing: error)
+                await publish(.failed(message))
+                drainResult = .failed(message)
             }
         }
 
+        lastDrainResult = drainResult
         isDraining = false
         let waiters = flushWaiters
         flushWaiters.removeAll()

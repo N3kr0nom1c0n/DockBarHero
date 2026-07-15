@@ -3,9 +3,57 @@ import SpriteKit
 
 @MainActor
 final class PrototypeScene: SKScene {
-    private let actorSize = CGSize(width: 24, height: 36)
-    private let healthBarSize = CGSize(width: 150, height: 5)
+    private let actorSize = CGSize(width: 54, height: 36)
+    private let maximumHealthBarWidth: CGFloat = 150
+    private let healthBarHeight: CGFloat = 5
+    private static let actorOutlineShader = SKShader(
+        source: """
+        void main() {
+            vec4 source = texture2D(u_texture, v_tex_coord);
+            vec2 step = u_outlineStep;
+            float adjacentAlpha = 0.0;
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(-step.x, -step.y)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(0.0, -step.y)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(step.x, -step.y)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(-step.x, 0.0)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(step.x, 0.0)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(-step.x, step.y)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(0.0, step.y)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(step.x, step.y)).a);
+
+            if (source.a > 0.0) {
+                gl_FragColor = source;
+            } else if (adjacentAlpha > 0.0) {
+                gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+            } else {
+                gl_FragColor = vec4(0.0);
+            }
+        }
+        """,
+        uniforms: [
+            SKUniform(
+                name: "u_outlineStep",
+                vectorFloat2: vector_float2(1.0 / 96.0, 1.0 / 64.0)
+            )
+        ]
+    )
+    private static let labelOutlineOffsets = [
+        CGPoint(x: -1, y: -1), CGPoint(x: 0, y: -1), CGPoint(x: 1, y: -1),
+        CGPoint(x: -1, y: 0), CGPoint(x: 1, y: 0),
+        CGPoint(x: -1, y: 1), CGPoint(x: 0, y: 1), CGPoint(x: 1, y: 1),
+    ]
     private let spriteCatalog: any SpriteCatalog
+    private var renderedHeroClasses: [HeroClassID] = [.dps]
+    private var renderedActions: [ClassActionID] = [.powerStrike]
+    private var renderedEnemyToken: SpriteToken = .goblin
+    private var renderedEnemySpriteID = EnemySpriteID(rawValue: "generic.enemy")
+    private var marqueeState = AreaTitleMarqueeState()
+    private var renderedCampaign: CampaignPresentation?
+    private var animationsEnabled = true
+    private var pointerLocation: CGPoint?
+    private var lastUpdateTime: TimeInterval?
+    var pointerLocationForTesting: CGPoint? { pointerLocation }
+    var onClassAction: ((Int, ClassActionID) -> Void)?
 
     init(size: CGSize, spriteCatalog: any SpriteCatalog) {
         self.spriteCatalog = spriteCatalog
@@ -29,28 +77,48 @@ final class PrototypeScene: SKScene {
         ground.position = CGPoint(x: size.width / 2, y: 12)
         addChild(ground)
 
-        let hero = actor(name: "hero", token: .hero, x: size.width * 0.22)
-        let enemy = actor(name: "enemy", token: .enemy, x: size.width * 0.78)
+        let hero = actor(name: "hero", token: .dps, x: size.width * 0.22)
+        let enemy = actor(name: "enemy", token: .goblin, x: size.width * 0.78)
+        enemy.xScale = -1
         addChild(hero)
         addChild(enemy)
+        startSpriteLoop(on: hero, token: .dps)
+        startSpriteLoop(on: enemy, token: .goblin)
 
         addHealthBar(prefix: "hero", color: .systemGreen)
         addHealthBar(prefix: "enemy", color: .systemRed)
 
         let heroLevel = label(name: "heroLevel", fontSize: 12)
-        let enemyLevel = label(name: "enemyLevel", fontSize: 12)
+        let heroAction = label(name: "heroAction", fontSize: 10)
+        let enemyIdentity = label(name: "enemyIdentity", fontSize: 10)
+        let enemyLevel = label(name: "enemyLevel", fontSize: 10)
+        let enemyFontName = "AvenirNextCondensed-Regular"
+        enemyIdentity.fontName = enemyFontName
+        enemyLevel.fontName = enemyFontName
+        let farmingStatus = label(name: "farmingStatus", fontSize: 10)
+        farmingStatus.fontName = enemyFontName
+        farmingStatus.fontColor = .systemOrange
+        farmingStatus.isUserInteractionEnabled = false
         let rollingDPS = label(name: "rollingDPS", fontSize: 12)
+        rollingDPS.verticalAlignmentMode = .center
+        let areaTitleCrop = SKCropNode()
+        areaTitleCrop.name = "areaTitleCrop"
+        let areaTitleMask = SKShapeNode()
+        areaTitleMask.name = "areaTitleMask"
+        areaTitleMask.fillColor = .white
+        areaTitleMask.strokeColor = .clear
+        areaTitleCrop.maskNode = areaTitleMask
+        let areaTitle = label(name: "areaTitle", fontSize: 10)
+        areaTitle.verticalAlignmentMode = .center
+        areaTitleCrop.addChild(areaTitle)
         addChild(heroLevel)
+        addChild(heroAction)
+        addChild(enemyIdentity)
         addChild(enemyLevel)
+        addChild(farmingStatus)
         addChild(rollingDPS)
+        addChild(areaTitleCrop)
         updateLayout()
-
-        let idle = SKAction.repeatForever(.sequence([
-            .moveBy(x: 0, y: 2, duration: 0.3),
-            .moveBy(x: 0, y: -2, duration: 0.3)
-        ]))
-        hero.run(idle, withKey: "idle")
-        enemy.run(idle.reversed(), withKey: "idle")
 
         render(GameSimulation().presentation)
     }
@@ -62,26 +130,101 @@ final class PrototypeScene: SKScene {
 
     func render(_ presentation: GamePresentation) {
         setCombatHidden(false)
-        let hero = presentation.state.hero
+        renderCampaign(presentation.campaign)
+        syncHeroNodes(with: presentation.state.party.heroes)
+        if let enemySpriteID = presentation.campaign?.enemySpriteID {
+            renderedEnemyToken = SpriteToken(enemySpriteID: enemySpriteID)
+            if enemySpriteID != renderedEnemySpriteID {
+                renderedEnemySpriteID = enemySpriteID
+                if childNode(withName: "enemy")?.action(forKey: "spriteAction") == nil {
+                    setEnemyIdleTexture()
+                }
+            }
+        } else {
+            renderedEnemySpriteID = EnemySpriteID(rawValue: "generic.enemy")
+            syncEnemyIdentity(
+                level: presentation.state.encounter.enemyLevel,
+                tier: presentation.state.encounter.tier
+            )
+        }
         let enemy = presentation.state.enemy
-        setHealthFraction(for: "heroHealthFill", current: hero.currentHealth, maximum: hero.maxHealth)
+        for slot in presentation.state.party.heroes.indices {
+            let hero = presentation.state.party.heroes[slot]
+            let prefix = heroPrefix(slot)
+            setHealthFraction(
+                for: "\(prefix)HealthFill",
+                current: hero.combat.currentHealth,
+                maximum: hero.combat.maxHealth
+            )
+            if let level = childNode(withName: "\(prefix)Level") as? SKLabelNode {
+                let text = usesCompactHeroLabels
+                    ? "Lv. \(hero.level)"
+                    : ManagementFormat.heroLevel(hero.level)
+                setOutlinedText(text, on: level)
+            }
+            if let action = childNode(withName: "\(prefix)Action") as? SKLabelNode {
+                let remaining = hero.classAction.cooldownRemaining.timeInterval
+                let abbreviation = actionAbbreviation(hero.classAction.actionID)
+                let text: String
+                if usesCompactHeroLabels {
+                    text = remaining > 0
+                        ? "\(abbreviation) \(String(format: "%.1f", remaining))"
+                        : abbreviation
+                } else {
+                    text = remaining > 0
+                        ? "\(abbreviation) \(String(format: "%.1f", remaining))"
+                        : "\(abbreviation) READY"
+                }
+                setOutlinedText(text, on: action)
+                action.alpha = hero.combat.currentHealth > 0 && remaining == 0 ? 1 : 0.55
+            }
+        }
         setHealthFraction(for: "enemyHealthFill", current: enemy.currentHealth, maximum: enemy.maxHealth)
-        (childNode(withName: "heroLevel") as? SKLabelNode)?.text = ManagementFormat.heroLevel(
-            presentation.state.party.heroes[0].level
-        )
         let tier = presentation.state.encounter.tier.rawValue.capitalized
-        (childNode(withName: "enemyLevel") as? SKLabelNode)?.text = "\(tier) · \(ManagementFormat.enemyLevel(presentation.state.encounter.enemyLevel))"
-        (childNode(withName: "rollingDPS") as? SKLabelNode)?.text = String(
-            format: "%.1f DPS",
-            locale: Locale(identifier: "en_US_POSIX"),
-            presentation.rollingDPS
-        )
+        if let enemyIdentity = childNode(withName: "enemyIdentity") as? SKLabelNode {
+            setOutlinedText(presentation.campaign?.enemyName, on: enemyIdentity)
+            enemyIdentity.isHidden = presentation.campaign == nil
+        }
+        if let enemyLevel = childNode(withName: "enemyLevel") as? SKLabelNode {
+            setOutlinedText(
+                "\(tier) · \(ManagementFormat.enemyLevel(presentation.state.encounter.enemyLevel))",
+                on: enemyLevel
+            )
+        }
+        if let farmingStatus = childNode(withName: "farmingStatus") as? SKLabelNode {
+            switch presentation.state.campaign.mode {
+            case .farming:
+                setOutlinedText(
+                    "FARMING • FRONTIER \(presentation.state.campaign.highestUnlockedLevel)",
+                    on: farmingStatus
+                )
+                farmingStatus.isHidden = false
+            case .push:
+                setOutlinedText(nil, on: farmingStatus)
+                farmingStatus.isHidden = true
+            }
+        }
+        layoutEnemyLabels()
+        if let rollingDPS = childNode(withName: "rollingDPS") as? SKLabelNode {
+            setOutlinedText(
+                String(
+                    format: "%.1f DPS",
+                    locale: Locale(identifier: "en_US_POSIX"),
+                    presentation.rollingDPS
+                ),
+                on: rollingDPS
+            )
+        }
     }
 
     func render(_ run: RunPresentation) {
         switch run {
         case .classSelection:
             setCombatHidden(true)
+            hideAreaTitle()
+        case .partySelection:
+            setCombatHidden(true)
+            hideAreaTitle()
         case let .active(presentation):
             render(presentation)
         }
@@ -91,21 +234,48 @@ final class PrototypeScene: SKScene {
         for event in events {
             switch event {
             case let .attack(attacker, defender, _):
-                animateAttack(from: attacker)
-                playSpriteAction(attacker == .hero ? .hero : .enemy, action: .attack)
-                playSpriteAction(defender == .hero ? .hero : .enemy, action: .hit)
+                if attacker == .hero {
+                    playHeroSpriteAction(slot: 0, action: .attack)
+                } else {
+                    playEnemySpriteAction(.attack)
+                }
+                if defender == .hero {
+                    playHeroSpriteAction(slot: 0, action: .hit)
+                } else {
+                    playEnemySpriteAction(.hit)
+                }
                 showHit(at: position(of: defender))
+            case let .heroAttack(slot, _):
+                playHeroSpriteAction(slot: slot, action: .attack)
+                playEnemySpriteAction(.hit)
+                showHit(at: childNode(withName: "enemy")?.position)
+            case let .enemyAttack(targetSlot, _):
+                playEnemySpriteAction(.attack)
+                playHeroSpriteAction(slot: targetSlot, action: .hit)
+                showHit(at: childNode(withName: heroPrefix(targetSlot))?.position)
+            case let .heroDown(slot):
+                playHeroSpriteAction(slot: slot, action: .defeated, returnsToIdle: false)
             case .victory:
-                playSpriteAction(.enemy, action: .defeated)
-                animateBriefFade(nodeNamed: "enemy")
+                playEnemySpriteAction(.defeated, returnsToIdle: false)
+                for slot in renderedHeroClasses.indices {
+                    restoreHeroToIdle(slot: slot)
+                }
             case .defeat:
-                playSpriteAction(.hero, action: .defeated)
-                animateDefeat()
+                playHeroSpriteAction(slot: 0, action: .defeated, returnsToIdle: false)
             case .revived:
-                setIdleTexture(for: .hero)
-                restoreHeroAfterRevive()
-            case .loot, .xpGained, .heroLeveled, .goldGained, .equipped,
-                 .autoEquipChanged, .destinationQueued, .farmingStarted, .returnedToFrontier:
+                for slot in renderedHeroClasses.indices {
+                    restoreHeroToIdle(slot: slot)
+                }
+            case let .classActionCast(heroSlot, _):
+                playHeroSpriteAction(slot: heroSlot, action: .classAction)
+            case .loot, .xpGained, .heroLeveled, .goldGained, .equipped, .equippedHero,
+                 .autoEquipChanged, .destinationQueued, .farmingStarted, .returnedToFrontier,
+                 .partyUnlockPending, .classActionReady, .guardActivated,
+                 .guardIntercepted, .powerStrike, .mended, .classActionRejected:
+                break
+            case .itemLockChanged:
+                break
+            case .inventoryCapacityPurchased, .overflowMoved, .itemsSalvaged:
                 break
             }
         }
@@ -119,21 +289,294 @@ final class PrototypeScene: SKScene {
                 transform: nil
             )
         }
-        let heroX = size.width * 0.22
         let enemyX = size.width * 0.78
-        childNode(withName: "hero")?.position = CGPoint(x: heroX, y: 32)
+        let heroLeft: CGFloat = 8
+        let heroRight = size.width / 2 - areaTitleLaneWidth / 2 - 8
+        let heroWidth = max(1, heroRight - heroLeft)
+        let heroCellWidth = heroWidth / CGFloat(max(1, renderedHeroClasses.count))
+        let heroHealthBarWidth = min(maximumHealthBarWidth, max(8, heroCellWidth - 6))
+        let actorWidth = min(actorSize.width, max(1, heroCellWidth - 6))
+        let renderedActorSize = CGSize(width: actorWidth, height: actorWidth / 1.5)
+        for slot in renderedHeroClasses.indices {
+            let x = heroLeft + heroCellWidth * (CGFloat(slot) + 0.5)
+            let prefix = heroPrefix(slot)
+            if let actor = childNode(withName: prefix) as? SKSpriteNode {
+                actor.position = CGPoint(x: x, y: 32)
+                actor.size = renderedActorSize
+            }
+            positionHealthBar(prefix: prefix, x: x, y: 59, width: heroHealthBarWidth)
+            if let level = childNode(withName: "\(prefix)Level") as? SKLabelNode {
+                level.fontSize = usesCompactHeroLabels ? 8 : 12
+                level.position = CGPoint(x: x, y: 70)
+            }
+            if let action = childNode(withName: "\(prefix)Action") as? SKLabelNode {
+                action.fontSize = usesCompactHeroLabels ? 8 : 10
+                action.position = CGPoint(x: x, y: 82)
+            }
+        }
         childNode(withName: "enemy")?.position = CGPoint(x: enemyX, y: 32)
-        positionHealthBar(prefix: "hero", x: heroX, y: 59)
-        positionHealthBar(prefix: "enemy", x: enemyX, y: 59)
-        (childNode(withName: "heroLevel") as? SKLabelNode)?.position = CGPoint(x: heroX, y: 70)
-        (childNode(withName: "enemyLevel") as? SKLabelNode)?.position = CGPoint(x: enemyX, y: 70)
+        positionHealthBar(prefix: "enemy", x: enemyX, y: 59, width: maximumHealthBarWidth)
+        layoutEnemyLabels()
         (childNode(withName: "rollingDPS") as? SKLabelNode)?.position = CGPoint(x: size.width / 2, y: 70)
+        let laneWidth = areaTitleLaneWidth
+        if let crop = childNode(withName: "areaTitleCrop") as? SKCropNode {
+            crop.position = CGPoint(x: size.width / 2, y: 84)
+            if let mask = crop.maskNode as? SKShapeNode {
+                mask.path = CGPath(
+                    rect: CGRect(x: -laneWidth / 2, y: -8, width: laneWidth, height: 16),
+                    transform: nil
+                )
+            }
+        }
+    }
+
+    private func layoutEnemyLabels() {
+        guard let identity = childNode(withName: "enemyIdentity") as? SKLabelNode,
+              let level = childNode(withName: "enemyLevel") as? SKLabelNode,
+              let status = childNode(withName: "farmingStatus") as? SKLabelNode else { return }
+        let enemyX = size.width * 0.78
+        let laneRight = size.width / 2 + areaTitleLaneWidth / 2
+        let leftBoundary = laneRight + 8
+        let rightBoundary = size.width - 8
+        guard rightBoundary > leftBoundary else {
+            identity.fontSize = 10
+            identity.position = CGPoint(x: enemyX, y: 64)
+            level.fontSize = 10
+            level.position = CGPoint(x: enemyX, y: identity.isHidden ? 70 : 73)
+            status.fontSize = 10
+            status.position = CGPoint(x: enemyX, y: 82)
+            return
+        }
+
+        let availableWidth = rightBoundary - leftBoundary
+        let showsFarming = !status.isHidden
+        let showsAuthoredFarming = !identity.isHidden && showsFarming
+        let maximumFontSize: CGFloat = showsAuthoredFarming ? 8 : 10
+        fitEnemyLabel(identity, availableWidth: availableWidth, maximumFontSize: maximumFontSize)
+        fitEnemyLabel(level, availableWidth: availableWidth, maximumFontSize: maximumFontSize)
+        fitEnemyLabel(status, availableWidth: availableWidth, maximumFontSize: maximumFontSize)
+        positionEnemyLabel(identity, preferredX: enemyX, y: 0, left: leftBoundary, right: rightBoundary)
+        positionEnemyLabel(
+            level,
+            preferredX: enemyX,
+            y: identity.isHidden ? 70 : 0,
+            left: leftBoundary,
+            right: rightBoundary
+        )
+        positionEnemyLabel(status, preferredX: enemyX, y: 0, left: leftBoundary, right: rightBoundary)
+
+        if identity.isHidden {
+            guard showsFarming else { return }
+            positionEnemyLabel(level, minimumY: 65)
+            positionEnemyLabel(status, minimumY: level.frame.maxY + 2)
+            return
+        }
+        let firstLineY: CGFloat = showsAuthoredFarming ? 64 : 65
+        let lineSpacing: CGFloat = showsAuthoredFarming ? 1 : 2
+        positionEnemyLabel(identity, minimumY: firstLineY)
+        positionEnemyLabel(level, minimumY: identity.frame.maxY + lineSpacing)
+        if showsAuthoredFarming {
+            positionEnemyLabel(status, minimumY: level.frame.maxY + lineSpacing)
+        }
+    }
+
+    private func fitEnemyLabel(
+        _ node: SKLabelNode,
+        availableWidth: CGFloat,
+        maximumFontSize: CGFloat
+    ) {
+        node.fontSize = maximumFontSize
+        guard node.frame.width > availableWidth, node.frame.width > 0 else { return }
+        node.fontSize = max(8, node.fontSize * availableWidth / node.frame.width)
+    }
+
+    private func positionEnemyLabel(_ node: SKLabelNode, minimumY: CGFloat) {
+        node.position.y += minimumY - node.frame.minY
+    }
+
+    private func positionEnemyLabel(
+        _ node: SKLabelNode,
+        preferredX: CGFloat,
+        y: CGFloat,
+        left: CGFloat,
+        right: CGFloat
+    ) {
+        let availableWidth = right - left
+        let halfWidth = min(availableWidth, node.frame.width) / 2
+        let minimumX = left + halfWidth
+        let maximumX = right - halfWidth
+        node.position = CGPoint(
+            x: min(max(preferredX, minimumX), maximumX),
+            y: y
+        )
+    }
+
+    override func update(_ currentTime: TimeInterval) {
+        guard animationsEnabled else {
+            lastUpdateTime = nil
+            return
+        }
+        guard let previousTime = lastUpdateTime else {
+            lastUpdateTime = currentTime
+            return
+        }
+        lastUpdateTime = currentTime
+        let duration = max(0, currentTime - previousTime)
+        let pointerInside = pointerLocation.map(areaTitleLaneFrame.contains) ?? false
+        _ = advanceMarquee(by: duration, pointerInside: pointerInside)
+    }
+
+    func setAnimationsEnabled(_ isEnabled: Bool) {
+        animationsEnabled = isEnabled
+        lastUpdateTime = nil
+        guard let renderedCampaign else { return }
+        let previousState = marqueeState
+        marqueeState.present(
+            areaID: renderedCampaign.areaID,
+            fullName: renderedCampaign.areaFullName,
+            shortName: renderedCampaign.areaShortName,
+            animationsEnabled: isEnabled
+        )
+        if marqueeState != previousState {
+            applyMarqueeState()
+        }
+    }
+
+    func setInteractive(_ isInteractive: Bool) {
+        isUserInteractionEnabled = isInteractive
+        guard !isInteractive else { return }
+        pointerLocation = nil
+        _ = marqueeState.advanceHover(
+            by: 0,
+            inside: false,
+            interactive: false,
+            animationsEnabled: animationsEnabled
+        )
+    }
+
+    func setPointerLocation(_ location: CGPoint?) {
+        pointerLocation = location
+    }
+
+    @discardableResult
+    func advanceMarqueeForTesting(by duration: TimeInterval, pointerInside: Bool) -> Bool {
+        advanceMarquee(by: duration, pointerInside: pointerInside)
+    }
+
+    func completeMarqueeForTesting() {
+        marqueeState.completeScroll()
+        applyMarqueeState()
+    }
+
+    private func advanceMarquee(by duration: TimeInterval, pointerInside: Bool) -> Bool {
+        let replayed = marqueeState.advanceHover(
+            by: duration,
+            inside: pointerInside,
+            interactive: isUserInteractionEnabled,
+            animationsEnabled: animationsEnabled
+        )
+        if replayed {
+            applyMarqueeState()
+        }
+        return replayed
+    }
+
+    private var areaTitleLaneWidth: CGFloat {
+        min(300, max(180, size.width * 0.32))
+    }
+
+    private var usesCompactHeroLabels: Bool {
+        guard renderedHeroClasses.count > 1 else { return false }
+        let heroLeft: CGFloat = 8
+        let heroRight = size.width / 2 - areaTitleLaneWidth / 2 - 8
+        let cellWidth = max(1, heroRight - heroLeft) / CGFloat(renderedHeroClasses.count)
+        return cellWidth < 90
+    }
+
+    private var areaTitleLaneFrame: CGRect {
+        CGRect(
+            x: size.width / 2 - areaTitleLaneWidth / 2,
+            y: 76,
+            width: areaTitleLaneWidth,
+            height: 16
+        )
+    }
+
+    private func renderCampaign(_ campaign: CampaignPresentation?) {
+        renderedCampaign = campaign
+        guard let campaign else {
+            hideAreaTitle()
+            return
+        }
+        let previousState = marqueeState
+        marqueeState.present(
+            areaID: campaign.areaID,
+            fullName: campaign.areaFullName,
+            shortName: campaign.areaShortName,
+            animationsEnabled: animationsEnabled
+        )
+        if marqueeState != previousState {
+            applyMarqueeState()
+        }
+    }
+
+    private func hideAreaTitle() {
+        renderedCampaign = nil
+        marqueeState.hide()
+        pointerLocation = nil
+        guard let crop = childNode(withName: "areaTitleCrop") as? SKCropNode,
+              let title = crop.childNode(withName: "areaTitle") as? SKLabelNode else { return }
+        crop.isHidden = true
+        title.removeAction(forKey: "areaTitleScroll")
+        title.text = nil
+        title.position = .zero
+    }
+
+    private func applyMarqueeState() {
+        guard let crop = childNode(withName: "areaTitleCrop") as? SKCropNode,
+              let title = crop.childNode(withName: "areaTitle") as? SKLabelNode else { return }
+        title.removeAction(forKey: "areaTitleScroll")
+        switch marqueeState.phase {
+        case .hidden:
+            crop.isHidden = true
+            title.text = nil
+            title.position = .zero
+        case let .settled(shortName):
+            crop.isHidden = false
+            title.isHidden = false
+            title.text = shortName
+            title.position = .zero
+        case let .scrolling(fullName, _):
+            crop.isHidden = false
+            title.isHidden = false
+            title.text = fullName
+            title.position = .zero
+            let travelDistance = areaTitleLaneWidth + title.frame.width
+            title.position.x = travelDistance / 2
+            let move = SKAction.moveTo(x: -travelDistance / 2, duration: travelDistance / 30)
+            title.run(.sequence([
+                move,
+                .run { [weak self] in
+                    guard let self else { return }
+                    self.marqueeState.completeScroll()
+                    self.applyMarqueeState()
+                },
+            ]), withKey: "areaTitleScroll")
+        }
     }
 
     override func mouseDown(with event: NSEvent) {
         guard isUserInteractionEnabled else { return }
         let point = event.location(in: self)
-        guard let actor = nodes(at: point).first(where: { $0.name == "hero" || $0.name == "enemy" }) else {
+        if let slot = renderedActions.indices.first(where: { slot in
+            nodes(at: point).contains(where: { $0.name == "\(heroPrefix(slot))Action" })
+        }) {
+            activateClassActionForTesting(slot: slot)
+            return
+        }
+        guard let actor = nodes(at: point).first(where: {
+            $0.name == "enemy" || $0.name?.hasPrefix("hero") == true
+        }) else {
             return
         }
         actor.run(.sequence([
@@ -144,71 +587,205 @@ final class PrototypeScene: SKScene {
 
     private func actor(name: String, token: SpriteToken, x: CGFloat) -> SKSpriteNode {
         let node = SKSpriteNode(
-            texture: spriteCatalog.textures(for: token, action: .idle).first,
+            texture: spriteCatalog.clip(for: token, action: .idle).textures.first,
             size: actorSize
         )
         node.name = name
         node.position = CGPoint(x: x, y: 32)
+        node.shader = Self.actorOutlineShader
         return node
     }
 
-    private func playSpriteAction(_ token: SpriteToken, action: SpriteAction) {
-        let name = token == .hero ? "hero" : "enemy"
-        guard let node = childNode(withName: name) as? SKSpriteNode else { return }
-        let textures = spriteCatalog.textures(for: token, action: action)
-        guard !textures.isEmpty else { return }
+    private func startSpriteLoop(on node: SKSpriteNode, token: SpriteToken) {
+        let clip = spriteCatalog.clip(for: token, action: .idle)
+        guard let first = clip.textures.first else { return }
         node.removeAction(forKey: "spriteAction")
+        node.removeAction(forKey: "spriteLoop")
+        node.texture = first
+        node.alpha = 1
+        let metadata = node.userData ?? NSMutableDictionary()
+        metadata["spriteToken"] = token.rawValue
+        node.userData = metadata
+        node.run(
+            .repeatForever(.animate(
+                with: clip.textures,
+                timePerFrame: clip.secondsPerFrame,
+                resize: false,
+                restore: false
+            )),
+            withKey: "spriteLoop"
+        )
+    }
+
+    private func playHeroSpriteAction(
+        slot: Int,
+        action: SpriteAction,
+        returnsToIdle: Bool = true
+    ) {
+        guard renderedHeroClasses.indices.contains(slot),
+              let node = childNode(withName: heroPrefix(slot)) as? SKSpriteNode else { return }
+        let token = spriteToken(for: renderedHeroClasses[slot])
+        playSpriteAction(on: node, token: token, action: action, returnsToIdle: returnsToIdle)
+    }
+
+    private func playEnemySpriteAction(
+        _ action: SpriteAction,
+        returnsToIdle: Bool = true
+    ) {
+        guard let node = childNode(withName: "enemy") as? SKSpriteNode else { return }
+        let textures = spriteCatalog.textures(forEnemy: renderedEnemySpriteID, action: action)
+        guard let first = textures.first else { return }
+        node.removeAction(forKey: "spriteLoop")
+        node.removeAction(forKey: "spriteAction")
+        node.texture = first
+        let completion: SKAction = returnsToIdle
+            ? .run { [weak self] in self?.setEnemyIdleTexture() }
+            : .run { [weak node] in node?.texture = textures.last }
         node.run(.sequence([
             .animate(with: textures, timePerFrame: 0.08, resize: false, restore: false),
-            .run { [weak self, weak node] in
-                node?.texture = self?.spriteCatalog.textures(for: token, action: .idle).first
-            },
+            completion,
         ]), withKey: "spriteAction")
     }
 
-    private func setIdleTexture(for token: SpriteToken) {
-        let name = token == .hero ? "hero" : "enemy"
-        guard let node = childNode(withName: name) as? SKSpriteNode else { return }
+    private func playSpriteAction(
+        on node: SKSpriteNode,
+        token: SpriteToken,
+        action: SpriteAction,
+        returnsToIdle: Bool
+    ) {
+        let clip = spriteCatalog.clip(for: token, action: action)
+        guard let first = clip.textures.first else { return }
+        node.removeAction(forKey: "spriteLoop")
         node.removeAction(forKey: "spriteAction")
-        node.texture = spriteCatalog.textures(for: token, action: .idle).first
+        node.texture = first
+        let completion: SKAction = returnsToIdle
+            ? .run { [weak self, weak node] in
+                guard let self, let node else { return }
+                self.startSpriteLoop(on: node, token: token)
+            }
+            : .run { [weak node] in node?.texture = clip.textures.last }
+        node.run(.sequence([
+            .animate(
+                with: clip.textures,
+                timePerFrame: clip.secondsPerFrame,
+                resize: false,
+                restore: false
+            ),
+            completion,
+        ]), withKey: "spriteAction")
+    }
+
+    private func restoreHeroToIdle(slot: Int) {
+        guard renderedHeroClasses.indices.contains(slot),
+              let node = childNode(withName: heroPrefix(slot)) as? SKSpriteNode else { return }
+        node.removeAction(forKey: "reviveVisibility")
+        node.removeAction(forKey: "eventFade")
+        startSpriteLoop(on: node, token: spriteToken(for: renderedHeroClasses[slot]))
+    }
+
+    private func setEnemyIdleTexture() {
+        guard let node = childNode(withName: "enemy") as? SKSpriteNode else { return }
+        node.removeAction(forKey: "spriteAction")
+        node.removeAction(forKey: "spriteLoop")
+        let textures = spriteCatalog.textures(
+            forEnemy: renderedEnemySpriteID,
+            action: .idle
+        )
+        guard let first = textures.first else { return }
+        node.texture = first
+        node.alpha = 1
+        let metadata = node.userData ?? NSMutableDictionary()
+        metadata["spriteToken"] = SpriteToken(enemySpriteID: renderedEnemySpriteID).rawValue
+        node.userData = metadata
+        node.run(
+            .repeatForever(.animate(with: textures, timePerFrame: 0.08, resize: false, restore: false)),
+            withKey: "spriteLoop"
+        )
     }
 
     private func addHealthBar(prefix: String, color: NSColor) {
-        let background = SKShapeNode(rect: CGRect(origin: .zero, size: healthBarSize), cornerRadius: 1)
+        let initialSize = CGSize(width: maximumHealthBarWidth, height: healthBarHeight)
+        let background = SKShapeNode(rect: CGRect(origin: .zero, size: initialSize), cornerRadius: 1)
         background.name = "\(prefix)HealthBackground"
         background.fillColor = NSColor.black.withAlphaComponent(0.5)
         background.strokeColor = .clear
         addChild(background)
 
-        let fill = SKShapeNode(rect: CGRect(origin: .zero, size: healthBarSize), cornerRadius: 1)
+        let fill = SKShapeNode(rect: CGRect(origin: .zero, size: initialSize), cornerRadius: 1)
         fill.name = "\(prefix)HealthFill"
         fill.fillColor = color
         fill.strokeColor = .clear
         addChild(fill)
     }
 
-    private func positionHealthBar(prefix: String, x: CGFloat, y: CGFloat) {
-        let origin = CGPoint(x: x - healthBarSize.width / 2, y: y)
+    private func positionHealthBar(prefix: String, x: CGFloat, y: CGFloat, width: CGFloat) {
+        let size = CGSize(width: width, height: healthBarHeight)
+        for suffix in ["HealthBackground", "HealthFill"] {
+            guard let node = childNode(withName: "\(prefix)\(suffix)") as? SKShapeNode else {
+                continue
+            }
+            node.path = CGPath(
+                roundedRect: CGRect(origin: .zero, size: size),
+                cornerWidth: 1,
+                cornerHeight: 1,
+                transform: nil
+            )
+        }
+        let origin = CGPoint(x: x - width / 2, y: y)
         childNode(withName: "\(prefix)HealthBackground")?.position = origin
         childNode(withName: "\(prefix)HealthFill")?.position = origin
     }
 
-    private func label(name: String, fontSize: CGFloat) -> SKLabelNode {
+    private func label(
+        name: String,
+        fontSize: CGFloat,
+        fontName: String? = nil
+    ) -> SKLabelNode {
         let node = SKLabelNode(text: nil)
         node.name = name
-        node.fontName = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular).fontName
+        node.fontName = fontName
+            ?? NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular).fontName
         node.fontSize = fontSize
         node.fontColor = .white
         node.horizontalAlignmentMode = .center
+        for offset in Self.labelOutlineOffsets {
+            let outline = SKLabelNode(text: nil)
+            outline.name = "textOutline"
+            outline.fontName = node.fontName
+            outline.fontSize = node.fontSize
+            outline.fontColor = .black
+            outline.horizontalAlignmentMode = node.horizontalAlignmentMode
+            outline.verticalAlignmentMode = node.verticalAlignmentMode
+            outline.position = offset
+            outline.zPosition = -1
+            outline.isUserInteractionEnabled = false
+            node.addChild(outline)
+        }
         return node
     }
 
+    private func setOutlinedText(_ text: String?, on label: SKLabelNode) {
+        label.attributedText = nil
+        label.text = text
+        for outline in label.children.compactMap({ $0 as? SKLabelNode }) {
+            outline.text = text
+            outline.fontName = label.fontName
+            outline.fontSize = label.fontSize
+            outline.horizontalAlignmentMode = label.horizontalAlignmentMode
+            outline.verticalAlignmentMode = label.verticalAlignmentMode
+        }
+    }
+
     private func setCombatHidden(_ isHidden: Bool) {
-        [
-            "hero", "enemy", "heroHealthBackground", "heroHealthFill",
-            "enemyHealthBackground", "enemyHealthFill", "heroLevel",
-            "enemyLevel", "rollingDPS"
-        ].forEach { childNode(withName: $0)?.isHidden = isHidden }
+        var names = [
+            "enemy", "enemyHealthBackground", "enemyHealthFill", "enemyIdentity", "enemyLevel",
+            "farmingStatus", "rollingDPS"
+        ]
+        for slot in renderedHeroClasses.indices {
+            let prefix = heroPrefix(slot)
+            names += [prefix, "\(prefix)HealthBackground", "\(prefix)HealthFill", "\(prefix)Level", "\(prefix)Action"]
+        }
+        names.forEach { childNode(withName: $0)?.isHidden = isHidden }
     }
 
     private func setHealthFraction(for name: String, current: Int, maximum: Int) {
@@ -225,47 +802,74 @@ final class PrototypeScene: SKScene {
         childNode(withName: combatant == .hero ? "hero" : "enemy")?.position
     }
 
-    private func animateAttack(from attacker: CombatantID) {
-        let name = attacker == .hero ? "hero" : "enemy"
-        guard let node = childNode(withName: name) else { return }
-        let direction: CGFloat = attacker == .hero ? 1 : -1
-        node.removeAction(forKey: "eventAttack")
-        node.run(.sequence([
-            .moveBy(x: direction * 18, y: 0, duration: 0.08),
-            .moveBy(x: direction * -18, y: 0, duration: 0.12)
-        ]), withKey: "eventAttack")
+    private func syncHeroNodes(with heroes: [HeroState]) {
+        guard !heroes.isEmpty else { return }
+        let oldCount = renderedHeroClasses.count
+        renderedHeroClasses = heroes.map(\.classID)
+        renderedActions = heroes.map { $0.classAction.actionID }
+        if heroes.count > oldCount {
+            for slot in oldCount..<heroes.count {
+                let prefix = heroPrefix(slot)
+                addChild(actor(name: prefix, token: spriteToken(for: heroes[slot].classID), x: 0))
+                addHealthBar(prefix: prefix, color: .systemGreen)
+                addChild(label(name: "\(prefix)Level", fontSize: 12))
+                addChild(label(name: "\(prefix)Action", fontSize: 10))
+            }
+        } else if heroes.count < oldCount {
+            for slot in heroes.count..<oldCount {
+                let prefix = heroPrefix(slot)
+                [prefix, "\(prefix)HealthBackground", "\(prefix)HealthFill", "\(prefix)Level", "\(prefix)Action"]
+                    .forEach { childNode(withName: $0)?.removeFromParent() }
+            }
+        }
+        for slot in heroes.indices {
+            guard let node = childNode(withName: heroPrefix(slot)) as? SKSpriteNode else { continue }
+            let token = spriteToken(for: heroes[slot].classID)
+            if node.userData?["spriteToken"] as? String != token.rawValue {
+                startSpriteLoop(on: node, token: token)
+            }
+        }
+        updateLayout()
     }
 
-    private func animateBriefFade(nodeNamed name: String) {
-        guard let node = childNode(withName: name) else { return }
-        node.removeAction(forKey: "eventFade")
-        node.run(.sequence([
-            .fadeOut(withDuration: 0.08),
-            .fadeIn(withDuration: 0.18)
-        ]), withKey: "eventFade")
+    private func syncEnemyIdentity(level: Int, tier: EnemyTierID) {
+        let token = EnemySpriteResolver.token(level: level, tier: tier)
+        guard let node = childNode(withName: "enemy") as? SKSpriteNode else { return }
+        renderedEnemyToken = token
+        if node.userData?["spriteToken"] as? String != token.rawValue {
+            startSpriteLoop(on: node, token: token)
+        }
     }
 
-    private func animateDefeat() {
-        guard let hero = childNode(withName: "hero") else { return }
-        hero.removeAction(forKey: "eventFade")
-        hero.removeAction(forKey: "reviveVisibility")
-        hero.run(.fadeOut(withDuration: 0.08), withKey: "reviveVisibility")
+    private func heroPrefix(_ slot: Int) -> String {
+        slot == 0 ? "hero" : "hero-\(slot)"
     }
 
-    private func restoreHeroAfterRevive() {
-        guard let hero = childNode(withName: "hero") else { return }
-        hero.removeAction(forKey: "reviveVisibility")
-        hero.removeAction(forKey: "eventFade")
-        hero.alpha = 1
+    private func spriteToken(for classID: HeroClassID) -> SpriteToken {
+        switch classID {
+        case .tank: .tank
+        case .dps: .dps
+        case .healer: .healer
+        }
+    }
+
+    func activateClassActionForTesting(slot: Int) {
+        guard isUserInteractionEnabled, renderedActions.indices.contains(slot) else { return }
+        onClassAction?(slot, renderedActions[slot])
+    }
+
+    private func actionAbbreviation(_ actionID: ClassActionID) -> String {
+        switch actionID {
+        case .guardAction: "G"
+        case .powerStrike: "PS"
+        case .mend: "M"
+        }
     }
 
     private func showHit(at point: CGPoint?) {
         guard let point else { return }
-        let hit = SKLabelNode(text: "*")
-        hit.name = "hit"
-        hit.fontName = "Menlo-Bold"
-        hit.fontSize = 20
-        hit.fontColor = .white
+        let hit = label(name: "hit", fontSize: 20, fontName: "Menlo-Bold")
+        setOutlinedText("*", on: hit)
         hit.position = CGPoint(x: point.x, y: point.y + 24)
         addChild(hit)
         hit.run(.sequence([

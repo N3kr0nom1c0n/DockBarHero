@@ -23,9 +23,11 @@ final class SettingsStoreTests: XCTestCase {
     func testURLsUseSettingsSpecificVersionedNames() {
         let urls = SettingsURLs(directory: directory)
 
-        XCTAssertEqual(urls.primary.lastPathComponent, "settings-v1.json")
-        XCTAssertEqual(urls.backup.lastPathComponent, "settings-v1.backup.json")
-        XCTAssertEqual(urls.temporary.lastPathComponent, "settings-v1.pending.json")
+        XCTAssertEqual(urls.primary.lastPathComponent, "settings-v2.json")
+        XCTAssertEqual(urls.backup.lastPathComponent, "settings-v2.backup.json")
+        XCTAssertEqual(urls.temporary.lastPathComponent, "settings-v2.pending.json")
+        XCTAssertEqual(urls.legacyV1Primary.lastPathComponent, "settings-v1.json")
+        XCTAssertEqual(urls.legacyV1Backup.lastPathComponent, "settings-v1.backup.json")
         XCTAssertNotEqual(urls.primary, SaveURLs(directory: directory).primary)
     }
 
@@ -36,7 +38,7 @@ final class SettingsStoreTests: XCTestCase {
 
     func testRoundTripUsesDeterministicSortedJSON() async throws {
         let settings = AppSettings(
-            schemaVersion: 1,
+            schemaVersion: AppSettings.currentVersion,
             manualVisibility: .hidden,
             animationMode: .paused,
             inputMode: .interactive
@@ -53,8 +55,25 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertEqual(first, second)
         XCTAssertEqual(
             String(decoding: first, as: UTF8.self),
-            #"{"animationMode":"paused","inputMode":"interactive","manualVisibility":"hidden","schemaVersion":1}"#
+            #"{"animationMode":"paused","autoReadNewLorePages":true,"bookVolumeDetent":5,"hasSeenCurrentRunPrologue":false,"inputMode":"interactive","loreIllustrationMode":"safe","loreLanguageMode":"unfiltered","manualVisibility":"hidden","schemaVersion":2,"spokenDialogueEnabled":false}"#
         )
+    }
+
+    func testLegacyV1MigratesToV2Primary() async throws {
+        let urls = SettingsURLs(directory: directory)
+        let legacy = Data(
+            #"{"animationMode":"paused","inputMode":"interactive","manualVisibility":"hidden","schemaVersion":1}"#.utf8
+        )
+        try legacy.write(to: urls.legacyV1Primary)
+
+        let loaded = await makeStore().load()
+
+        XCTAssertEqual(loaded.schemaVersion, 2)
+        XCTAssertEqual(loaded.manualVisibility, .hidden)
+        XCTAssertEqual(loaded.loreLanguageMode, .unfiltered)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: urls.primary.path))
+        XCTAssertEqual(try decode(urls.primary), loaded)
+        XCTAssertEqual(try Data(contentsOf: urls.legacyV1Primary), legacy)
     }
 
     func testSecondSaveAtomicallyReplacesPrimaryAndPreservesBackup() async throws {
@@ -83,7 +102,7 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: urls.primary.path))
         let quarantine = try XCTUnwrap(
             FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
-                .first { $0.lastPathComponent.contains("settings-v1.json.invalid-") }
+                .first { $0.lastPathComponent.contains("settings-v2.json.invalid-") }
         )
         XCTAssertEqual(try Data(contentsOf: quarantine), corrupt)
     }
@@ -91,7 +110,7 @@ final class SettingsStoreTests: XCTestCase {
     func testUnsupportedSettingsVersionIsQuarantinedAndDefaultsAreLoaded() async throws {
         let urls = SettingsURLs(directory: directory)
         let future = Data(
-            #"{"animationMode":"running","inputMode":"passive","manualVisibility":"shown","schemaVersion":2}"#.utf8
+            #"{"schemaVersion":3}"#.utf8
         )
         try future.write(to: urls.primary)
 

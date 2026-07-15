@@ -3,6 +3,9 @@ import Foundation
 enum BuiltinPixelSprites {
     static let definitions: [SpriteToken: [SpriteAction: [PixelSpriteDefinition]]] = [
         .hero: actions(for: hero),
+        .tank: actions(for: makeHero(primary: 0x4F7DB8FF)),
+        .dps: actions(for: makeHero(primary: 0xC84C4CFF)),
+        .healer: actions(for: makeHero(primary: 0x5AAE78FF)),
         .enemy: actions(for: enemy),
     ]
 
@@ -49,6 +52,28 @@ enum BuiltinPixelSprites {
             "............",
         ]
     )
+
+    private static func makeHero(primary: UInt32) -> PixelSpriteDefinition {
+        PixelSpriteDefinition(
+            width: 12,
+            height: 18,
+            palette: [
+                "H": 0x402B3CFF,
+                "S": 0xF2B38BFF,
+                "C": primary,
+                "W": 0xE7EEF6FF,
+                "B": 0x27344AFF,
+                "K": 0x10151FFF,
+            ],
+            rows: [
+                "............", "....HH......", "...HSSHH....", "...SSSS.....",
+                "...HSSHH....", "....CC......", "...CCCCC....", "..CCCCC.W...",
+                "..CCCCCWW...", "...CCCCCWW..", "...CCCCC.W..", "...C.C......",
+                "..BB.BB.....", "..BB.BB.....", "..BB.BB.....", "..KK.KK.....",
+                ".KK...KK....", "............",
+            ]
+        )
+    }
 
     private static let enemy = PixelSpriteDefinition(
         width: 12,

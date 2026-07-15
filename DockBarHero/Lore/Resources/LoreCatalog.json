@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 2,
+  "pages": [
+    {
+      "id": "prologue.level-100000",
+      "sortIndex": 0,
+      "unlockAfterVictoryLevel": null,
+      "frameCount": 4,
+      "frameDurationMilliseconds": 700,
+      "dialogueCueIDs": ["prologue.book.wrong-way", "prologue.book.arrow-denial"],
+      "art": {
+        "safeSpriteSheet": "prologue-level100000-safe",
+        "adultSpriteSheet": null,
+        "accessibilitySafe": "Three unknown adult heroes face an impossible final boss while Pope Kevin raises a union banner.",
+        "accessibilityAdult": null
+      },
+      "composition": {
+        "layoutID": "brokenSix",
+        "safeContextSheet": "prologue-level100000-context-safe",
+        "adultContextSheet": null,
+        "panels": [
+          {"id":"p1","slotID":"slot1","role":"still","sourceCell":0,"readingOrder":0,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p2","slotID":"slot2","role":"motion","sourceCell":null,"readingOrder":1,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p3","slotID":"slot3","role":"still","sourceCell":1,"readingOrder":2,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p4","slotID":"slot4","role":"still","sourceCell":2,"readingOrder":3,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p5","slotID":"slot5","role":"still","sourceCell":3,"readingOrder":4,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p6","slotID":"slot6","role":"gag","sourceCell":4,"readingOrder":5,"focalPoint":{"x":0.5,"y":0.5}}
+        ],
+        "textOverlays": [
+          {"id":"o1","panelID":"p1","style":"title","placement":"topTrailing","speakerID":null,"dialogueCueID":null,"copy":{"unfiltered":"LEVEL 100,000: THE FINALER ENDING","clean":"LEVEL 100,000: THE FINALER ENDING"}},
+          {"id":"o2","panelID":"p1","style":"narration","placement":"bottomLeading","speakerID":null,"dialogueCueID":null,"copy":{"unfiltered":"The moon filed for divorce. Kevin unionized Heaven.","clean":"The moon filed for divorce. Kevin unionized Heaven."}},
+          {"id":"o3","panelID":"p2","style":"narration","placement":"topLeading","speakerID":null,"dialogueCueID":null,"copy":{"unfiltered":"Somehow, this was your fault.","clean":"Somehow, this was your fault."}},
+          {"id":"o4","panelID":"p4","style":"speech","placement":"topTrailing","speakerID":"book","dialogueCueID":"prologue.book.wrong-way","copy":{"unfiltered":"Hey, American jackass! This is a manga! You're reading it backwards, ya fuckwad!","clean":"Hey, confused hamburger enthusiast! This is manga! You're reading it backward!"}},
+          {"id":"o5","panelID":"p5","style":"speech","placement":"bottomLeading","speakerID":"book","dialogueCueID":"prologue.book.arrow-denial","copy":{"unfiltered":"Slander. The arrow has always pointed left.","clean":"Slander. The arrow has always pointed left."}}
+        ]
+      },
+      "title": {"unfiltered":"Level 100,000: The Finaler Ending","clean":"Level 100,000: The Finaler Ending"},
+      "body": {"unfiltered":"The moon filed for divorce. Kevin unionized Heaven. Somehow, this was your fault. Hey, American jackass—this is manga. You're reading it backwards, ya fuckwad. And before you start: slander. The arrow has always pointed left.","clean":"The moon filed for divorce. Kevin unionized Heaven. Somehow, this was your fault. Hey, confused hamburger enthusiast—this is manga. You're reading it backward. And before you start: slander. The arrow has always pointed left."}
+    },
+    {
+      "id": "volume-1.level-1",
+      "sortIndex": 1,
+      "unlockAfterVictoryLevel": null,
+      "frameCount": 4,
+      "frameDurationMilliseconds": 650,
+      "dialogueCueIDs": ["book.level1.summary", "kevin.not-kevin"],
+      "art": {
+        "safeSpriteSheet": "volume1-level1-safe",
+        "adultSpriteSheet": null,
+        "accessibilitySafe": "A magical summoning circle selects an obscured adult hero while a goblin intern checks the wrong form.",
+        "accessibilityAdult": null
+      },
+      "composition": {
+        "layoutID": "cascadeFive",
+        "safeContextSheet": "volume1-level1-context-safe",
+        "adultContextSheet": null,
+        "panels": [
+          {"id":"p1","slotID":"slot1","role":"still","sourceCell":0,"readingOrder":0,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p2","slotID":"slot2","role":"motion","sourceCell":null,"readingOrder":1,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p3","slotID":"slot3","role":"still","sourceCell":1,"readingOrder":2,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p4","slotID":"slot4","role":"still","sourceCell":2,"readingOrder":3,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p5","slotID":"slot5","role":"gag","sourceCell":3,"readingOrder":4,"focalPoint":{"x":0.5,"y":0.5}}
+        ],
+        "textOverlays": [
+          {"id":"o1","panelID":"p1","style":"title","placement":"topTrailing","speakerID":null,"dialogueCueID":null,"copy":{"unfiltered":"FOUR MINUTES EARLIER","clean":"FOUR MINUTES EARLIER"}},
+          {"id":"o2","panelID":"p1","style":"narration","placement":"bottomLeading","speakerID":"book","dialogueCueID":"book.level1.summary","copy":{"unfiltered":"Four minutes earlier, I requested a qualified hero. The universe clicked Show Similar Results.","clean":"Four minutes earlier, I requested a qualified hero. The universe clicked Show Similar Results."}},
+          {"id":"o3","panelID":"p4","style":"speech","placement":"topTrailing","speakerID":"kevin","dialogueCueID":"kevin.not-kevin","copy":{"unfiltered":"I'm not Kevin. Kevin died. This mustache is hereditary.","clean":"I'm not Kevin. Kevin departed. This mustache is hereditary."}}
+        ]
+      },
+      "title": {"unfiltered":"Four Minutes Earlier","clean":"Four Minutes Earlier"},
+      "body": {"unfiltered":"The Book requested a qualified hero, found none, and clicked Show Similar Results.","clean":"The Book requested a qualified hero, found none, and clicked Show Similar Results."}
+    },
+    {
+      "id": "volume-1.level-5",
+      "sortIndex": 2,
+      "unlockAfterVictoryLevel": 5,
+      "frameCount": 4,
+      "frameDurationMilliseconds": 600,
+      "dialogueCueIDs": ["book.level5.summary", "kevin.supervisor"],
+      "art": {
+        "safeSpriteSheet": "volume1-level5-safe",
+        "adultSpriteSheet": null,
+        "accessibilitySafe": "Kevin's enormous goblin supervisor brandishes an employee handbook while Kevin's fake mustache slips.",
+        "accessibilityAdult": null
+      },
+      "composition": {
+        "layoutID": "staggeredSix",
+        "safeContextSheet": "volume1-level5-context-safe",
+        "adultContextSheet": null,
+        "panels": [
+          {"id":"p1","slotID":"slot1","role":"still","sourceCell":0,"readingOrder":0,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p2","slotID":"slot2","role":"motion","sourceCell":null,"readingOrder":1,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p3","slotID":"slot3","role":"still","sourceCell":1,"readingOrder":2,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p4","slotID":"slot4","role":"still","sourceCell":2,"readingOrder":3,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p5","slotID":"slot5","role":"still","sourceCell":3,"readingOrder":4,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p6","slotID":"slot6","role":"gag","sourceCell":4,"readingOrder":5,"focalPoint":{"x":0.5,"y":0.5}}
+        ],
+        "textOverlays": [
+          {"id":"o1","panelID":"p1","style":"title","placement":"topTrailing","speakerID":null,"dialogueCueID":null,"copy":{"unfiltered":"KEVIN'S SUPERVISOR","clean":"KEVIN'S SUPERVISOR"}},
+          {"id":"o2","panelID":"p2","style":"narration","placement":"bottomLeading","speakerID":"book","dialogueCueID":"book.level5.summary","copy":{"unfiltered":"Behold Kevin's supervisor: Kevin, but larger and legally a separate workplace incident.","clean":"Behold Kevin's supervisor: Kevin, but larger and legally a separate workplace incident."}},
+          {"id":"o3","panelID":"p3","style":"speech","placement":"topTrailing","speakerID":"supervisor","dialogueCueID":null,"copy":{"unfiltered":"Initial here to acknowledge your replacement Kevin.","clean":"Initial here to acknowledge your replacement Kevin."}},
+          {"id":"o4","panelID":"p4","style":"speech","placement":"bottomLeading","speakerID":"kevin","dialogueCueID":"kevin.supervisor","copy":{"unfiltered":"My name is Kévin. The accent mark makes this airtight.","clean":"My name is Kévin. The accent mark makes this airtight."}}
+        ]
+      },
+      "title": {"unfiltered":"Kevin's Supervisor","clean":"Kevin's Supervisor"},
+      "body": {"unfiltered":"Kevin died. This is a different goblin with the same badge, voice, debts, and emergency contact.","clean":"Kevin departed. This is a different goblin with the same badge, voice, debts, and emergency contact."}
+    },
+    {
+      "id": "volume-1.level-10",
+      "sortIndex": 3,
+      "unlockAfterVictoryLevel": 10,
+      "frameCount": 4,
+      "frameDurationMilliseconds": 550,
+      "dialogueCueIDs": ["book.level10.summary"],
+      "art": {
+        "safeSpriteSheet": "volume1-level10-safe",
+        "adultSpriteSheet": null,
+        "accessibilitySafe": "One treasure-chest mimic poorly disguises itself as another treasure-chest mimic.",
+        "accessibilityAdult": null
+      },
+      "composition": {
+        "layoutID": "shatteredSeven",
+        "safeContextSheet": "volume1-level10-context-safe",
+        "adultContextSheet": null,
+        "panels": [
+          {"id":"p1","slotID":"slot1","role":"still","sourceCell":0,"readingOrder":0,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p2","slotID":"slot2","role":"motion","sourceCell":null,"readingOrder":1,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p3","slotID":"slot3","role":"still","sourceCell":1,"readingOrder":2,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p4","slotID":"slot4","role":"still","sourceCell":2,"readingOrder":3,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p5","slotID":"slot5","role":"still","sourceCell":3,"readingOrder":4,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p6","slotID":"slot6","role":"still","sourceCell":4,"readingOrder":5,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p7","slotID":"slot7","role":"gag","sourceCell":5,"readingOrder":6,"focalPoint":{"x":0.5,"y":0.5}}
+        ],
+        "textOverlays": [
+          {"id":"o1","panelID":"p1","style":"title","placement":"topTrailing","speakerID":null,"dialogueCueID":null,"copy":{"unfiltered":"THE DOUBLE MIMIC","clean":"THE DOUBLE MIMIC"}},
+          {"id":"o2","panelID":"p1","style":"narration","placement":"bottomLeading","speakerID":"book","dialogueCueID":"book.level10.summary","copy":{"unfiltered":"The chest was a mimic. Inside it was another mimic pretending to be loot. Both have tenure.","clean":"The chest was a mimic. Inside it was another mimic pretending to be loot. Both have tenure."}},
+          {"id":"o3","panelID":"p3","style":"speech","placement":"topTrailing","speakerID":"outer-mimic","dialogueCueID":null,"copy":{"unfiltered":"Don't laugh.","clean":"Don't laugh."}},
+          {"id":"o4","panelID":"p4","style":"speech","placement":"bottomLeading","speakerID":"inner-mimic","dialogueCueID":null,"copy":{"unfiltered":"You first.","clean":"You first."}},
+          {"id":"o5","panelID":"p5","style":"soundEffect","placement":"center","speakerID":null,"dialogueCueID":null,"copy":{"unfiltered":"hnk—","clean":"hnk—"}}
+        ]
+      },
+      "title": {"unfiltered":"The Double Mimic","clean":"The Double Mimic"},
+      "body": {"unfiltered":"The chest was a mimic. Inside it was another mimic pretending to be loot. Neither could stop giggling.","clean":"The chest was a mimic. Inside it was another mimic pretending to be loot. Neither could stop giggling."}
+    },
+    {
+      "id": "volume-1.level-15",
+      "sortIndex": 4,
+      "unlockAfterVictoryLevel": 15,
+      "frameCount": 4,
+      "frameDurationMilliseconds": 625,
+      "dialogueCueIDs": ["book.level15.summary", "brick.policy-warning"],
+      "art": {
+        "safeSpriteSheet": "volume1-level15-safe",
+        "adultSpriteSheet": null,
+        "accessibilitySafe": "A necromancer raises paper complaint forms while irritated skeletons return incomplete surveys.",
+        "accessibilityAdult": null
+      },
+      "composition": {
+        "layoutID": "brokenSix",
+        "safeContextSheet": "volume1-level15-context-safe",
+        "adultContextSheet": null,
+        "panels": [
+          {"id":"p1","slotID":"slot1","role":"still","sourceCell":0,"readingOrder":0,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p2","slotID":"slot2","role":"motion","sourceCell":null,"readingOrder":1,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p3","slotID":"slot3","role":"still","sourceCell":1,"readingOrder":2,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p4","slotID":"slot4","role":"still","sourceCell":2,"readingOrder":3,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p5","slotID":"slot5","role":"still","sourceCell":3,"readingOrder":4,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p6","slotID":"slot6","role":"gag","sourceCell":4,"readingOrder":5,"focalPoint":{"x":0.5,"y":0.5}}
+        ],
+        "textOverlays": [
+          {"id":"o1","panelID":"p1","style":"title","placement":"topTrailing","speakerID":null,"dialogueCueID":null,"copy":{"unfiltered":"THE NECROMANCER OF NEGATIVE FEEDBACK","clean":"THE NECROMANCER OF NEGATIVE FEEDBACK"}},
+          {"id":"o2","panelID":"p2","style":"narration","placement":"bottomLeading","speakerID":"book","dialogueCueID":"book.level15.summary","copy":{"unfiltered":"The necromancer raises the dead exclusively for customer-satisfaction surveys.","clean":"The necromancer raises the dead exclusively for customer-satisfaction surveys."}},
+          {"id":"o3","panelID":"p3","style":"speech","placement":"topTrailing","speakerID":"necromancer","dialogueCueID":null,"copy":{"unfiltered":"On a scale from one to ten—","clean":"On a scale from one to ten—"}},
+          {"id":"o4","panelID":"p5","style":"speech","placement":"bottomLeading","speakerID":"brick","dialogueCueID":"brick.policy-warning","copy":{"unfiltered":"Vomiting blood on the adventurers is against dungeon policy.","clean":"Vomiting blood on the adventurers is against dungeon policy."}}
+        ]
+      },
+      "title": {"unfiltered":"The Necromancer of Negative Feedback","clean":"The Necromancer of Negative Feedback"},
+      "body": {"unfiltered":"He could raise the dead, but only to ask whether they were satisfied with their service.","clean":"He could raise the dead, but only to ask whether they were satisfied with their service."}
+    },
+    {
+      "id": "volume-1.level-20",
+      "sortIndex": 5,
+      "unlockAfterVictoryLevel": 20,
+      "frameCount": 4,
+      "frameDurationMilliseconds": 700,
+      "dialogueCueIDs": ["book.level20.summary", "mercy.therapy-referral"],
+      "art": {
+        "safeSpriteSheet": "volume1-level20-safe",
+        "adultSpriteSheet": "volume1-level20-adult",
+        "accessibilitySafe": "An unambiguously adult demon in modest clothing lies on a tiny therapy couch while an abomination takes notes.",
+        "accessibilityAdult": "An unambiguously adult demon in modest clothing lies on a tiny therapy couch while a completely unnecessary pixel censor mosaic follows her and an abomination takes notes."
+      },
+      "composition": {
+        "layoutID": "cascadeFive",
+        "safeContextSheet": "volume1-level20-context-safe",
+        "adultContextSheet": null,
+        "panels": [
+          {"id":"p1","slotID":"slot1","role":"still","sourceCell":0,"readingOrder":0,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p2","slotID":"slot2","role":"motion","sourceCell":null,"readingOrder":1,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p3","slotID":"slot3","role":"still","sourceCell":1,"readingOrder":2,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p4","slotID":"slot4","role":"still","sourceCell":2,"readingOrder":3,"focalPoint":{"x":0.5,"y":0.5}},
+          {"id":"p5","slotID":"slot5","role":"gag","sourceCell":3,"readingOrder":4,"focalPoint":{"x":0.5,"y":0.5}}
+        ],
+        "textOverlays": [
+          {"id":"o1","panelID":"p1","style":"title","placement":"topTrailing","speakerID":null,"dialogueCueID":null,"copy":{"unfiltered":"EMOTIONAL-SUPPORT ABOMINATION","clean":"EMOTIONAL-SUPPORT ABOMINATION"}},
+          {"id":"o2","panelID":"p2","style":"narration","placement":"bottomLeading","speakerID":"book","dialogueCueID":"book.level20.summary","copy":{"unfiltered":"The demon requested an emotional-support abomination. Insurance approved six tentacles and no weekends.","clean":"The demon requested an emotional-support abomination. Insurance approved six tentacles and no weekends."}},
+          {"id":"o3","panelID":"p3","style":"speech","placement":"topTrailing","speakerID":"mercy","dialogueCueID":"mercy.therapy-referral","copy":{"unfiltered":"A cursed crown is not a substitute for therapy, sleep, boundaries, or properly supervised mood stabilizers.","clean":"A cursed crown is not a substitute for therapy, sleep, boundaries, or properly supervised medication."}},
+          {"id":"o4","panelID":"p4","style":"speech","placement":"bottomLeading","speakerID":"abomination","dialogueCueID":null,"copy":{"unfiltered":"And how did becoming “Dread Queen” make you feel?","clean":"And how did becoming “Dread Queen” make you feel?"}}
+        ]
+      },
+      "title": {"unfiltered":"Emotional-Support Abomination","clean":"Emotional-Support Abomination"},
+      "body": {"unfiltered":"A cursed crown is not a substitute for therapy, sleep, boundaries, or properly supervised medication.","clean":"A cursed crown is not a substitute for therapy, sleep, boundaries, or properly supervised medication."}
+    }
+  ]
+}

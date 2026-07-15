@@ -2,6 +2,7 @@ import Foundation
 
 enum RunPresentation: Equatable, Sendable {
     case classSelection
+    case partySelection(PendingPartyUnlock, GamePresentation)
     case active(GamePresentation)
 }
 
@@ -14,6 +15,7 @@ protocol GameSessionControlling: AnyObject {
     func start()
     func send(_ intent: GameIntent) throws
     func chooseStartingClass(_ classID: HeroClassID) async throws
+    func choosePartyClass(_ classID: HeroClassID) async throws
     func startNewGame() async throws
     func stopAndSave() async
 }
@@ -25,6 +27,7 @@ extension GameSessionControlling {
     }
 
     func chooseStartingClass(_ classID: HeroClassID) async throws { }
+    func choosePartyClass(_ classID: HeroClassID) async throws { }
     func startNewGame() async throws { }
 }
 
@@ -50,6 +53,7 @@ final class GameSession: GameSessionControlling {
     private var generation: UInt64 = 0
     private var startupTask: Task<SaveLoadResult?, Never>?
     private var autosaveTask: Task<Void, Never>?
+    private var pendingUnlockTask: Task<Void, Never>?
     private(set) var outstandingSaveSubmissionCount = 0
     private var saveSubmissionWaiters: [CheckedContinuation<Void, Never>] = []
     private var stopWaiters: [CheckedContinuation<Void, Never>] = []
@@ -111,13 +115,37 @@ final class GameSession: GameSessionControlling {
 
     func chooseStartingClass(_ classID: HeroClassID) async throws {
         guard hasStarted, !isStopping, !hasStopped, currentRunState == .classSelection else { return }
-        let state = GameState.newGame(
+        do {
+            let state = try EncounterDirector().prepareNewGame(
+                in: GameState.newGame(
+                    classID: classID,
+                    balance: .standard,
+                    progression: .standard
+                ),
+                balance: .standard
+            )
+            try await store.replaceRun(with: .active(state))
+            currentRunState = .active(state)
+            startActive(state, generation: generation)
+        } catch {
+            receive(.failed(String(describing: error)), generation: generation)
+            throw error
+        }
+    }
+
+    func choosePartyClass(_ classID: HeroClassID) async throws {
+        guard hasStarted, !isStopping, !hasStopped,
+              case let .active(pendingState) = currentRunState,
+              pendingState.encounter.phase == .awaitingPartyChoice else { return }
+        let state = try PartyUnlockResolver().completeSecondUnlock(
             classID: classID,
-            balance: .standard,
-            progression: .standard
+            in: pendingState,
+            balance: .standard
         )
         do {
             try await store.replaceRun(with: .active(state))
+            pendingUnlockTask?.cancel()
+            pendingUnlockTask = nil
             currentRunState = .active(state)
             startActive(state, generation: generation)
         } catch {
@@ -131,6 +159,8 @@ final class GameSession: GameSessionControlling {
         let oldState: RunState = isRunning ? .active(driver.currentState) : currentRunState
         autosaveTask?.cancel()
         autosaveTask = nil
+        pendingUnlockTask?.cancel()
+        pendingUnlockTask = nil
         isRunning = false
         driver.stop()
         await waitForSaveSubmissions()
@@ -169,6 +199,8 @@ final class GameSession: GameSessionControlling {
         startupTask = nil
         autosaveTask?.cancel()
         autosaveTask = nil
+        pendingUnlockTask?.cancel()
+        pendingUnlockTask = nil
         driver.stop()
 
         let startupResult = await pendingStartupTask?.value
@@ -198,7 +230,11 @@ final class GameSession: GameSessionControlling {
             isRunning = false
             onRunState?(.classSelection)
         case let .active(state):
-            startActive(state, generation: startGeneration)
+            if state.encounter.phase == .awaitingPartyChoice {
+                presentPendingChoice(state, generation: startGeneration)
+            } else {
+                startActive(state, generation: startGeneration)
+            }
         }
         startupTask = nil
     }
@@ -219,6 +255,14 @@ final class GameSession: GameSessionControlling {
         }
     }
 
+    private func presentPendingChoice(_ state: GameState, generation activeGeneration: UInt64) {
+        guard let pending = state.party.unlocks.pendingUnlock else { return }
+        driver.replaceState(state)
+        isRunning = false
+        currentRunState = .active(state)
+        onRunState?(.partySelection(pending, GameSimulation(state: state).presentation))
+    }
+
     private func receive(_ presentation: GamePresentation, generation callbackGeneration: UInt64) {
         guard isActive(callbackGeneration) else { return }
         onPresentation?(presentation)
@@ -229,9 +273,47 @@ final class GameSession: GameSessionControlling {
     private func receive(_ events: [GameEvent], generation callbackGeneration: UInt64) {
         guard isActive(callbackGeneration) else { return }
         onEvents?(events)
+        if events.contains(where: {
+            if case .partyUnlockPending = $0 { return true }
+            return false
+        }) {
+            let pendingState = driver.currentState
+            guard pendingState.encounter.phase == .awaitingPartyChoice else { return }
+            currentRunState = .active(pendingState)
+            isRunning = false
+            autosaveTask?.cancel()
+            autosaveTask = nil
+            driver.stop()
+            pendingUnlockTask?.cancel()
+            pendingUnlockTask = Task { @MainActor [weak self] in
+                await self?.persistPendingChoice(pendingState, generation: callbackGeneration)
+            }
+            return
+        }
         guard events.contains(where: shouldSave(for:)) else { return }
         intentEventRequestedSave = true
         requestSave()
+    }
+
+    private func persistPendingChoice(_ state: GameState, generation pendingGeneration: UInt64) async {
+        while !Task.isCancelled,
+              pendingGeneration == generation,
+              hasStarted,
+              !isStopping,
+              !hasStopped {
+            switch await coordinator.flushResult(.active(state)) {
+            case .saved:
+                presentPendingChoice(state, generation: pendingGeneration)
+                pendingUnlockTask = nil
+                return
+            case .failed:
+                do {
+                    try await sleep(autosaveInterval)
+                } catch {
+                    return
+                }
+            }
+        }
     }
 
     private func receive(_ status: SaveStatus, generation callbackGeneration: UInt64) {
@@ -245,9 +327,15 @@ final class GameSession: GameSessionControlling {
     private func shouldSave(for event: GameEvent) -> Bool {
         switch event {
         case .victory, .loot, .xpGained, .heroLeveled, .goldGained, .equipped,
-             .autoEquipChanged, .destinationQueued, .farmingStarted, .returnedToFrontier:
+             .equippedHero,
+             .autoEquipChanged, .destinationQueued, .farmingStarted, .returnedToFrontier,
+             .partyUnlockPending, .classActionCast, .guardActivated, .powerStrike, .mended,
+             .itemLockChanged:
             return true
-        case .attack, .defeat, .revived:
+        case .inventoryCapacityPurchased, .overflowMoved, .itemsSalvaged:
+            return true
+        case .attack, .heroAttack, .enemyAttack, .heroDown, .defeat, .revived,
+             .classActionReady, .guardIntercepted, .classActionRejected:
             return false
         }
     }

@@ -6,7 +6,7 @@ import XCTest
 final class SettingsSessionTests: XCTestCase {
     func testStartLoadsOnceAndPublishesSettings() async {
         let expected = AppSettings(
-            schemaVersion: 1,
+            schemaVersion: AppSettings.currentVersion,
             manualVisibility: .hidden,
             animationMode: .paused,
             inputMode: .passive
