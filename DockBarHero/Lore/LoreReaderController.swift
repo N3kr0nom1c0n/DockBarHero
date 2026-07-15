@@ -40,6 +40,7 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
     private var settings = AppSettings.defaults
     private var applicationIsActive = true
     private var cueIndex = 0
+    private var playbackGeneration: UInt = 0
     private var giggleIndex = 0
     private let giggles = ["Heh.", "Hehehehe.", "Oh ho ho."]
 
@@ -87,21 +88,25 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
             reactionText = "That page is locked because the plot hasn't suffered enough yet."
             return
         }
-        speech.stop()
-        isSpeaking = false
+        interruptSpeech()
         currentPageID = pageID
         cueIndex = 0
         autoReadCurrentPageIfNeeded()
     }
 
     func replay() {
+        guard canSpeak else {
+            isSpeaking = false
+            return
+        }
+        interruptSpeech()
         cueIndex = 0
         playCurrentCue()
     }
 
     func skip() {
         guard let page = currentPage else { return }
-        speech.stop()
+        interruptSpeech()
         cueIndex += 1
         if cueIndex < page.dialogueCueIDs.count {
             playCurrentCue()
@@ -141,8 +146,17 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
             isSpeaking = false
             return
         }
-        speech.speak(cue, gain: settings.bookOutputGain)
         isSpeaking = true
+        let generation = playbackGeneration
+        let speakingCueIndex = cueIndex
+        let pageID = page.id
+        speech.speak(cue, gain: settings.bookOutputGain) { [weak self] in
+            self?.speechDidFinish(
+                generation: generation,
+                cueIndex: speakingCueIndex,
+                pageID: pageID
+            )
+        }
     }
 
     private func autoReadCurrentPageIfNeeded() {
@@ -164,8 +178,32 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
     }
 
     private func stopPlayback() {
-        speech.stop()
+        interruptSpeech()
         speech.stopPreview()
+    }
+
+    private func interruptSpeech() {
+        playbackGeneration &+= 1
+        speech.stop()
         isSpeaking = false
+    }
+
+    private func speechDidFinish(
+        generation: UInt,
+        cueIndex finishedCueIndex: Int,
+        pageID: LorePageID
+    ) {
+        guard generation == playbackGeneration,
+              canSpeak,
+              currentPageID == pageID,
+              cueIndex == finishedCueIndex,
+              let page = currentPage else { return }
+
+        cueIndex += 1
+        if cueIndex < page.dialogueCueIDs.count {
+            playCurrentCue()
+        } else {
+            isSpeaking = false
+        }
     }
 }

@@ -360,6 +360,42 @@ final class LoreCatalogTests: XCTestCase {
             XCTAssertEqual($0 as? LoreCatalogError, .invalidComposition("bad-copy"))
         }
     }
+
+    func testRejectsDialogueCueIDsReorderedFromAuthoredOverlays() {
+        let page = LoreFixtures.pageWithDialogueCues("reordered-cues")
+        let invalid = page.replacingDialogueCueIDs(["book.second", "book.first"])
+
+        XCTAssertThrowsError(try LoreCatalog.validated(.init(schemaVersion: 2, pages: [invalid]))) {
+            XCTAssertEqual($0 as? LoreCatalogError, .invalidComposition("reordered-cues"))
+        }
+    }
+
+    func testRejectsDuplicateDialogueCueIDsThatCollapseToSameSet() {
+        let page = LoreFixtures.pageWithDialogueCues("duplicate-cues")
+        let invalid = page.replacingDialogueCueIDs(["book.first", "book.second", "book.second"])
+
+        XCTAssertThrowsError(try LoreCatalog.validated(.init(schemaVersion: 2, pages: [invalid]))) {
+            XCTAssertEqual($0 as? LoreCatalogError, .invalidComposition("duplicate-cues"))
+        }
+    }
+
+    func testRejectsDuplicateAuthoredOverlayCueIDsEvenWhenPageOrderMatches() {
+        let page = LoreFixtures.pageWithDialogueCues("duplicate-overlay-cues")
+        var overlays = page.composition.textOverlays
+        let second = overlays[1]
+        overlays[1] = LoreTextOverlayDefinition(
+            id: second.id, panelID: second.panelID, style: second.style,
+            placement: second.placement, speakerID: second.speakerID,
+            dialogueCueID: "book.first", copy: second.copy
+        )
+        let invalid = page
+            .replacingComposition(page.composition.replacingTextOverlays(overlays))
+            .replacingDialogueCueIDs(["book.first", "book.first"])
+
+        XCTAssertThrowsError(try LoreCatalog.validated(.init(schemaVersion: 2, pages: [invalid]))) {
+            XCTAssertEqual($0 as? LoreCatalogError, .invalidComposition("duplicate-overlay-cues"))
+        }
+    }
 }
 
 private extension String {
@@ -417,6 +453,27 @@ enum LoreFixtures {
             page("volume-1.level-1", index: 1, unlock: nil)
         ])
     }
+
+    static func pageWithDialogueCues(_ id: String) -> LorePageDefinition {
+        let page = page(id, index: 0, unlock: nil)
+        let overlays = [
+            LoreTextOverlayDefinition(
+                id: "o1", panelID: "p1", style: .speech,
+                placement: .topTrailing, speakerID: "book",
+                dialogueCueID: "book.first",
+                copy: .init(unfiltered: "First", clean: "First")
+            ),
+            LoreTextOverlayDefinition(
+                id: "o2", panelID: "p2", style: .speech,
+                placement: .center, speakerID: "book",
+                dialogueCueID: "book.second",
+                copy: .init(unfiltered: "Second", clean: "Second")
+            )
+        ]
+        return page
+            .replacingComposition(page.composition.replacingTextOverlays(overlays))
+            .replacingDialogueCueIDs(["book.first", "book.second"])
+    }
 }
 
 private extension LorePageDefinition {
@@ -425,6 +482,15 @@ private extension LorePageDefinition {
             id: id, sortIndex: sortIndex, title: title, body: body,
             unlockAfterVictoryLevel: unlockAfterVictoryLevel, art: art,
             composition: replacement, dialogueCueIDs: dialogueCueIDs,
+            frameCount: frameCount, frameDurationMilliseconds: frameDurationMilliseconds
+        )
+    }
+
+    func replacingDialogueCueIDs(_ replacement: [String]) -> Self {
+        .init(
+            id: id, sortIndex: sortIndex, title: title, body: body,
+            unlockAfterVictoryLevel: unlockAfterVictoryLevel, art: art,
+            composition: composition, dialogueCueIDs: replacement,
             frameCount: frameCount, frameDurationMilliseconds: frameDurationMilliseconds
         )
     }

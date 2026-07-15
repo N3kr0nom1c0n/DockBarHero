@@ -58,6 +58,7 @@ extension LoreCatalog {
             let panels = page.composition.panels
             let panelIDs = panels.map(\.id)
             let overlays = page.composition.textOverlays
+            let overlayCueIDs = overlays.compactMap(\.dialogueCueID)
             let template = LoreMangaLayout.template(for: page.composition.layoutID)
             guard panels.count == template.slots.count,
                   Set(panels.map(\.slotID)) == Set(template.slots.map(\.id)),
@@ -82,7 +83,8 @@ extension LoreCatalog {
                       !$0.copy.unfiltered.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
                       !$0.copy.clean.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                   }),
-                  Set(page.composition.textOverlays.compactMap(\.dialogueCueID)) == Set(page.dialogueCueIDs) else {
+                  overlayCueIDs == page.dialogueCueIDs,
+                  Set(overlayCueIDs).count == overlayCueIDs.count else {
                 throw LoreCatalogError.invalidComposition(page.id.rawValue)
             }
         }

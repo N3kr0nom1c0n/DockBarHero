@@ -17,8 +17,9 @@ final class LoreReaderControllerTests: XCTestCase {
         controller.update(settings: .spokenFixture, pages: [.fixture])
         controller.open()
         controller.replay()
+        let stopCountBeforeClose = speech.stopCount
         controller.close()
-        XCTAssertEqual(speech.stopCount, 1)
+        XCTAssertEqual(speech.stopCount, stopCountBeforeClose + 1)
         XCTAssertEqual(speech.stopPreviewCount, 1)
         XCTAssertFalse(controller.isOpen)
     }
@@ -71,23 +72,77 @@ final class LoreReaderControllerTests: XCTestCase {
         XCTAssertEqual(speech.spoken.count, 1)
         XCTAssertEqual(recorded.map(\.rawValue), ["test"])
     }
+
+    func testAutoReadAdvancesThroughEveryCueInAuthoredOrder() throws {
+        let speech = LoreSpeechFake()
+        let controller = try makeController(speech: speech, cues: [.fixture, .secondFixture])
+        controller.update(settings: .spokenFixture, pages: [.multiCueFixture])
+
+        controller.open()
+        XCTAssertEqual(speech.spoken.map(\.id), ["book.test"])
+
+        speech.finish(at: 0)
+        XCTAssertEqual(speech.spoken.map(\.id), ["book.test", "book.second"])
+    }
+
+    func testCompletingFinalCueEndsSpeakingState() throws {
+        let speech = LoreSpeechFake()
+        let controller = try makeController(speech: speech, cues: [.fixture, .secondFixture])
+        controller.update(settings: .spokenFixture, pages: [.multiCueFixture])
+
+        controller.open()
+        speech.finish(at: 0)
+        XCTAssertTrue(controller.isSpeaking)
+
+        speech.finish(at: 1)
+        XCTAssertFalse(controller.isSpeaking)
+        XCTAssertEqual(speech.spoken.map(\.id), ["book.test", "book.second"])
+    }
+
+    func testCompletionFromInterruptedReplayCannotAdvanceReplacementSequence() throws {
+        let speech = LoreSpeechFake()
+        let controller = try makeController(speech: speech, cues: [.fixture, .secondFixture])
+        controller.update(settings: .spokenFixture, pages: [.multiCueFixture])
+
+        controller.open()
+        controller.replay()
+        XCTAssertEqual(speech.spoken.map(\.id), ["book.test", "book.test"])
+
+        speech.finish(at: 0)
+        XCTAssertEqual(speech.spoken.map(\.id), ["book.test", "book.test"])
+        XCTAssertTrue(controller.isSpeaking)
+
+        speech.finish(at: 1)
+        XCTAssertEqual(speech.spoken.map(\.id), ["book.test", "book.test", "book.second"])
+    }
 }
 
 @MainActor
 final class LoreSpeechFake: LoreSpeechControlling {
     var spoken: [ResolvedDialogueCue] = []
+    var completions: [() -> Void] = []
     var previews: [(text: String, gain: Float)] = []
     var stopCount = 0
     var stopPreviewCount = 0
-    func speak(_ cue: ResolvedDialogueCue, gain: Float) { spoken.append(cue) }
+    func speak(_ cue: ResolvedDialogueCue, gain: Float, completion: @escaping () -> Void) {
+        spoken.append(cue)
+        completions.append(completion)
+    }
     func stop() { stopCount += 1 }
     func stopPreview() { stopPreviewCount += 1 }
     func previewGiggle(_ text: String, gain: Float) { previews.append((text, gain)) }
+
+    func finish(at index: Int) {
+        completions[index]()
+    }
 }
 
 @MainActor
-private func makeController(speech: LoreSpeechControlling) throws -> LoreReaderController {
-    let catalog = try SpokenDialogueCatalog.validated(.init(schemaVersion: 1, speakers: [.fixture], cues: [.fixture]))
+private func makeController(
+    speech: LoreSpeechControlling,
+    cues: [DialogueCue] = [.fixture]
+) throws -> LoreReaderController {
+    let catalog = try SpokenDialogueCatalog.validated(.init(schemaVersion: 1, speakers: [.fixture], cues: cues))
     return LoreReaderController(dialogue: catalog, speech: speech)
 }
 
@@ -116,5 +171,23 @@ extension ResolvedLorePage {
             textOverlays: []
         ),
         dialogueCueIDs: ["book.test"], frameCount: 4, frameDurationMilliseconds: 600
+    )
+
+    static let multiCueFixture = ResolvedLorePage(
+        id: fixture.id, title: fixture.title, body: fixture.body,
+        spriteSheetName: fixture.spriteSheetName,
+        accessibilityDescription: fixture.accessibilityDescription,
+        composition: fixture.composition,
+        dialogueCueIDs: ["book.test", "book.second"],
+        frameCount: fixture.frameCount,
+        frameDurationMilliseconds: fixture.frameDurationMilliseconds
+    )
+}
+
+extension DialogueCue {
+    static let secondFixture = DialogueCue(
+        id: "book.second", speakerID: "book",
+        unfiltered: "Second.", clean: "Second.",
+        delivery: "flat", autoReadEligible: true
     )
 }
