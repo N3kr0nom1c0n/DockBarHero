@@ -1,5 +1,54 @@
 import AVFoundation
 
+struct LoreAudioManifest: Codable, Equatable, Sendable {
+    let schemaVersion: Int
+    let entries: [LoreAudioEntry]
+}
+
+struct LoreAudioEntry: Codable, Equatable, Sendable {
+    let cueID: String
+    let unfiltered: String
+    let clean: String
+}
+
+enum LoreAudioManifestError: Error, Equatable {
+    case resourceMissing
+    case unsupportedSchema(Int)
+    case duplicateCueID(String)
+    case missingRequiredValue(String)
+}
+
+extension LoreAudioManifest {
+    static func bundled(bundle: Bundle = .main) throws -> LoreAudioManifest {
+        guard let url = bundle.url(forResource: "LoreAudioManifest", withExtension: "json") else {
+            throw LoreAudioManifestError.resourceMissing
+        }
+        let decoded = try JSONDecoder().decode(LoreAudioManifest.self, from: Data(contentsOf: url))
+        return try validated(decoded)
+    }
+
+    static func validated(_ manifest: LoreAudioManifest) throws -> LoreAudioManifest {
+        guard manifest.schemaVersion == 1 else {
+            throw LoreAudioManifestError.unsupportedSchema(manifest.schemaVersion)
+        }
+        var cueIDs = Set<String>()
+        for entry in manifest.entries {
+            guard cueIDs.insert(entry.cueID).inserted else {
+                throw LoreAudioManifestError.duplicateCueID(entry.cueID)
+            }
+            guard !entry.cueID.isEmpty, !entry.unfiltered.isEmpty, !entry.clean.isEmpty else {
+                throw LoreAudioManifestError.missingRequiredValue(entry.cueID)
+            }
+        }
+        return manifest
+    }
+
+    func assetName(cueID: String, languageMode: LoreLanguageMode) -> String? {
+        guard let entry = entries.first(where: { $0.cueID == cueID }) else { return nil }
+        return languageMode == .clean ? entry.clean : entry.unfiltered
+    }
+}
+
 @MainActor
 protocol LoreSpeechControlling: AnyObject {
     func speak(_ cue: ResolvedDialogueCue, gain: Float)

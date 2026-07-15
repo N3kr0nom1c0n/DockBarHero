@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "provider": "elevenlabs",
+  "modelID": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "speakers": {
+    "book": {"voiceName":"Branok - Evil & Villainous","voiceID":"Vs5CmVCVJwW4odQS2pVf","stability":0.34,"similarityBoost":0.82,"style":0.70,"speakerBoost":true},
+    "kevin": {"voiceName":"Cooper - Nervous, Dramatic and Timid","voiceID":"GsfuR3Wo2BACoxELWyEF","stability":0.42,"similarityBoost":0.76,"style":0.55,"speakerBoost":true},
+    "brick": {"voiceName":"Zoey - Sultry, confident, & luxury","voiceID":"ROkSP7oeR0SRS2aHJXMo","stability":0.68,"similarityBoost":0.80,"style":0.12,"speakerBoost":true},
+    "mercy": {"voiceName":"Dr. Lauren - Warm therapist","voiceID":"0G7xjh2pNSLRvJSpklE4","stability":0.58,"similarityBoost":0.80,"style":0.35,"speakerBoost":true},
+    "kaizen": {"voiceName":"Horatius - Energetic Character Voice","voiceID":"qXpMhyvQqiRxWQs4qSSB","stability":0.24,"similarityBoost":0.78,"style":0.90,"speakerBoost":true},
+    "editor": {"voiceName":"Adam - Deep, Monotone and Commanding","voiceID":"d5QgxQhvRNirnHGpRQdJ","stability":0.72,"similarityBoost":0.78,"style":0.18,"speakerBoost":true}
+  }
+}

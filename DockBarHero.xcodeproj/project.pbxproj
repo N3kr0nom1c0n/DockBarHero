@@ -114,7 +114,9 @@
 		B6FA9FD54E51510B7F9FAEA3 /* BuiltinPixelSprites.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC5266035A79A6B8511E1D8A /* BuiltinPixelSprites.swift */; };
 		BE74EFE2176EA7B6FD29234F /* SaveMigrationRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30B64AA25E17738C495E8392 /* SaveMigrationRegistry.swift */; };
 		C0435BD6F1CFAEEE8DE56D68 /* OverlayState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8586F52C6908F4FE4E5B9E0A /* OverlayState.swift */; };
+		C093666BB8C26EC198CAF10A /* LoreAudioManifestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E84D1B36966F6F6B3173722 /* LoreAudioManifestTests.swift */; };
 		C17115E975222C7D892F3016 /* volume1-level10-context-safe.png in Resources */ = {isa = PBXBuildFile; fileRef = 650F6F2482F1BCA13D22404A /* volume1-level10-context-safe.png */; };
+		C5242E33C1F2762DF5F6FEBC /* LoreAudioManifest.json in Resources */ = {isa = PBXBuildFile; fileRef = A1DB48F262722F148A815A44 /* LoreAudioManifest.json */; };
 		C62C8B02A3F0BF1FE9EE1D42 /* LootSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DE3A7CF2C6E82A95957389 /* LootSystem.swift */; };
 		C689F488793AF13327A04885 /* EncounterDirectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3FC244D744D5DDE9BDB7B8A /* EncounterDirectorTests.swift */; };
 		C6E726271E35F71BDC6681D0 /* FullscreenWindowClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = E043207E2BD7ACD2F4C89799 /* FullscreenWindowClassifier.swift */; };
@@ -148,6 +150,7 @@
 		F4F377215D16153CC7485697 /* LoreSpriteSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0102E18BEBEFB5FE34A343B4 /* LoreSpriteSheet.swift */; };
 		F5240EB9B0162973B453A8A0 /* LootGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4EA7EF1E732EFED34EB7F51 /* LootGeneratorTests.swift */; };
 		F529C11994557356A27A2ED7 /* HeroesAndPartyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA6AB80F2B66FD8B1EFEB88 /* HeroesAndPartyTests.swift */; };
+		F80B58C12984547815129571 /* LoreVoiceCast.json in Resources */ = {isa = PBXBuildFile; fileRef = 5C256DE0EA386A4903A8C37D /* LoreVoiceCast.json */; };
 		FAD293DD9AB9CB420002FB2E /* volume1-level15-context-safe.png in Resources */ = {isa = PBXBuildFile; fileRef = DA48363A2C8344E21C7E537E /* volume1-level15-context-safe.png */; };
 		FCB6F0934214BE0DB5368C09 /* SpriteCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F8651220111092B641291FE /* SpriteCatalogTests.swift */; };
 		FDAC194AE4CA4639187D16B4 /* EnvironmentMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEBB2B89631ABEA126DC445 /* EnvironmentMonitor.swift */; };
@@ -218,6 +221,8 @@
 		57A9EA78A8A709B76D4D2E9F /* SaveStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveStore.swift; sourceTree = "<group>"; };
 		5976F79B7621E01E99BC4787 /* CombatResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatResolverTests.swift; sourceTree = "<group>"; };
 		59CF8EDBDE7A94B07E6D96D2 /* BookVolumePotentiometer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookVolumePotentiometer.swift; sourceTree = "<group>"; };
+		5C256DE0EA386A4903A8C37D /* LoreVoiceCast.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LoreVoiceCast.json; sourceTree = "<group>"; };
+		5E84D1B36966F6F6B3173722 /* LoreAudioManifestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreAudioManifestTests.swift; sourceTree = "<group>"; };
 		61C6867E3AC329AA6C53A38E /* BalanceConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceConfiguration.swift; sourceTree = "<group>"; };
 		62AD3C0CF08617FD9E394840 /* volume1-level1-context-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level1-context-safe.png"; sourceTree = "<group>"; };
 		64023A3444C30EDC620CB4AC /* InventoryResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryResolverTests.swift; sourceTree = "<group>"; };
@@ -251,6 +256,7 @@
 		999EEF1DA444150B1FC0F971 /* LoreSpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreSpeechService.swift; sourceTree = "<group>"; };
 		9D35B7DD2F88FAA8D4270A84 /* LoreMangaTextOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreMangaTextOverlay.swift; sourceTree = "<group>"; };
 		9D492E14395BAA5B3F6DD4C5 /* LoreMangaLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreMangaLayoutTests.swift; sourceTree = "<group>"; };
+		A1DB48F262722F148A815A44 /* LoreAudioManifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LoreAudioManifest.json; sourceTree = "<group>"; };
 		A24B45A0A0DDAC3A23BF00F8 /* LoreContextSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreContextSheetTests.swift; sourceTree = "<group>"; };
 		A28CE908CD1CA83A15254ABB /* ClassActionCooldownTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassActionCooldownTests.swift; sourceTree = "<group>"; };
 		A2F36207173FF2A5AE9DD894 /* LoreBookLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreBookLayoutTests.swift; sourceTree = "<group>"; };
@@ -333,6 +339,14 @@
 			path = DockBarHero;
 			sourceTree = "<group>";
 		};
+		167F507F50E5E9606DA6EABE /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				A1DB48F262722F148A815A44 /* LoreAudioManifest.json */,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
 		4B18819199F6D0D0DF34CDA2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -378,6 +392,7 @@
 				E89499F4A6B78AD319292912 /* LootConfigurationTests.swift */,
 				B4EA7EF1E732EFED34EB7F51 /* LootGeneratorTests.swift */,
 				7C9EAFDD1F3654E80EF008F2 /* LootSystemTests.swift */,
+				5E84D1B36966F6F6B3173722 /* LoreAudioManifestTests.swift */,
 				A2F36207173FF2A5AE9DD894 /* LoreBookLayoutTests.swift */,
 				5799E80DDEB4CA18DAC529DF /* LoreCatalogTests.swift */,
 				A24B45A0A0DDAC3A23BF00F8 /* LoreContextSheetTests.swift */,
@@ -455,7 +470,9 @@
 			isa = PBXGroup;
 			children = (
 				6BF16D10926FAF32D7E88B5C /* LoreCatalog.json */,
+				5C256DE0EA386A4903A8C37D /* LoreVoiceCast.json */,
 				6DC1C58AE9B9DB5ADE1EB049 /* SpokenDialogue.json */,
+				167F507F50E5E9606DA6EABE /* Audio */,
 				9648E6872C456714469E6B46 /* Images */,
 			);
 			path = Resources;
@@ -679,7 +696,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C5242E33C1F2762DF5F6FEBC /* LoreAudioManifest.json in Resources */,
 				28AFF37FD651B145A307738E /* LoreCatalog.json in Resources */,
+				F80B58C12984547815129571 /* LoreVoiceCast.json in Resources */,
 				83EE8DE484A58EA043742673 /* SpokenDialogue.json in Resources */,
 				B0AB4898564049B0A2D6948D /* Sprites in Resources */,
 				63324CCDD63218404C05BB59 /* prologue-level100000-context-safe.png in Resources */,
@@ -729,6 +748,7 @@
 				52376E00D867008A03239748 /* LootConfigurationTests.swift in Sources */,
 				F5240EB9B0162973B453A8A0 /* LootGeneratorTests.swift in Sources */,
 				1597213C63418464F67B79D7 /* LootSystemTests.swift in Sources */,
+				C093666BB8C26EC198CAF10A /* LoreAudioManifestTests.swift in Sources */,
 				A843303C2F15CF6F91277FBF /* LoreBookLayoutTests.swift in Sources */,
 				B5770621EE102360E5B0C4EF /* LoreCatalogTests.swift in Sources */,
 				15EA1AF28DA0BDDDED26ACC2 /* LoreContextSheetTests.swift in Sources */,
