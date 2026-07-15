@@ -3,6 +3,15 @@ import XCTest
 @testable import DockBarHero
 
 final class LoreContextSheetTests: XCTestCase {
+    func testEveryBundledContextSheetLoadsAsSixCells() throws {
+        for page in try LoreCatalog.bundled().pages {
+            XCTAssertEqual(try LoreContextSheet.cells(named: page.composition.safeContextSheet).count, 6)
+            if let adult = page.composition.adultContextSheet {
+                XCTAssertEqual(try LoreContextSheet.cells(named: adult).count, 6)
+            }
+        }
+    }
+
     func testCellsUseRightToLeftTopThenRightToLeftBottomOrder() throws {
         XCTAssertEqual(
             try LoreContextSheet.cellRects(pixelWidth: 1536, pixelHeight: 1024),
