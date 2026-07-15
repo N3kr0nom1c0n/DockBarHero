@@ -1,4 +1,95 @@
 {
   "schemaVersion": 1,
-  "entries": []
+  "entries": [
+    {
+      "cueID": "prologue.book.wrong-way",
+      "unfiltered": "prologue.book.wrong-way.unfiltered.book.b144c6217086.mp3",
+      "clean": "prologue.book.wrong-way.clean.book.9d29aebb5c44.mp3"
+    },
+    {
+      "cueID": "prologue.book.arrow-denial",
+      "unfiltered": "prologue.book.arrow-denial.unfiltered.book.f03fa38da54b.mp3",
+      "clean": "prologue.book.arrow-denial.unfiltered.book.f03fa38da54b.mp3"
+    },
+    {
+      "cueID": "book.level1.summary",
+      "unfiltered": "book.level1.summary.unfiltered.book.811c7114df16.mp3",
+      "clean": "book.level1.summary.unfiltered.book.811c7114df16.mp3"
+    },
+    {
+      "cueID": "kevin.not-kevin",
+      "unfiltered": "kevin.not-kevin.unfiltered.kevin.dda702362141.mp3",
+      "clean": "kevin.not-kevin.clean.kevin.c39fd46400b8.mp3"
+    },
+    {
+      "cueID": "book.level5.summary",
+      "unfiltered": "book.level5.summary.unfiltered.book.9f5a189e2551.mp3",
+      "clean": "book.level5.summary.unfiltered.book.9f5a189e2551.mp3"
+    },
+    {
+      "cueID": "kevin.supervisor",
+      "unfiltered": "kevin.supervisor.unfiltered.kevin.488a92b7d5b7.mp3",
+      "clean": "kevin.supervisor.unfiltered.kevin.488a92b7d5b7.mp3"
+    },
+    {
+      "cueID": "book.level10.summary",
+      "unfiltered": "book.level10.summary.unfiltered.book.9f79f478f610.mp3",
+      "clean": "book.level10.summary.unfiltered.book.9f79f478f610.mp3"
+    },
+    {
+      "cueID": "book.level15.summary",
+      "unfiltered": "book.level15.summary.unfiltered.book.313c0f0f4904.mp3",
+      "clean": "book.level15.summary.unfiltered.book.313c0f0f4904.mp3"
+    },
+    {
+      "cueID": "brick.policy-warning",
+      "unfiltered": "brick.policy-warning.unfiltered.brick.89ce06eed9fb.mp3",
+      "clean": "brick.policy-warning.unfiltered.brick.89ce06eed9fb.mp3"
+    },
+    {
+      "cueID": "book.level20.summary",
+      "unfiltered": "book.level20.summary.unfiltered.book.b649b7fba7cb.mp3",
+      "clean": "book.level20.summary.unfiltered.book.b649b7fba7cb.mp3"
+    },
+    {
+      "cueID": "mercy.therapy-referral",
+      "unfiltered": "mercy.therapy-referral.unfiltered.mercy.b1bbafb60fbb.mp3",
+      "clean": "mercy.therapy-referral.clean.mercy.23f21a7044a2.mp3"
+    },
+    {
+      "cueID": "interaction.open",
+      "unfiltered": "interaction.open.unfiltered.book.2e68ea8c7047.mp3",
+      "clean": "interaction.open.unfiltered.book.2e68ea8c7047.mp3"
+    },
+    {
+      "cueID": "interaction.close",
+      "unfiltered": "interaction.close.unfiltered.book.0d8e1dcb912a.mp3",
+      "clean": "interaction.close.clean.book.36aa8439b01d.mp3"
+    },
+    {
+      "cueID": "interaction.sound-enabled",
+      "unfiltered": "interaction.sound-enabled.unfiltered.book.3a0477f8ffd5.mp3",
+      "clean": "interaction.sound-enabled.unfiltered.book.3a0477f8ffd5.mp3"
+    },
+    {
+      "cueID": "interaction.locked-page",
+      "unfiltered": "interaction.locked-page.unfiltered.book.3b60a0c99db5.mp3",
+      "clean": "interaction.locked-page.unfiltered.book.3b60a0c99db5.mp3"
+    },
+    {
+      "cueID": "interaction.volume.giggle-01",
+      "unfiltered": "interaction.volume.giggle-01.unfiltered.book.708454aa097a.mp3",
+      "clean": "interaction.volume.giggle-01.unfiltered.book.708454aa097a.mp3"
+    },
+    {
+      "cueID": "interaction.volume.giggle-02",
+      "unfiltered": "interaction.volume.giggle-02.unfiltered.book.464736107702.mp3",
+      "clean": "interaction.volume.giggle-02.unfiltered.book.464736107702.mp3"
+    },
+    {
+      "cueID": "interaction.volume.giggle-03",
+      "unfiltered": "interaction.volume.giggle-03.unfiltered.book.dbff20844270.mp3",
+      "clean": "interaction.volume.giggle-03.unfiltered.book.dbff20844270.mp3"
+    }
+  ]
 }
