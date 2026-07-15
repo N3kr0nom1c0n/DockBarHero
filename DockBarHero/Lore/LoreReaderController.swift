@@ -38,7 +38,7 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
     private let dialogue: SpokenDialogueCatalog
     private let speech: LoreSpeechControlling
     private var settings = AppSettings.defaults
-    private var applicationIsActive = true
+    private var applicationIsActive = false
     private var cueIndex = 0
     private var giggleIndex = 0
     private let giggles = ["Heh.", "Hehehehe.", "Oh ho ho."]
@@ -75,6 +75,7 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
 
     func applicationBecameActive() {
         applicationIsActive = true
+        autoReadCurrentPageIfNeeded()
     }
 
     func applicationBecameInactive() {

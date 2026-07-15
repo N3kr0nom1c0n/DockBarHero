@@ -114,7 +114,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             loreCatalog = loadedLore
             let loreSpeech: LoreSpeechControlling
             do {
-                loreSpeech = try RecordedLoreSpeechService(bundle: .main)
+                loreSpeech = try RecordedLoreSpeechService(bundle: .main, dialogue: dialogue)
             } catch {
                 loreSpeech = SystemLoreSpeechService()
             }

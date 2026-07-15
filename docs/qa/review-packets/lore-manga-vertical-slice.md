@@ -4,7 +4,7 @@
 
 **Branch:** `codex/recorded-lore-voiceover`
 
-**Candidate commit tested:** recorded-lore-voiceover branch HEAD, including recorded MP3 bundle validation and system-speech fallback for an incomplete or unreadable recorded asset set.
+**Candidate commit tested:** recorded-lore-voiceover branch HEAD, including recorded MP3 bundle validation, dialogue-catalog coverage validation, inactive-startup silence, and system-speech fallback for an incomplete, mismatched, or unreadable recorded asset set.
 
 **Scope:** dishonest Level 100,000 prologue plus Volume I pages unlocked at Levels 1, 5, 10, 15, and 20. Boss 25 remains intentionally out of scope until Heroes and Party defines the cast.
 
@@ -13,7 +13,7 @@
 - Right-to-left manga reader in the management window with responsive spread/single-page layout.
 - Six validated lore pages with unfiltered/clean copy and frontier-completion unlock rules.
 - Separate validated `SpokenDialogue.json` with Book, Brick, Kaizen, Mercy, Kevin, and Editor voice profiles.
-- Opt-in AVSpeechSynthesizer dialogue that is gated to an open, active Book and stops on close/deactivation.
+- Opt-in recorded ElevenLabs dialogue that is bundled in-app, gated to an open and active Book, and stops on close/deactivation; AVSpeechSynthesizer remains the launch-safe fallback when recorded assets fail validation.
 - Reversed 0...10 Book potentiometer: 0 is loudest, 10 is quietest, accessible value is honest, and movement triggers rotating Book giggles.
 - Settings-v2 migration, clean/unfiltered language, safe/adult illustrations, speech opt-in, auto-read toggle, and adult-art confirmation.
 - Seven final 1024x1024 four-frame manga sheets. The adult alternate is a deliberately unnecessary pixel-censor gag over a fully clothed adult character because two non-explicit generation attempts were safety-blocked.
@@ -23,11 +23,11 @@
 | Check | Result |
 |---|---|
 | Focused launch/window regressions | PASS (2026-07-14): 2 tests, 0 failures, after confirmed compile-failing red runs |
-| Full combined `DockBarHeroTests` suite | PASS (2026-07-14): 400 tests, 0 failures (`** TEST SUCCEEDED **`) |
+| Full combined `DockBarHeroTests` suite | PASS (2026-07-14): 429 tests, 0 failures (`** TEST SUCCEEDED **`) |
 | Sprite-pipeline Python suite | PASS (2026-07-14): 15 tests, 0 failures |
 | Every catalog image loads and crops | PASS: 7 sheets, 28 frames |
 | Mechanical image dimensions | PASS: all seven are 1024x1024 |
-| Clean unsigned Apple Silicon build | PASS (2026-07-14): `** BUILD SUCCEEDED **` |
+| Clean unsigned Apple Silicon build | PASS (2026-07-14): `** BUILD SUCCEEDED **`, with recorded MP3 resources copied into the app bundle |
 | Exact combined launch | PASS (2026-07-14): one process, PID 39103, exact worktree bundle with `--open-book` |
 | Runtime management-window frame | PASS (2026-07-14): 1100x752 outer frame after SwiftUI sizing repair |
 | `git diff --check` | PASS after conflict resolution and before the integration commit |
@@ -37,7 +37,8 @@
 - Voice provider: ElevenLabs offline generation only; no runtime network dependency.
 - Cast: Book Branok, Kevin Cooper, Brick Zoey, Mercy Dr. Lauren, Kaizen Horatius, Editor Adam.
 - Generated asset manifest: `DockBarHero/Lore/Resources/Audio/LoreAudioManifest.json`.
-- Automated checks: focused lore suite and full `DockBarHeroTests` suite are re-run for the recorded-lore-voiceover final-review repair; fresh results are captured in the branch task report.
+- Automated checks: focused `LoreReaderControllerTests` and `LoreAudioManifestTests` pass with 14 tests and 0 failures; full `DockBarHeroTests` suite passes with 429 tests and 0 failures.
+- Bundle checks: `RecordedLoreSpeechService` validates every manifest MP3 is present/readable, exact manifest coverage for every dialogue cue, and distinct clean/unfiltered assets whenever clean text differs.
 - Live audio QA: unchecked; build-and-run verification launched the app, but no inspectable manual audio session was available to verify cast distinction, detents 0/5/10, or immediate stop on window close.
 
 ## Visual Asset Inspection

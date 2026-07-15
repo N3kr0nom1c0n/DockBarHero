@@ -16,6 +16,9 @@ enum LoreAudioManifestError: Error, Equatable {
     case unsupportedSchema(Int)
     case duplicateCueID(String)
     case missingRequiredValue(String)
+    case missingCueID(String)
+    case unexpectedCueID(String)
+    case cleanVariantRequiresDistinctAsset(String)
     case audioResourceUnreadable(String)
 }
 
@@ -61,6 +64,23 @@ extension LoreAudioManifest {
                 _ = try AVAudioPlayer(contentsOf: url)
             } catch {
                 throw LoreAudioManifestError.audioResourceUnreadable(assetName)
+            }
+        }
+    }
+
+    func validateCoverage(for dialogue: SpokenDialogueCatalog) throws {
+        let expectedCueIDs = Set(dialogue.cues.map(\.id))
+        let manifestCueIDs = Set(entries.map(\.cueID))
+        for cueID in expectedCueIDs.subtracting(manifestCueIDs).sorted() {
+            throw LoreAudioManifestError.missingCueID(cueID)
+        }
+        for cueID in manifestCueIDs.subtracting(expectedCueIDs).sorted() {
+            throw LoreAudioManifestError.unexpectedCueID(cueID)
+        }
+        let entriesByCueID = Dictionary(uniqueKeysWithValues: entries.map { ($0.cueID, $0) })
+        for cue in dialogue.cues where cue.clean != cue.unfiltered {
+            guard let entry = entriesByCueID[cue.id], entry.clean != entry.unfiltered else {
+                throw LoreAudioManifestError.cleanVariantRequiresDistinctAsset(cue.id)
             }
         }
     }
@@ -123,8 +143,9 @@ final class RecordedLoreSpeechService: LoreSpeechControlling {
         self.previewPlayer = previewPlayer
     }
 
-    convenience init(bundle: Bundle = .main) throws {
+    convenience init(bundle: Bundle = .main, dialogue: SpokenDialogueCatalog) throws {
         let manifest = try LoreAudioManifest.bundled(bundle: bundle)
+        try manifest.validateCoverage(for: dialogue)
         try manifest.validateAudioResources(in: bundle)
         try self.init(
             manifest: manifest,

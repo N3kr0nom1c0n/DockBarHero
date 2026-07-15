@@ -15,6 +15,7 @@ final class LoreReaderControllerTests: XCTestCase {
         let speech = LoreSpeechFake()
         let controller = try makeController(speech: speech)
         controller.update(settings: .spokenFixture, pages: [.fixture])
+        controller.applicationBecameActive()
         controller.open()
         controller.replay()
         controller.close()
@@ -27,6 +28,7 @@ final class LoreReaderControllerTests: XCTestCase {
         let speech = LoreSpeechFake()
         let controller = try makeController(speech: speech)
         controller.update(settings: .spokenFixture, pages: [.fixture])
+        controller.applicationBecameActive()
         controller.open()
         controller.previewVolume(detent: 0)
         controller.previewVolume(detent: 10)
@@ -38,6 +40,7 @@ final class LoreReaderControllerTests: XCTestCase {
         let speech = LoreSpeechFake()
         let controller = try makeController(speech: speech)
         controller.update(settings: .spokenFixture, pages: [.fixture])
+        controller.applicationBecameActive()
         controller.open()
         let countBeforeInactiveReplay = speech.spoken.count
         controller.applicationBecameInactive()
@@ -64,11 +67,30 @@ final class LoreReaderControllerTests: XCTestCase {
         controller.onAutoReadPage = { recorded.append($0) }
         controller.update(settings: .spokenFixture, pages: [.fixture])
 
+        controller.applicationBecameActive()
         controller.open()
         controller.close()
         controller.open()
 
         XCTAssertEqual(speech.spoken.count, 1)
+        XCTAssertEqual(recorded.map(\.rawValue), ["test"])
+    }
+
+    func testOpeningBeforeApplicationIsActiveDefersAutoReadUntilActivation() throws {
+        let speech = LoreSpeechFake()
+        let controller = try makeController(speech: speech)
+        var recorded: [LorePageID] = []
+        controller.onAutoReadPage = { recorded.append($0) }
+        controller.update(settings: .spokenFixture, pages: [.fixture])
+
+        controller.open()
+
+        XCTAssertTrue(speech.spoken.isEmpty)
+        XCTAssertTrue(recorded.isEmpty)
+
+        controller.applicationBecameActive()
+
+        XCTAssertEqual(speech.spoken.map(\.id), ["book.test"])
         XCTAssertEqual(recorded.map(\.rawValue), ["test"])
     }
 }
