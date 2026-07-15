@@ -4,7 +4,7 @@
 
 **Branch:** `codex/recorded-lore-voiceover`
 
-**Candidate commit tested:** `e03cbac`, including recorded MP3 bundle validation, dialogue-catalog coverage validation, inactive-startup silence, async state-load auto-read retry, and system-speech fallback for an incomplete, mismatched, or unreadable recorded asset set.
+**Candidate runtime commit tested:** `9adee66`, including recorded MP3 bundle validation, dialogue-catalog coverage validation, inactive-startup silence, async state-load auto-read retry, and system-speech fallback for an incomplete, mismatched, or unreadable recorded asset set. Later HEAD changes are QA-evidence text only.
 
 **Scope:** dishonest Level 100,000 prologue plus Volume I pages unlocked at Levels 1, 5, 10, 15, and 20. Boss 25 remains intentionally out of scope until Heroes and Party defines the cast.
 
