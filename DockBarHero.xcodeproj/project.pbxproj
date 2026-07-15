@@ -10,13 +10,17 @@
 		05BDBBF661A5FADBC4A6B7F7 /* LoreSpriteSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2779D0835773C2A7ACBED9B2 /* LoreSpriteSheetTests.swift */; };
 		0694E01EE15762FF6CA99745 /* LoreBookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB39E0FB32961E18A2C1F88 /* LoreBookView.swift */; };
 		09DA7A67846C039CDED079FE /* SaveMigrationRegistryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65C97EC8232A20141D45BB9 /* SaveMigrationRegistryTests.swift */; };
+		0BAE28565172D110E164B898 /* interaction.open.unfiltered.book.2e68ea8c7047.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 8FA622F8DB1292BCD0A60A93 /* interaction.open.unfiltered.book.2e68ea8c7047.mp3 */; };
 		0C45CAB4AEB12121259E293A /* SaveStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF357C4A8AD1952FDF98EA0D /* SaveStoreTests.swift */; };
 		0C72AC77E83566C8E0DA02E0 /* RewardResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E15F15F2B4568EC8B2B4D0F1 /* RewardResolverTests.swift */; };
 		0D8352F4EF268E26358CE414 /* InventoryResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41CEAD8EA63F8550701A8C4A /* InventoryResolver.swift */; };
+		0F3B91B8A0364A9E984376AF /* mercy.therapy-referral.unfiltered.mercy.b1bbafb60fbb.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D870254367D26B339B096806 /* mercy.therapy-referral.unfiltered.mercy.b1bbafb60fbb.mp3 */; };
 		124A28A03BF458D41236DC97 /* CombatResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E36F2AB49907D4D959AB5A2D /* CombatResolver.swift */; };
+		1308D7C3EA8532E5E485B854 /* prologue.book.wrong-way.clean.book.9d29aebb5c44.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 95DC610ACD9024F55DF59385 /* prologue.book.wrong-way.clean.book.9d29aebb5c44.mp3 */; };
 		132307DC4D44E92A071D99C3 /* LoreSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422411824C8B72B1D0860190 /* LoreSettingsSection.swift */; };
 		1597213C63418464F67B79D7 /* LootSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C9EAFDD1F3654E80EF008F2 /* LootSystemTests.swift */; };
 		15EA1AF28DA0BDDDED26ACC2 /* LoreContextSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24B45A0A0DDAC3A23BF00F8 /* LoreContextSheetTests.swift */; };
+		15EFD5D339986A026B6054C0 /* interaction.volume.giggle-02.unfiltered.book.464736107702.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 728995EAF6C49D3233B315DA /* interaction.volume.giggle-02.unfiltered.book.464736107702.mp3 */; };
 		198546C7FB44F567A4AE3727 /* PixelSpriteDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED225C09286EACC435FC3A1C /* PixelSpriteDefinition.swift */; };
 		1A2D23F1C1E4064021DC8911 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B90A438265DB89B7E94E759 /* SettingsView.swift */; };
 		1AAFD4151665282A44585C20 /* SimulationDuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F7A6E0E3DB63AA1E34C635B /* SimulationDuration.swift */; };
@@ -24,7 +28,9 @@
 		1B18384FF55C019FF0EA1632 /* ItemScoreResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA1D83DF972E1E002E939F6B /* ItemScoreResolver.swift */; };
 		1B624E5F3398AD5F9FD48707 /* LorePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6343507187CF69D47ABD31F /* LorePageView.swift */; };
 		1E047E3D81737630D87DEDF0 /* SaveCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4701E932AD87DBAB46323F9A /* SaveCoordinatorTests.swift */; };
+		20AD7AF68809231D8799A204 /* kevin.not-kevin.clean.kevin.c39fd46400b8.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 2F7DDA59166A89F0CEC7D4AE /* kevin.not-kevin.clean.kevin.c39fd46400b8.mp3 */; };
 		21D79BC28FD1B426B245BDDB /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07DDCF7DBA016A9D2B399E07 /* AppLog.swift */; };
+		21E7664538A51BE8A6FF3C60 /* book.level15.summary.unfiltered.book.313c0f0f4904.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 16D0411001CCAC52A5113856 /* book.level15.summary.unfiltered.book.313c0f0f4904.mp3 */; };
 		21EAF01946769CAC496CFAF1 /* ClassActionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42F93803E89C78A96E257853 /* ClassActionsView.swift */; };
 		24AD24825B1F664054AB63D5 /* SpokenDialogueCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44ADEBD46ABA5F66B87B50F2 /* SpokenDialogueCatalogTests.swift */; };
 		27962BF6A9CAABFFB4E0A486 /* volume1-level20-safe.png in Resources */ = {isa = PBXBuildFile; fileRef = 84F6FA499E6AE2993911B18F /* volume1-level20-safe.png */; };
@@ -36,7 +42,9 @@
 		2F7453ED494FDA644BFA43F3 /* PrototypeSceneHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8306A34DA2F75CFA6E21A0B /* PrototypeSceneHost.swift */; };
 		30042DDB93F9720D2380F412 /* OverlayWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B83DA476844707F0BE3DB96 /* OverlayWindowController.swift */; };
 		31439E31FCD667ACC815DF57 /* OverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06912AA3A46E473DF25D9BBF /* OverviewView.swift */; };
+		325969E778C68F3F06BEEBBF /* kevin.not-kevin.unfiltered.kevin.dda702362141.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 8C0923108FA51CEEA927E59D /* kevin.not-kevin.unfiltered.kevin.dda702362141.mp3 */; };
 		33154951F0E79044E3813540 /* SettingsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D5A484FB89F5C8147E2CAA /* SettingsStoreTests.swift */; };
+		33E207423AE041D20B4582E9 /* interaction.volume.giggle-01.unfiltered.book.708454aa097a.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1DF228D719752AC7B68A9DF1 /* interaction.volume.giggle-01.unfiltered.book.708454aa097a.mp3 */; };
 		34532C2821BE5596F82DB0B8 /* ClassActionsViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B935A6631F3D55BDACEDE3A /* ClassActionsViewTests.swift */; };
 		37C31EFE34DA0B5FD610A268 /* ProgressionConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7AF396794E525A68FB81CE8 /* ProgressionConfiguration.swift */; };
 		3A542757650903BEA6A4ED63 /* ManagementRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED2CF71E3855222237A52A24 /* ManagementRoute.swift */; };
@@ -57,8 +65,10 @@
 		4C74E7C46D369DE0FE0ECE7C /* FullscreenWindowClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D23D28184BD8A05F30D6359 /* FullscreenWindowClassifierTests.swift */; };
 		4CCFDC1FE8F1137185519C86 /* EncounterDirector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A932E76C21E80B473A1597E0 /* EncounterDirector.swift */; };
 		4DCB4DA74CE77792B358EF89 /* InventoryConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F80EFDBAE5BD492DF775661F /* InventoryConfiguration.swift */; };
+		4EEB0DA6E5A981A907E96667 /* book.level5.summary.unfiltered.book.9f5a189e2551.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 0EAADE42554D7AA2AC4A49DA /* book.level5.summary.unfiltered.book.9f5a189e2551.mp3 */; };
 		50D611A9B73A82EC3938F28D /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DFB967DB50E4309E608F612 /* AppModel.swift */; };
 		511377801E6211ED3D87D812 /* SaveCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42278A046B943F22DAEF4580 /* SaveCoordinator.swift */; };
+		5155BCDB2ED582B627B331F2 /* interaction.close.clean.book.36aa8439b01d.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 7A575D1D65CF7B16BE4C4A5B /* interaction.close.clean.book.36aa8439b01d.mp3 */; };
 		52376E00D867008A03239748 /* LootConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E89499F4A6B78AD319292912 /* LootConfigurationTests.swift */; };
 		58C59AE150E92C51EE7C7EEA /* volume1-level15-safe.png in Resources */ = {isa = PBXBuildFile; fileRef = 13C7ADF9B01D281FFB1D9E61 /* volume1-level15-safe.png */; };
 		59B3D179D74276F495F2C346 /* RewardResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46EC0A023F1BDE7B989940D1 /* RewardResolver.swift */; };
@@ -67,11 +77,15 @@
 		5F742D47E8DC4246E38A43E3 /* GameSimulationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E4509B61BEEFA0FF1C5FE4 /* GameSimulationTests.swift */; };
 		6201316CE93A767628A3D782 /* SimulationDriverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87C1B7D532091DA5C524FDC4 /* SimulationDriverTests.swift */; };
 		63324CCDD63218404C05BB59 /* prologue-level100000-context-safe.png in Resources */ = {isa = PBXBuildFile; fileRef = 1CFFF7B90D84F5017584AA00 /* prologue-level100000-context-safe.png */; };
+		64D9273AACD5E161626E504B /* mercy.therapy-referral.clean.mercy.23f21a7044a2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D8BD6E67CB7FF0C4D893087D /* mercy.therapy-referral.clean.mercy.23f21a7044a2.mp3 */; };
 		66D79C83C8FEC1C00BCF16F4 /* LoreProgressResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69974EDD211C54A56DFAEA29 /* LoreProgressResolver.swift */; };
 		69BA3424D743C50C2B50D40C /* SaveDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41781EC2DFD16E39F990371 /* SaveDocumentTests.swift */; };
 		6A2F99B10DBA2312243220D4 /* LoreMangaLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D492E14395BAA5B3F6DD4C5 /* LoreMangaLayoutTests.swift */; };
+		6BF10CD57D17FE2D954DDF36 /* interaction.sound-enabled.unfiltered.book.3a0477f8ffd5.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 2B2D0B8CD5BBE4B8C9DF39E9 /* interaction.sound-enabled.unfiltered.book.3a0477f8ffd5.mp3 */; };
 		6CAB3CCC1B8160B05C74318F /* EncounterSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE4C396608E15CDFE23EC464 /* EncounterSchedule.swift */; };
+		7012535CCC02FEBE78A42E40 /* kevin.supervisor.unfiltered.kevin.488a92b7d5b7.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 825CB0DFC0762CBC90FFFD1B /* kevin.supervisor.unfiltered.kevin.488a92b7d5b7.mp3 */; };
 		74E681D5A9C8CFE10F98D103 /* LoreMangaTextOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D35B7DD2F88FAA8D4270A84 /* LoreMangaTextOverlay.swift */; };
+		768B04E381B99BF0247CA6B6 /* prologue.book.wrong-way.unfiltered.book.b144c6217086.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = FA682B2AFC71815604452A3C /* prologue.book.wrong-way.unfiltered.book.b144c6217086.mp3 */; };
 		778E1BF16B6F1D17E10BB18C /* volume1-level5-safe.png in Resources */ = {isa = PBXBuildFile; fileRef = 99643AE7B1875E68D893EC37 /* volume1-level5-safe.png */; };
 		78C299D366031B1BC4DF5F8B /* InventoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C358270A44F43A95C3131E0C /* InventoryView.swift */; };
 		78CC9D1FFD4DD6B01B6DC529 /* SaveStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57A9EA78A8A709B76D4D2E9F /* SaveStore.swift */; };
@@ -85,7 +99,9 @@
 		83C736E2594D0C6CF631648B /* LoreCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C86A376C9311B9A96931763 /* LoreCatalog.swift */; };
 		83EE8DE484A58EA043742673 /* SpokenDialogue.json in Resources */ = {isa = PBXBuildFile; fileRef = 6DC1C58AE9B9DB5ADE1EB049 /* SpokenDialogue.json */; };
 		8674F689C5F772CB5950B8A1 /* DockBarHeroApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E17FEA9F1C03CFF1875E99D /* DockBarHeroApp.swift */; };
+		888F4B6139565D40A3C2AAE1 /* book.level10.summary.unfiltered.book.9f79f478f610.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = C5D25822BAAFE098CCB6137B /* book.level10.summary.unfiltered.book.9f79f478f610.mp3 */; };
 		892938F9B2EAB86273C6507D /* PartyUnlockResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7F34075827F8BA826D583DC /* PartyUnlockResolver.swift */; };
+		89F07A602FF1360921A151A4 /* book.level20.summary.unfiltered.book.b649b7fba7cb.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BB42D25B7BC0172F5B1B8759 /* book.level20.summary.unfiltered.book.b649b7fba7cb.mp3 */; };
 		8D5F1A9C4F5DC0743CD1D534 /* EncounterScheduleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E77E891B1F9FE294748A196 /* EncounterScheduleTests.swift */; };
 		9159513DF5DB84877698F6F7 /* volume1-level20-adult.png in Resources */ = {isa = PBXBuildFile; fileRef = DAF33A1BDC14AB2DA81613EA /* volume1-level20-adult.png */; };
 		91B2505FE7F5AC43E2E34B9E /* BalanceConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C6867E3AC329AA6C53A38E /* BalanceConfiguration.swift */; };
@@ -105,8 +121,10 @@
 		A4F0A3576D6CC0AF29F4AF64 /* ProgressionSafetyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94FFC10A209C79F066CF303D /* ProgressionSafetyTests.swift */; };
 		A813391F292B9A20FA6D441C /* LootConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02556B86325CF3511A6B921C /* LootConfiguration.swift */; };
 		A843303C2F15CF6F91277FBF /* LoreBookLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2F36207173FF2A5AE9DD894 /* LoreBookLayoutTests.swift */; };
+		AB62E604234BF9F9A52BBD84 /* interaction.volume.giggle-03.unfiltered.book.dbff20844270.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 28F9D3CE20AF714377FFA1E8 /* interaction.volume.giggle-03.unfiltered.book.dbff20844270.mp3 */; };
 		AD5E43CA462AEAC55F3C6389 /* OverlayPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697D836989C5878F5D1E9937 /* OverlayPlacementTests.swift */; };
 		AF9896646F223301E5123E54 /* OverlayWindowControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C11309CD62DDBF6F14591880 /* OverlayWindowControllerTests.swift */; };
+		B05858424A3F25128A2038C4 /* interaction.close.unfiltered.book.0d8e1dcb912a.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 68EF3F5492AC896E0AEC513B /* interaction.close.unfiltered.book.0d8e1dcb912a.mp3 */; };
 		B0AB4898564049B0A2D6948D /* Sprites in Resources */ = {isa = PBXBuildFile; fileRef = B11A5D1A69A05648BB222545 /* Sprites */; };
 		B1F70CA677EE4E3ACBA45C0D /* LoreProgressResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02118DC5C64C058B2733253 /* LoreProgressResolverTests.swift */; };
 		B5770621EE102360E5B0C4EF /* LoreCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5799E80DDEB4CA18DAC529DF /* LoreCatalogTests.swift */; };
@@ -120,10 +138,12 @@
 		C62C8B02A3F0BF1FE9EE1D42 /* LootSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DE3A7CF2C6E82A95957389 /* LootSystem.swift */; };
 		C689F488793AF13327A04885 /* EncounterDirectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3FC244D744D5DDE9BDB7B8A /* EncounterDirectorTests.swift */; };
 		C6E726271E35F71BDC6681D0 /* FullscreenWindowClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = E043207E2BD7ACD2F4C89799 /* FullscreenWindowClassifier.swift */; };
+		C8315C0C1716CC44311AFF0C /* brick.policy-warning.unfiltered.brick.89ce06eed9fb.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = EAC2FA699A951EF09E1CCD21 /* brick.policy-warning.unfiltered.brick.89ce06eed9fb.mp3 */; };
 		C911B43D7840AB181E57ABD3 /* InventoryResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64023A3444C30EDC620CB4AC /* InventoryResolverTests.swift */; };
 		C91F0432A5D1E2720874A0DC /* BookReactionBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE374EF6BEA01AE559052260 /* BookReactionBubble.swift */; };
 		CBABFAEFA23FEFB1A073C6B4 /* ClassActionConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD842A41CC4EA805761CD275 /* ClassActionConfiguration.swift */; };
 		CC5249441D0267288AAF4690 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A704FA474D0443A40224B764 /* SettingsStore.swift */; };
+		CE4B7F3916BE925C4143FBF2 /* book.level1.summary.unfiltered.book.811c7114df16.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 859CF267FF87FDEEC3AEB090 /* book.level1.summary.unfiltered.book.811c7114df16.mp3 */; };
 		CEDF2A499DB305DF5ACF02C9 /* SettingsSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F1ACAF83DE0C417D08CC08E /* SettingsSessionTests.swift */; };
 		D12F51121C8BCBAB20F16BE5 /* EnvironmentMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47C35A975941EEBB55C9FF53 /* EnvironmentMonitorTests.swift */; };
 		D4513337D26E2073DD1F2E53 /* LoreMangaPanelShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A6B29567BADF5C6DF4D023 /* LoreMangaPanelShape.swift */; };
@@ -150,6 +170,8 @@
 		F4F377215D16153CC7485697 /* LoreSpriteSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0102E18BEBEFB5FE34A343B4 /* LoreSpriteSheet.swift */; };
 		F5240EB9B0162973B453A8A0 /* LootGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4EA7EF1E732EFED34EB7F51 /* LootGeneratorTests.swift */; };
 		F529C11994557356A27A2ED7 /* HeroesAndPartyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA6AB80F2B66FD8B1EFEB88 /* HeroesAndPartyTests.swift */; };
+		F696B7A90E6A3A1DE8C699DB /* prologue.book.arrow-denial.unfiltered.book.f03fa38da54b.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1E146A954FE2F7CECAB68690 /* prologue.book.arrow-denial.unfiltered.book.f03fa38da54b.mp3 */; };
+		F7275D53D3E222DCC53A44CE /* interaction.locked-page.unfiltered.book.3b60a0c99db5.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = FB9FFD68930E159E5D9A05D2 /* interaction.locked-page.unfiltered.book.3b60a0c99db5.mp3 */; };
 		F80B58C12984547815129571 /* LoreVoiceCast.json in Resources */ = {isa = PBXBuildFile; fileRef = 5C256DE0EA386A4903A8C37D /* LoreVoiceCast.json */; };
 		FAD293DD9AB9CB420002FB2E /* volume1-level15-context-safe.png in Resources */ = {isa = PBXBuildFile; fileRef = DA48363A2C8344E21C7E537E /* volume1-level15-context-safe.png */; };
 		FCB6F0934214BE0DB5368C09 /* SpriteCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F8651220111092B641291FE /* SpriteCatalogTests.swift */; };
@@ -178,22 +200,29 @@
 		09B0D6467D17B4571A532EDA /* AppSettingsMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsMigrationTests.swift; sourceTree = "<group>"; };
 		0C762FC5F958964C3E15116B /* BookVolumePotentiometerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookVolumePotentiometerTests.swift; sourceTree = "<group>"; };
 		0E17FEA9F1C03CFF1875E99D /* DockBarHeroApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockBarHeroApp.swift; sourceTree = "<group>"; };
+		0EAADE42554D7AA2AC4A49DA /* book.level5.summary.unfiltered.book.9f5a189e2551.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = book.level5.summary.unfiltered.book.9f5a189e2551.mp3; sourceTree = "<group>"; };
 		0FBD88BD9A5FB4043963A4AB /* OverlayStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayStateTests.swift; sourceTree = "<group>"; };
 		13C7ADF9B01D281FFB1D9E61 /* volume1-level15-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level15-safe.png"; sourceTree = "<group>"; };
+		16D0411001CCAC52A5113856 /* book.level15.summary.unfiltered.book.313c0f0f4904.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = book.level15.summary.unfiltered.book.313c0f0f4904.mp3; sourceTree = "<group>"; };
 		19DCA1BD64EDDBC8E7EF627F /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		1B935A6631F3D55BDACEDE3A /* ClassActionsViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassActionsViewTests.swift; sourceTree = "<group>"; };
 		1C45D88CDFE5A712AE6004EE /* GameSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSessionTests.swift; sourceTree = "<group>"; };
 		1CFFF7B90D84F5017584AA00 /* prologue-level100000-context-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "prologue-level100000-context-safe.png"; sourceTree = "<group>"; };
 		1D178D9EE6432C216DC89FED /* volume1-level1-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level1-safe.png"; sourceTree = "<group>"; };
+		1DF228D719752AC7B68A9DF1 /* interaction.volume.giggle-01.unfiltered.book.708454aa097a.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "interaction.volume.giggle-01.unfiltered.book.708454aa097a.mp3"; sourceTree = "<group>"; };
+		1E146A954FE2F7CECAB68690 /* prologue.book.arrow-denial.unfiltered.book.f03fa38da54b.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "prologue.book.arrow-denial.unfiltered.book.f03fa38da54b.mp3"; sourceTree = "<group>"; };
 		1E4B92627EE6A337F1D4D4E8 /* DockBarHeroTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DockBarHeroTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1F7A6E0E3DB63AA1E34C635B /* SimulationDuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationDuration.swift; sourceTree = "<group>"; };
 		2307BDF142D241BE51EE8EA4 /* LoreReaderControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreReaderControllerTests.swift; sourceTree = "<group>"; };
 		25A8CCEBA359DCE30C12AD27 /* MenuBarContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarContent.swift; sourceTree = "<group>"; };
 		2779D0835773C2A7ACBED9B2 /* LoreSpriteSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreSpriteSheetTests.swift; sourceTree = "<group>"; };
+		28F9D3CE20AF714377FFA1E8 /* interaction.volume.giggle-03.unfiltered.book.dbff20844270.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "interaction.volume.giggle-03.unfiltered.book.dbff20844270.mp3"; sourceTree = "<group>"; };
 		2AB7D136BBF90CD4B9E32F03 /* EnemySpriteResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemySpriteResolverTests.swift; sourceTree = "<group>"; };
+		2B2D0B8CD5BBE4B8C9DF39E9 /* interaction.sound-enabled.unfiltered.book.3a0477f8ffd5.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "interaction.sound-enabled.unfiltered.book.3a0477f8ffd5.mp3"; sourceTree = "<group>"; };
 		2B83DA476844707F0BE3DB96 /* OverlayWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowController.swift; sourceTree = "<group>"; };
 		2D253BB0C40215356823845B /* volume1-level10-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level10-safe.png"; sourceTree = "<group>"; };
 		2DD84DF83A09A54CE9034537 /* LoreBookLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreBookLayout.swift; sourceTree = "<group>"; };
+		2F7DDA59166A89F0CEC7D4AE /* kevin.not-kevin.clean.kevin.c39fd46400b8.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "kevin.not-kevin.clean.kevin.c39fd46400b8.mp3"; sourceTree = "<group>"; };
 		30B64AA25E17738C495E8392 /* SaveMigrationRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveMigrationRegistry.swift; sourceTree = "<group>"; };
 		36E4509B61BEEFA0FF1C5FE4 /* GameSimulationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSimulationTests.swift; sourceTree = "<group>"; };
 		3D23D28184BD8A05F30D6359 /* FullscreenWindowClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenWindowClassifierTests.swift; sourceTree = "<group>"; };
@@ -228,6 +257,7 @@
 		64023A3444C30EDC620CB4AC /* InventoryResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryResolverTests.swift; sourceTree = "<group>"; };
 		650F6F2482F1BCA13D22404A /* volume1-level10-context-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level10-context-safe.png"; sourceTree = "<group>"; };
 		66A6B29567BADF5C6DF4D023 /* LoreMangaPanelShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreMangaPanelShape.swift; sourceTree = "<group>"; };
+		68EF3F5492AC896E0AEC513B /* interaction.close.unfiltered.book.0d8e1dcb912a.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = interaction.close.unfiltered.book.0d8e1dcb912a.mp3; sourceTree = "<group>"; };
 		697D836989C5878F5D1E9937 /* OverlayPlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPlacementTests.swift; sourceTree = "<group>"; };
 		69974EDD211C54A56DFAEA29 /* LoreProgressResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreProgressResolver.swift; sourceTree = "<group>"; };
 		6B90A438265DB89B7E94E759 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -237,7 +267,9 @@
 		6DE51EFDEE69BE8B40D600A8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		70160FF019FFD009FA1DFF7F /* OverlayPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPlacement.swift; sourceTree = "<group>"; };
 		7262122A992B17AD88488FCD /* SimulationDurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationDurationTests.swift; sourceTree = "<group>"; };
+		728995EAF6C49D3233B315DA /* interaction.volume.giggle-02.unfiltered.book.464736107702.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "interaction.volume.giggle-02.unfiltered.book.464736107702.mp3"; sourceTree = "<group>"; };
 		79E319DA881A8E21166437AA /* ItemStatResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemStatResolverTests.swift; sourceTree = "<group>"; };
+		7A575D1D65CF7B16BE4C4A5B /* interaction.close.clean.book.36aa8439b01d.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = interaction.close.clean.book.36aa8439b01d.mp3; sourceTree = "<group>"; };
 		7C253FA011076DCBFA498E4B /* GameModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModels.swift; sourceTree = "<group>"; };
 		7C86A376C9311B9A96931763 /* LoreCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreCatalog.swift; sourceTree = "<group>"; };
 		7C9EAFDD1F3654E80EF008F2 /* LootSystemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LootSystemTests.swift; sourceTree = "<group>"; };
@@ -245,13 +277,18 @@
 		7DD1B1D1BD91F5406D947CA3 /* SalvageResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalvageResolver.swift; sourceTree = "<group>"; };
 		7F8651220111092B641291FE /* SpriteCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteCatalogTests.swift; sourceTree = "<group>"; };
 		80C47315F197A2C91F065E76 /* PrototypeSceneHostTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeSceneHostTests.swift; sourceTree = "<group>"; };
+		825CB0DFC0762CBC90FFFD1B /* kevin.supervisor.unfiltered.kevin.488a92b7d5b7.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = kevin.supervisor.unfiltered.kevin.488a92b7d5b7.mp3; sourceTree = "<group>"; };
 		84F6FA499E6AE2993911B18F /* volume1-level20-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level20-safe.png"; sourceTree = "<group>"; };
 		8586F52C6908F4FE4E5B9E0A /* OverlayState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayState.swift; sourceTree = "<group>"; };
+		859CF267FF87FDEEC3AEB090 /* book.level1.summary.unfiltered.book.811c7114df16.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = book.level1.summary.unfiltered.book.811c7114df16.mp3; sourceTree = "<group>"; };
 		87C1B7D532091DA5C524FDC4 /* SimulationDriverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationDriverTests.swift; sourceTree = "<group>"; };
+		8C0923108FA51CEEA927E59D /* kevin.not-kevin.unfiltered.kevin.dda702362141.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "kevin.not-kevin.unfiltered.kevin.dda702362141.mp3"; sourceTree = "<group>"; };
 		8C8EFD41D1A07F9F10FE207C /* volume1-level5-context-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level5-context-safe.png"; sourceTree = "<group>"; };
+		8FA622F8DB1292BCD0A60A93 /* interaction.open.unfiltered.book.2e68ea8c7047.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = interaction.open.unfiltered.book.2e68ea8c7047.mp3; sourceTree = "<group>"; };
 		91D4B8399E4D0BB95638F44A /* LoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreModels.swift; sourceTree = "<group>"; };
 		943AD75B3E2A18F1AC085766 /* DockBarHero.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DockBarHero.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		94FFC10A209C79F066CF303D /* ProgressionSafetyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionSafetyTests.swift; sourceTree = "<group>"; };
+		95DC610ACD9024F55DF59385 /* prologue.book.wrong-way.clean.book.9d29aebb5c44.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "prologue.book.wrong-way.clean.book.9d29aebb5c44.mp3"; sourceTree = "<group>"; };
 		99643AE7B1875E68D893EC37 /* volume1-level5-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level5-safe.png"; sourceTree = "<group>"; };
 		999EEF1DA444150B1FC0F971 /* LoreSpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreSpeechService.swift; sourceTree = "<group>"; };
 		9D35B7DD2F88FAA8D4270A84 /* LoreMangaTextOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreMangaTextOverlay.swift; sourceTree = "<group>"; };
@@ -274,6 +311,7 @@
 		B91B6659D21AF0CA566742E9 /* volume1-level20-context-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level20-context-safe.png"; sourceTree = "<group>"; };
 		BA9B30D99B28FCD6DB4FCF54 /* EnemySpriteResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemySpriteResolver.swift; sourceTree = "<group>"; };
 		BAF751D9037251AB30034F99 /* DeferredFeatureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeferredFeatureView.swift; sourceTree = "<group>"; };
+		BB42D25B7BC0172F5B1B8759 /* book.level20.summary.unfiltered.book.b649b7fba7cb.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = book.level20.summary.unfiltered.book.b649b7fba7cb.mp3; sourceTree = "<group>"; };
 		BDA6AB80F2B66FD8B1EFEB88 /* HeroesAndPartyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroesAndPartyTests.swift; sourceTree = "<group>"; };
 		BEB06A577225C8CFC2CC8287 /* SimulationDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationDriver.swift; sourceTree = "<group>"; };
 		C11309CD62DDBF6F14591880 /* OverlayWindowControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowControllerTests.swift; sourceTree = "<group>"; };
@@ -281,6 +319,7 @@
 		C4BB70A08450EF5CC9113E5B /* SpokenDialogueCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpokenDialogueCatalog.swift; sourceTree = "<group>"; };
 		C50E5986E66736133E5E7924 /* AppKitScreenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppKitScreenProvider.swift; sourceTree = "<group>"; };
 		C5646AC2C7AAE5131609DF1B /* AbilityResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbilityResolver.swift; sourceTree = "<group>"; };
+		C5D25822BAAFE098CCB6137B /* book.level10.summary.unfiltered.book.9f79f478f610.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = book.level10.summary.unfiltered.book.9f79f478f610.mp3; sourceTree = "<group>"; };
 		C7AF396794E525A68FB81CE8 /* ProgressionConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionConfiguration.swift; sourceTree = "<group>"; };
 		C8443E0D34AB8B0707A79331 /* AppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelTests.swift; sourceTree = "<group>"; };
 		CBB4E71B5A88A861340D85CF /* SaveDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveDocument.swift; sourceTree = "<group>"; };
@@ -289,6 +328,8 @@
 		D02118DC5C64C058B2733253 /* LoreProgressResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreProgressResolverTests.swift; sourceTree = "<group>"; };
 		D65C97EC8232A20141D45BB9 /* SaveMigrationRegistryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveMigrationRegistryTests.swift; sourceTree = "<group>"; };
 		D7F34075827F8BA826D583DC /* PartyUnlockResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartyUnlockResolver.swift; sourceTree = "<group>"; };
+		D870254367D26B339B096806 /* mercy.therapy-referral.unfiltered.mercy.b1bbafb60fbb.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "mercy.therapy-referral.unfiltered.mercy.b1bbafb60fbb.mp3"; sourceTree = "<group>"; };
+		D8BD6E67CB7FF0C4D893087D /* mercy.therapy-referral.clean.mercy.23f21a7044a2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "mercy.therapy-referral.clean.mercy.23f21a7044a2.mp3"; sourceTree = "<group>"; };
 		DA1D83DF972E1E002E939F6B /* ItemScoreResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemScoreResolver.swift; sourceTree = "<group>"; };
 		DA347E51C750D24AE0E8747E /* AbilityResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbilityResolverTests.swift; sourceTree = "<group>"; };
 		DA48363A2C8344E21C7E537E /* volume1-level15-context-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level15-context-safe.png"; sourceTree = "<group>"; };
@@ -305,6 +346,7 @@
 		E3FC244D744D5DDE9BDB7B8A /* EncounterDirectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDirectorTests.swift; sourceTree = "<group>"; };
 		E4DFF5B6EFBC15E042B1A1FC /* GameSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSession.swift; sourceTree = "<group>"; };
 		E89499F4A6B78AD319292912 /* LootConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LootConfigurationTests.swift; sourceTree = "<group>"; };
+		EAC2FA699A951EF09E1CCD21 /* brick.policy-warning.unfiltered.brick.89ce06eed9fb.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "brick.policy-warning.unfiltered.brick.89ce06eed9fb.mp3"; sourceTree = "<group>"; };
 		EC12B1C4B82A58431E39CF96 /* GameSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSimulation.swift; sourceTree = "<group>"; };
 		ED225C09286EACC435FC3A1C /* PixelSpriteDefinition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PixelSpriteDefinition.swift; sourceTree = "<group>"; };
 		ED2CF71E3855222237A52A24 /* ManagementRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagementRoute.swift; sourceTree = "<group>"; };
@@ -315,7 +357,9 @@
 		F6343507187CF69D47ABD31F /* LorePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LorePageView.swift; sourceTree = "<group>"; };
 		F80EFDBAE5BD492DF775661F /* InventoryConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryConfiguration.swift; sourceTree = "<group>"; };
 		F97A36783977BA1422D08114 /* BalanceConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceConfigurationTests.swift; sourceTree = "<group>"; };
+		FA682B2AFC71815604452A3C /* prologue.book.wrong-way.unfiltered.book.b144c6217086.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "prologue.book.wrong-way.unfiltered.book.b144c6217086.mp3"; sourceTree = "<group>"; };
 		FAB39E0FB32961E18A2C1F88 /* LoreBookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreBookView.swift; sourceTree = "<group>"; };
+		FB9FFD68930E159E5D9A05D2 /* interaction.locked-page.unfiltered.book.3b60a0c99db5.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "interaction.locked-page.unfiltered.book.3b60a0c99db5.mp3"; sourceTree = "<group>"; };
 		FC6ED814FDE7272DED6E5248 /* DamageMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DamageMetrics.swift; sourceTree = "<group>"; };
 		FF357C4A8AD1952FDF98EA0D /* SaveStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveStoreTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -342,7 +386,29 @@
 		167F507F50E5E9606DA6EABE /* Audio */ = {
 			isa = PBXGroup;
 			children = (
+				859CF267FF87FDEEC3AEB090 /* book.level1.summary.unfiltered.book.811c7114df16.mp3 */,
+				0EAADE42554D7AA2AC4A49DA /* book.level5.summary.unfiltered.book.9f5a189e2551.mp3 */,
+				C5D25822BAAFE098CCB6137B /* book.level10.summary.unfiltered.book.9f79f478f610.mp3 */,
+				16D0411001CCAC52A5113856 /* book.level15.summary.unfiltered.book.313c0f0f4904.mp3 */,
+				BB42D25B7BC0172F5B1B8759 /* book.level20.summary.unfiltered.book.b649b7fba7cb.mp3 */,
+				EAC2FA699A951EF09E1CCD21 /* brick.policy-warning.unfiltered.brick.89ce06eed9fb.mp3 */,
+				7A575D1D65CF7B16BE4C4A5B /* interaction.close.clean.book.36aa8439b01d.mp3 */,
+				68EF3F5492AC896E0AEC513B /* interaction.close.unfiltered.book.0d8e1dcb912a.mp3 */,
+				FB9FFD68930E159E5D9A05D2 /* interaction.locked-page.unfiltered.book.3b60a0c99db5.mp3 */,
+				8FA622F8DB1292BCD0A60A93 /* interaction.open.unfiltered.book.2e68ea8c7047.mp3 */,
+				2B2D0B8CD5BBE4B8C9DF39E9 /* interaction.sound-enabled.unfiltered.book.3a0477f8ffd5.mp3 */,
+				1DF228D719752AC7B68A9DF1 /* interaction.volume.giggle-01.unfiltered.book.708454aa097a.mp3 */,
+				728995EAF6C49D3233B315DA /* interaction.volume.giggle-02.unfiltered.book.464736107702.mp3 */,
+				28F9D3CE20AF714377FFA1E8 /* interaction.volume.giggle-03.unfiltered.book.dbff20844270.mp3 */,
+				2F7DDA59166A89F0CEC7D4AE /* kevin.not-kevin.clean.kevin.c39fd46400b8.mp3 */,
+				8C0923108FA51CEEA927E59D /* kevin.not-kevin.unfiltered.kevin.dda702362141.mp3 */,
+				825CB0DFC0762CBC90FFFD1B /* kevin.supervisor.unfiltered.kevin.488a92b7d5b7.mp3 */,
 				A1DB48F262722F148A815A44 /* LoreAudioManifest.json */,
+				D8BD6E67CB7FF0C4D893087D /* mercy.therapy-referral.clean.mercy.23f21a7044a2.mp3 */,
+				D870254367D26B339B096806 /* mercy.therapy-referral.unfiltered.mercy.b1bbafb60fbb.mp3 */,
+				1E146A954FE2F7CECAB68690 /* prologue.book.arrow-denial.unfiltered.book.f03fa38da54b.mp3 */,
+				95DC610ACD9024F55DF59385 /* prologue.book.wrong-way.clean.book.9d29aebb5c44.mp3 */,
+				FA682B2AFC71815604452A3C /* prologue.book.wrong-way.unfiltered.book.b144c6217086.mp3 */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -701,8 +767,30 @@
 				F80B58C12984547815129571 /* LoreVoiceCast.json in Resources */,
 				83EE8DE484A58EA043742673 /* SpokenDialogue.json in Resources */,
 				B0AB4898564049B0A2D6948D /* Sprites in Resources */,
+				CE4B7F3916BE925C4143FBF2 /* book.level1.summary.unfiltered.book.811c7114df16.mp3 in Resources */,
+				888F4B6139565D40A3C2AAE1 /* book.level10.summary.unfiltered.book.9f79f478f610.mp3 in Resources */,
+				21E7664538A51BE8A6FF3C60 /* book.level15.summary.unfiltered.book.313c0f0f4904.mp3 in Resources */,
+				89F07A602FF1360921A151A4 /* book.level20.summary.unfiltered.book.b649b7fba7cb.mp3 in Resources */,
+				4EEB0DA6E5A981A907E96667 /* book.level5.summary.unfiltered.book.9f5a189e2551.mp3 in Resources */,
+				C8315C0C1716CC44311AFF0C /* brick.policy-warning.unfiltered.brick.89ce06eed9fb.mp3 in Resources */,
+				5155BCDB2ED582B627B331F2 /* interaction.close.clean.book.36aa8439b01d.mp3 in Resources */,
+				B05858424A3F25128A2038C4 /* interaction.close.unfiltered.book.0d8e1dcb912a.mp3 in Resources */,
+				F7275D53D3E222DCC53A44CE /* interaction.locked-page.unfiltered.book.3b60a0c99db5.mp3 in Resources */,
+				0BAE28565172D110E164B898 /* interaction.open.unfiltered.book.2e68ea8c7047.mp3 in Resources */,
+				6BF10CD57D17FE2D954DDF36 /* interaction.sound-enabled.unfiltered.book.3a0477f8ffd5.mp3 in Resources */,
+				33E207423AE041D20B4582E9 /* interaction.volume.giggle-01.unfiltered.book.708454aa097a.mp3 in Resources */,
+				15EFD5D339986A026B6054C0 /* interaction.volume.giggle-02.unfiltered.book.464736107702.mp3 in Resources */,
+				AB62E604234BF9F9A52BBD84 /* interaction.volume.giggle-03.unfiltered.book.dbff20844270.mp3 in Resources */,
+				20AD7AF68809231D8799A204 /* kevin.not-kevin.clean.kevin.c39fd46400b8.mp3 in Resources */,
+				325969E778C68F3F06BEEBBF /* kevin.not-kevin.unfiltered.kevin.dda702362141.mp3 in Resources */,
+				7012535CCC02FEBE78A42E40 /* kevin.supervisor.unfiltered.kevin.488a92b7d5b7.mp3 in Resources */,
+				64D9273AACD5E161626E504B /* mercy.therapy-referral.clean.mercy.23f21a7044a2.mp3 in Resources */,
+				0F3B91B8A0364A9E984376AF /* mercy.therapy-referral.unfiltered.mercy.b1bbafb60fbb.mp3 in Resources */,
 				63324CCDD63218404C05BB59 /* prologue-level100000-context-safe.png in Resources */,
 				3B347F262AF6BCB08236856E /* prologue-level100000-safe.png in Resources */,
+				F696B7A90E6A3A1DE8C699DB /* prologue.book.arrow-denial.unfiltered.book.f03fa38da54b.mp3 in Resources */,
+				1308D7C3EA8532E5E485B854 /* prologue.book.wrong-way.clean.book.9d29aebb5c44.mp3 in Resources */,
+				768B04E381B99BF0247CA6B6 /* prologue.book.wrong-way.unfiltered.book.b144c6217086.mp3 in Resources */,
 				7E62BC411CAD63BC52A3467F /* volume1-level1-context-safe.png in Resources */,
 				79F81E8A9C590A6F9C86D154 /* volume1-level1-safe.png in Resources */,
 				C17115E975222C7D892F3016 /* volume1-level10-context-safe.png in Resources */,

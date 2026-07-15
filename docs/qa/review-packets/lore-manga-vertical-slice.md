@@ -2,9 +2,9 @@
 
 **Date:** 2026-07-14
 
-**Branch:** `codex/lore-manga-vertical-slice`
+**Branch:** `codex/recorded-lore-voiceover`
 
-**Candidate commit tested:** `8a819b3` (`merge: combine lore reader with sprite game systems`), including the fixed-spread and deterministic `--open-book` launch repairs
+**Candidate commit tested:** recorded-lore-voiceover branch HEAD, including recorded MP3 bundle validation and system-speech fallback for an incomplete or unreadable recorded asset set.
 
 **Scope:** dishonest Level 100,000 prologue plus Volume I pages unlocked at Levels 1, 5, 10, 15, and 20. Boss 25 remains intentionally out of scope until Heroes and Party defines the cast.
 
@@ -37,7 +37,7 @@
 - Voice provider: ElevenLabs offline generation only; no runtime network dependency.
 - Cast: Book Branok, Kevin Cooper, Brick Zoey, Mercy Dr. Lauren, Kaizen Horatius, Editor Adam.
 - Generated asset manifest: `DockBarHero/Lore/Resources/Audio/LoreAudioManifest.json`.
-- Automated checks: focused lore suite PASS (2026-07-14): 29 tests, 0 failures; full `DockBarHeroTests` suite PASS (2026-07-14): 424 tests, 0 failures (`** TEST SUCCEEDED **`).
+- Automated checks: focused lore suite and full `DockBarHeroTests` suite are re-run for the recorded-lore-voiceover final-review repair; fresh results are captured in the branch task report.
 - Live audio QA: unchecked; build-and-run verification launched the app, but no inspectable manual audio session was available to verify cast distinction, detents 0/5/10, or immediate stop on window close.
 
 ## Visual Asset Inspection

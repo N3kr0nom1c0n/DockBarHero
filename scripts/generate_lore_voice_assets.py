@@ -47,6 +47,7 @@ def main() -> int:
     parser.add_argument("--voice-cast", default="DockBarHero/Lore/Resources/LoreVoiceCast.json")
     parser.add_argument("--output-dir", default="DockBarHero/Lore/Resources/Audio")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--force", action="store_true", help="Regenerate existing assets.")
     args = parser.parse_args()
 
     api_key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
@@ -78,7 +79,7 @@ def main() -> int:
             target = output_dir / filename
             if args.dry_run:
                 print(f"DRY {cue['id']} {variant} {speaker_id} {len(text)} -> {filename}")
-            elif not target.exists():
+            elif args.force or not target.exists():
                 audio = request_audio(
                     api_key=api_key,
                     voice_id=speaker["voiceID"],

@@ -1,59 +1,95 @@
-# Task 4 Report: Monotonic Simulation Driver
+# Task 4 Report: Wire Production To Recorded Speech And Verify
 
-## Files changed
+Status: DONE_WITH_CONCERNS
 
-- `DockBarHero/Game/SimulationDriver.swift`
-- `DockBarHeroTests/SimulationDriverTests.swift`
-- `DockBarHero.xcodeproj/project.pbxproj`
-- `.superpowers/sdd/task-4-report.md`
+Commit: `2b35eb2` (`feat: wire recorded lore voiceover`)
 
-No Task 3 or unrelated source files were changed. The Xcode project update only adds the Task 4 production and test sources to their existing groups and source phases.
+## Changes
 
-## Pre-implementation failing-test evidence
-
-Command:
-
-```bash
-xcodebuild -project DockBarHero.xcodeproj -scheme DockBarHero -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath .build/Task4Red CODE_SIGNING_ALLOWED=NO test -only-testing:DockBarHeroTests/SimulationDriverTests
-```
-
-Result: failed before implementation because the newly wired production input was absent:
-
-```text
-error: Build input file cannot be found: '.../DockBarHero/Game/SimulationDriver.swift'
-Testing cancelled because the build failed.
-```
+- `AppDelegate` now constructs `RecordedLoreSpeechService(bundle: .main)` for production lore playback.
+- If bundled audio or its manifest cannot load, `AppDelegate` falls back to `SystemLoreSpeechService` so launch remains available.
+- The lore QA review packet records the offline ElevenLabs provider, locked cast, manifest location, fresh automated results, and the unchecked manual-audio scope.
 
 ## Verification
 
-Focused command:
+Focused lore suite:
 
 ```bash
-xcodebuild -project DockBarHero.xcodeproj -scheme DockBarHero -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath .build/Task4FocusedFinal CODE_SIGNING_ALLOWED=NO test -only-testing:DockBarHeroTests/SimulationDriverTests
+xcodebuild test -project DockBarHero.xcodeproj -scheme DockBarHero -configuration Debug -destination 'platform=macOS,arch=arm64' -only-testing:DockBarHeroTests/LoreCatalogTests -only-testing:DockBarHeroTests/SpokenDialogueCatalogTests -only-testing:DockBarHeroTests/LoreAudioManifestTests -only-testing:DockBarHeroTests/LoreReaderControllerTests CODE_SIGNING_ALLOWED=NO
 ```
 
-Result: `SimulationDriverTests` passed, 7 tests, 0 failures.
+Result: `** TEST SUCCEEDED **`. Executed 29 tests with 0 failures.
 
-Full command:
+Full suite:
 
 ```bash
-xcodebuild -project DockBarHero.xcodeproj -scheme DockBarHero -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath .build/Task4FullFinal CODE_SIGNING_ALLOWED=NO test
+xcodebuild test -project DockBarHero.xcodeproj -scheme DockBarHero -configuration Debug -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO
 ```
 
-Result: all tests passed, 77 tests, 0 failures.
+Result: `** TEST SUCCEEDED **`. Executed 424 tests with 0 failures.
 
-`git diff --check` also passed. The cross-task Terra Gate A was not run, as requested.
+Context guard:
 
-## Implementation notes and risks
+```bash
+python3 /Users/n3kr0/.codex/skills/maintaining-project-context/scripts/context_guard.py check --root .
+```
 
-- `SimulationDriver` is MainActor-isolated and uses the injected monotonic `UInt64` source, defaulting to `DispatchTime.now().uptimeNanoseconds`.
-- Each callback clamps elapsed time to exactly `1_000_000_000` nanoseconds before converting to signed `SimulationDuration`.
-- Backward timestamps are ignored without mutating simulation or timing state.
-- Presentation publication is immediate on start and state replacement, then throttled to 250 milliseconds; events are delivered immediately after each successful advance.
-- The loop is a single cancellable MainActor task with 100 millisecond sleeps. `start` and `stop` are idempotent.
-- `replaceState` creates a fresh `GameSimulation`, which resets transient DPS metrics, and resets both timing markers to the injected current time.
-- Invalid simulation advancement reports an assertion failure and leaves the driver timing markers unchanged. Phase 1 callers are expected to provide validated state and balance data.
+Result: `project context is valid`.
 
-## Final commit hash
+Launch verification:
 
-ea0bfb4
+```bash
+./script/build_and_run.sh --verify
+```
+
+Result: `** BUILD SUCCEEDED **`; DockBarHero launched from the exact worktree bundle as PID 57511. The build log confirms recorded MP3 resources were copied into the app bundle.
+
+`git diff --check` passed before commit.
+
+## Concern
+
+No inspectable interactive audio session was available. Manual verification of cast distinction, volume giggles at detents 0, 5, and 10, and immediate audio stop on window close remains unchecked and is documented as such in the QA packet.
+
+## Final Review Fix Report (2026-07-14)
+
+### Fixed Findings
+
+- Added `DockBarHero/Lore/Resources/Audio/*.mp3` as explicit `resources` inputs in canonical `project.yml`, then regenerated `DockBarHero.xcodeproj/project.pbxproj`.
+- `RecordedLoreSpeechService(bundle:)` now validates every unique manifest asset by locating it in the bundle and opening it with `AVAudioPlayer`. Any missing or unreadable asset throws `LoreAudioManifestError.audioResourceUnreadable`, so `AppDelegate` uses its existing `SystemLoreSpeechService` fallback.
+- Added an integration test that verifies each manifest asset resolves from the built app bundle and that recorded-service initialization succeeds.
+- Added generator `--force` to regenerate existing output files when configuration or provider output must be refreshed.
+- Corrected recorded-voiceover QA evidence to identify `codex/recorded-lore-voiceover` branch HEAD.
+
+### RED Evidence
+
+```bash
+xcodebuild test -project DockBarHero.xcodeproj -scheme DockBarHero -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath .build/RecordedLoreVoiceoverRed2 CODE_SIGNING_ALLOWED=NO -only-testing:DockBarHeroTests/LoreAudioManifestTests
+```
+
+Result: expected failure before the project resource fix. `testRecordedSpeechServiceValidatesEveryBundledManifestAsset` reported 36 missing manifest references from the built app bundle.
+
+### Verification
+
+```bash
+xcodebuild test -project DockBarHero.xcodeproj -scheme DockBarHero -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath .build/RecordedLoreVoiceoverGreen CODE_SIGNING_ALLOWED=NO -only-testing:DockBarHeroTests/LoreAudioManifestTests -only-testing:DockBarHeroTests/LoreReaderControllerTests -only-testing:DockBarHeroTests/SpokenDialogueCatalogTests
+```
+
+Result: `** TEST SUCCEEDED **`; 14 focused tests, 0 failures.
+
+```bash
+xcodebuild clean build -project DockBarHero.xcodeproj -scheme DockBarHero -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath .build/RecordedLoreVoiceoverFresh CODE_SIGNING_ALLOWED=NO
+```
+
+Result: `** CLEAN SUCCEEDED **` and `** BUILD SUCCEEDED **` from fresh DerivedData.
+
+```bash
+python3 <manifest-to-bundle-check>
+```
+
+Result: `Bundle manifest verification passed: 22 unique MP3 assets present in .build/RecordedLoreVoiceoverFresh/Build/Products/Debug/DockBarHero.app/Contents/Resources`.
+
+```bash
+xcodebuild test -project DockBarHero.xcodeproj -scheme DockBarHero -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath .build/RecordedLoreVoiceoverFull CODE_SIGNING_ALLOWED=NO
+```
+
+Result: `** TEST SUCCEEDED **`; 425 tests, 0 failures.

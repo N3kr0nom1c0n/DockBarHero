@@ -24,6 +24,19 @@ final class LoreAudioManifestTests: XCTestCase {
     }
 
     @MainActor
+    func testRecordedSpeechServiceValidatesEveryBundledManifestAsset() throws {
+        let appBundle = Bundle(for: AppDelegate.self)
+        let manifest = try LoreAudioManifest.bundled(bundle: appBundle)
+
+        for assetName in manifest.entries.flatMap({ [$0.unfiltered, $0.clean] }) {
+            let name = (assetName as NSString).deletingPathExtension
+            let ext = (assetName as NSString).pathExtension
+            XCTAssertNotNil(appBundle.url(forResource: name, withExtension: ext), "Missing bundled audio asset: \(assetName)")
+        }
+        XCTAssertNoThrow(try RecordedLoreSpeechService(bundle: appBundle))
+    }
+
+    @MainActor
     func testRecordedSpeechUsesCleanAssetWhenCueIsClean() throws {
         let manifest = LoreAudioManifest(schemaVersion: 1, entries: [
             .init(cueID: "book.test", unfiltered: "book.test.unfiltered.mp3", clean: "book.test.clean.mp3")

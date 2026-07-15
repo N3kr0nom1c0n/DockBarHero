@@ -21,6 +21,10 @@ targets:
       - path: DockBarHero/Resources/Sprites
         type: folder
         buildPhase: resources
+      - path: DockBarHero/Lore/Resources/Audio
+        includes:
+          - "*.mp3"
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.n3kr0nom1c0n.DockBarHero

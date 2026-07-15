@@ -16,6 +16,7 @@ enum LoreAudioManifestError: Error, Equatable {
     case unsupportedSchema(Int)
     case duplicateCueID(String)
     case missingRequiredValue(String)
+    case audioResourceUnreadable(String)
 }
 
 extension LoreAudioManifest {
@@ -46,6 +47,22 @@ extension LoreAudioManifest {
     func assetName(cueID: String, languageMode: LoreLanguageMode) -> String? {
         guard let entry = entries.first(where: { $0.cueID == cueID }) else { return nil }
         return languageMode == .clean ? entry.clean : entry.unfiltered
+    }
+
+    func validateAudioResources(in bundle: Bundle) throws {
+        let assetNames = Set(entries.flatMap { [$0.unfiltered, $0.clean] })
+        for assetName in assetNames {
+            let name = (assetName as NSString).deletingPathExtension
+            let ext = (assetName as NSString).pathExtension
+            guard let url = bundle.url(forResource: name, withExtension: ext) else {
+                throw LoreAudioManifestError.audioResourceUnreadable(assetName)
+            }
+            do {
+                _ = try AVAudioPlayer(contentsOf: url)
+            } catch {
+                throw LoreAudioManifestError.audioResourceUnreadable(assetName)
+            }
+        }
     }
 }
 
@@ -107,8 +124,10 @@ final class RecordedLoreSpeechService: LoreSpeechControlling {
     }
 
     convenience init(bundle: Bundle = .main) throws {
+        let manifest = try LoreAudioManifest.bundled(bundle: bundle)
+        try manifest.validateAudioResources(in: bundle)
         try self.init(
-            manifest: .bundled(bundle: bundle),
+            manifest: manifest,
             player: AVFoundationLoreAudioPlayer(bundle: bundle),
             previewPlayer: AVFoundationLoreAudioPlayer(bundle: bundle)
         )
