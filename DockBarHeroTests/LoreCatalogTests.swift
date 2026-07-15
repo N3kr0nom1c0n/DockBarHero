@@ -88,6 +88,16 @@ final class LoreCatalogTests: XCTestCase {
         }
     }
 
+    func testBundledDialogueCuePlaybackOrderMatchesAuthoredOverlayOrderPerPage() throws {
+        for page in try LoreCatalog.bundled().pages {
+            XCTAssertEqual(
+                page.dialogueCueIDs,
+                page.composition.textOverlays.compactMap(\.dialogueCueID),
+                page.id.rawValue
+            )
+        }
+    }
+
     func testAcceptsEachSupportedLayoutWithItsExpectedPanelCount() throws {
         let expected: [(LoreMangaLayoutID, Int)] = [
             (.cascadeFive, 5),

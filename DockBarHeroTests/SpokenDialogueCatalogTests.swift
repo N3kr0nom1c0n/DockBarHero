@@ -57,6 +57,32 @@ final class SpokenDialogueCatalogTests: XCTestCase {
         }
     }
 
+    func testEveryVoicedOverlayUsesItsAuthoredSpeakerProfile() throws {
+        let lore = try LoreCatalog.bundled()
+        let spoken = try SpokenDialogueCatalog.bundled(loreCatalog: lore)
+
+        for page in lore.pages {
+            for overlay in page.composition.textOverlays where overlay.dialogueCueID != nil {
+                let cueID = try XCTUnwrap(overlay.dialogueCueID)
+                let overlaySpeakerID = try XCTUnwrap(
+                    overlay.speakerID,
+                    "\(page.id.rawValue):\(overlay.id)"
+                )
+                let resolved = try XCTUnwrap(
+                    spoken.resolve(cueID: cueID, languageMode: .unfiltered),
+                    cueID
+                )
+                let authoredSpeaker = try XCTUnwrap(
+                    spoken.speakers.first { $0.id == overlaySpeakerID },
+                    overlaySpeakerID
+                )
+
+                XCTAssertEqual(resolved.speaker.id, overlaySpeakerID, cueID)
+                XCTAssertEqual(resolved.speaker, authoredSpeaker, cueID)
+            }
+        }
+    }
+
     func testOnlyApprovedOverlayLinesAreVoiced() throws {
         let lore = try LoreCatalog.bundled()
         let overlayCueIDs = lore.pages.flatMap { page in
