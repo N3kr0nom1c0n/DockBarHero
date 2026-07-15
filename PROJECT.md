@@ -7,7 +7,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 ## Current Milestone
 
 - Goal: deliver the lore Book as readable multi-panel manga pages alongside the newer Heroes, Class Actions, Loot, farming-status, and production-sprite work.
-- Current checkpoint: `codex/lore-manga-vertical-slice` at `521453c` contains six five-to-seven-panel pages, one animated panel per page, six context atlases, and the live-QA readability repairs.
+- Current checkpoint: `codex/lore-manga-vertical-slice` at `4bc33d2` contains six five-to-seven-panel pages, one animated panel per page, six context atlases, automatic ordered TTS, and the final readability/RTL repairs.
 - Integration source: `feature/class-actions-and-loot` is the pushed sprite/game branch; local and remote `main` do not contain those changes.
 - Remaining: post-fix user/visual review plus compact, audio, VoiceOver, light-appearance, reduced-motion, potentiometer, and Adult-setting interaction checks. The Mac locked before post-fix screenshots could be captured.
 
@@ -62,9 +62,9 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - Date: 2026-07-14.
 - Pre-merge lore checkpoint: 298 arm64 tests passed; clean unsigned build and exact-worktree launch succeeded.
 - Sprite/game source checkpoint: 355 arm64 tests passed; clean unsigned build, exact-worktree launch, and prior gameplay QA succeeded.
-- Post-readability checkpoint: 434 arm64 tests and 15 sprite-pipeline tests passed with zero failures; clean unsigned arm64 build and context guard succeeded.
-- Exact worktree bundle launched with `--open-book` as the only DockBarHero process (PID 15790).
-- Direct pre-fix inspection confirmed all six authored manga pages render as five-to-seven-panel right-to-left spreads and exposed narration/reaction overlap defects. Commits `0c1a4c2` and `521453c` repaired those roots and passed review, focused tests, full regression, and build; post-fix visual confirmation remains pending because the Mac locked.
+- Final checkpoint: 441 arm64 tests and 15 sprite-pipeline tests passed with zero failures; clean unsigned arm64 build and context guard succeeded.
+- Exact worktree bundle launched with `--open-book` as the only DockBarHero process (PID 64599).
+- Direct pre-fix inspection confirmed all six authored manga pages render as five-to-seven-panel spreads and exposed narration/reaction overlap defects. Commits `0c1a4c2`, `521453c`, `162d5cd`, and `4bc33d2` repaired readability, multi-cue TTS, catalog-order validation, and Level 10 RTL geometry; each final-review finding passed focused tests and independent re-review. Post-fix visual confirmation remains pending because the Mac locked.
 
 ## Decisions and Risks
 
@@ -75,6 +75,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - Inventory is party-shared, equipped item IDs are exclusive per hero, and overflow prevents item loss.
 - Production sprites are checksum-locked, normalized into transparent 96x64 cells, nearest-filtered, and selected deterministically without save-state changes.
 - Lore speech defaults off, never starts outside the open active Book, and stops when the Book closes or the app resigns active.
+- Lore speech completion advances every authored cue in order and rejects stale callbacks after interruption.
 - Clean mode rewrites jokes rather than blanking profanity; Adult art requires confirmation.
 - Long narration for Levels 5, 15, and 20 is anchored to each page's dominant motion panel so it cannot be promoted over neighboring top-row speech.
 - The Book is an unreliable interface character, but accessibility labels state controls plainly.

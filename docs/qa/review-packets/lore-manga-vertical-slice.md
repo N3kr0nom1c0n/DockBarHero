@@ -4,7 +4,7 @@
 
 **Branch:** `codex/lore-manga-vertical-slice`
 
-**Candidate commit tested:** `521453c` (`fix: reserve header space for book reactions`), including the multi-panel implementation and narration-overlap repair
+**Candidate commit tested:** `4bc33d2` (`fix: restore shattered manga RTL order`), including final TTS, catalog-order, reaction, narration, and RTL repairs
 
 **Scope:** dishonest Level 100,000 prologue plus Volume I pages unlocked at Levels 1, 5, 10, 15, and 20. Boss 25 remains intentionally out of scope until Heroes and Party defines the cast.
 
@@ -23,13 +23,13 @@
 | Check | Result |
 |---|---|
 | Focused launch/window regressions | PASS (2026-07-14): 2 tests, 0 failures, after confirmed compile-failing red runs |
-| Full combined `DockBarHeroTests` suite | PASS post-fix (2026-07-14): 434 tests, 0 failures or skips (`** TEST SUCCEEDED **`) |
+| Full combined `DockBarHeroTests` suite | PASS final (2026-07-14): 441 tests, 0 failures (`** TEST SUCCEEDED **`) |
 | Sprite-pipeline Python suite | PASS (2026-07-14): 15 tests, 0 failures |
 | Motion sheets load and crop | PASS: 7 sheets, 28 frames |
 | Context atlases load and crop | PASS: 6 atlases, 36 cells |
 | Mechanical image dimensions | PASS: motion sheets are 1024x1024; context atlases are 1536x1024 |
 | Clean unsigned Apple Silicon build | PASS (2026-07-14): `** BUILD SUCCEEDED **` |
-| Exact post-fix launch | PASS (2026-07-14): one process, PID 15790, exact worktree bundle with `--open-book` |
+| Exact final launch | PASS (2026-07-14): one process, PID 64599, exact worktree bundle with `--open-book` |
 | Runtime management-window frame | PASS (2026-07-14): 1100x752 outer frame after SwiftUI sizing repair |
 | Context guard and `git diff --check` | PASS at the post-fix checkpoint |
 
@@ -41,7 +41,7 @@ Each motion PNG was reopened at original detail after normalization. Each contex
 
 The parent launched the exact worktree bundle with `--open-book`, confirmed one process, and inspected every authored page in the 1100x752 live window. The first launch had no campaign save, so a Tank was selected; a DPS was selected when the running game reached its Boss 25 party reward during inspection.
 
-The live pass found two defects: the persistent Book reaction covered upper-right page art, and long narration overlapped neighboring speech on Levels 5, 15, and 20. `0c1a4c2` moved only those narration overlays to their large motion panels; `521453c` moved reactions into responsive reserved header flow. Both fixes passed independent review, 64 focused lore tests, the 434-test full suite, and a clean build. The repaired bundle launched as the only process at PID 15790, but the Mac locked before a post-fix screenshot could be captured. Post-fix visual claims therefore remain pending.
+The live pass found two defects: the persistent Book reaction covered upper-right page art, and long narration overlapped neighboring speech on Levels 5, 15, and 20. `0c1a4c2` moved only those narration overlays to their large motion panels; `521453c` moved reactions into responsive reserved header flow. Final feature review then found and repaired automatic multi-cue TTS/catalog-order validation (`162d5cd`) and Level 10's reversed seven-panel geometry (`4bc33d2`). All review findings passed focused TDD, independent re-review, the final 441-test suite, and clean build. The final bundle launched as the only process at PID 64599, but the Mac remains locked, so post-fix visual claims remain pending.
 
 ### Wide window
 
