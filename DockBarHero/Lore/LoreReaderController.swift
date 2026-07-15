@@ -58,6 +58,7 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
         if !settings.spokenDialogueEnabled {
             stopPlayback()
         }
+        autoReadCurrentPageIfNeeded()
     }
 
     func open() {

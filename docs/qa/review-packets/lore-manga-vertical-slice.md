@@ -4,7 +4,7 @@
 
 **Branch:** `codex/recorded-lore-voiceover`
 
-**Candidate commit tested:** recorded-lore-voiceover branch HEAD, including recorded MP3 bundle validation, dialogue-catalog coverage validation, inactive-startup silence, and system-speech fallback for an incomplete, mismatched, or unreadable recorded asset set.
+**Candidate commit tested:** `e03cbac`, including recorded MP3 bundle validation, dialogue-catalog coverage validation, inactive-startup silence, async state-load auto-read retry, and system-speech fallback for an incomplete, mismatched, or unreadable recorded asset set.
 
 **Scope:** dishonest Level 100,000 prologue plus Volume I pages unlocked at Levels 1, 5, 10, 15, and 20. Boss 25 remains intentionally out of scope until Heroes and Party defines the cast.
 
@@ -23,21 +23,21 @@
 | Check | Result |
 |---|---|
 | Focused launch/window regressions | PASS (2026-07-14): 2 tests, 0 failures, after confirmed compile-failing red runs |
-| Full combined `DockBarHeroTests` suite | PASS (2026-07-14): 429 tests, 0 failures (`** TEST SUCCEEDED **`) |
+| Full combined `DockBarHeroTests` suite | PASS (2026-07-14): 430 tests, 0 failures (`** TEST SUCCEEDED **`) |
 | Sprite-pipeline Python suite | PASS (2026-07-14): 15 tests, 0 failures |
 | Every catalog image loads and crops | PASS: 7 sheets, 28 frames |
 | Mechanical image dimensions | PASS: all seven are 1024x1024 |
 | Clean unsigned Apple Silicon build | PASS (2026-07-14): `** BUILD SUCCEEDED **`, with recorded MP3 resources copied into the app bundle |
 | Exact combined launch | PASS (2026-07-14): one process, PID 39103, exact worktree bundle with `--open-book` |
 | Runtime management-window frame | PASS (2026-07-14): 1100x752 outer frame after SwiftUI sizing repair |
-| `git diff --check` | PASS after conflict resolution and before the integration commit |
+| `git diff --check` | PASS (2026-07-14): final recorded-lore-voiceover repair diff |
 
 ## Recorded Voiceover Evidence
 
 - Voice provider: ElevenLabs offline generation only; no runtime network dependency.
 - Cast: Book Branok, Kevin Cooper, Brick Zoey, Mercy Dr. Lauren, Kaizen Horatius, Editor Adam.
 - Generated asset manifest: `DockBarHero/Lore/Resources/Audio/LoreAudioManifest.json`.
-- Automated checks: focused `LoreReaderControllerTests` and `LoreAudioManifestTests` pass with 14 tests and 0 failures; full `DockBarHeroTests` suite passes with 429 tests and 0 failures.
+- Automated checks: focused `LoreReaderControllerTests` and `LoreAudioManifestTests` pass with 15 tests and 0 failures; full `DockBarHeroTests` suite passes with 430 tests and 0 failures.
 - Bundle checks: `RecordedLoreSpeechService` validates every manifest MP3 is present/readable, exact manifest coverage for every dialogue cue, and distinct clean/unfiltered assets whenever clean text differs.
 - Live audio QA: unchecked; build-and-run verification launched the app, but no inspectable manual audio session was available to verify cast distinction, detents 0/5/10, or immediate stop on window close.
 

@@ -93,6 +93,23 @@ final class LoreReaderControllerTests: XCTestCase {
         XCTAssertEqual(speech.spoken.map(\.id), ["book.test"])
         XCTAssertEqual(recorded.map(\.rawValue), ["test"])
     }
+
+    func testOpenAndActivateBeforeUpdateAutoReadsAfterStateArrives() throws {
+        let speech = LoreSpeechFake()
+        let controller = try makeController(speech: speech)
+        var recorded: [LorePageID] = []
+        controller.onAutoReadPage = { recorded.append($0) }
+
+        controller.open()
+        controller.applicationBecameActive()
+
+        XCTAssertTrue(speech.spoken.isEmpty)
+
+        controller.update(settings: .spokenFixture, pages: [.fixture])
+
+        XCTAssertEqual(speech.spoken.map(\.id), ["book.test"])
+        XCTAssertEqual(recorded.map(\.rawValue), ["test"])
+    }
 }
 
 @MainActor
