@@ -38,6 +38,7 @@
 		31439E31FCD667ACC815DF57 /* OverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06912AA3A46E473DF25D9BBF /* OverviewView.swift */; };
 		33154951F0E79044E3813540 /* SettingsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D5A484FB89F5C8147E2CAA /* SettingsStoreTests.swift */; };
 		34532C2821BE5596F82DB0B8 /* ClassActionsViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B935A6631F3D55BDACEDE3A /* ClassActionsViewTests.swift */; };
+		36A9978F1486497DF0CC478E /* LoreMangaAccessibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30E59D77EA4DA608ADE9121B /* LoreMangaAccessibilityTests.swift */; };
 		37C31EFE34DA0B5FD610A268 /* ProgressionConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7AF396794E525A68FB81CE8 /* ProgressionConfiguration.swift */; };
 		3A542757650903BEA6A4ED63 /* ManagementRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED2CF71E3855222237A52A24 /* ManagementRoute.swift */; };
 		3B347F262AF6BCB08236856E /* prologue-level100000-safe.png in Resources */ = {isa = PBXBuildFile; fileRef = E0F29E8F59A65DCDCBB907EC /* prologue-level100000-safe.png */; };
@@ -122,6 +123,7 @@
 		C91F0432A5D1E2720874A0DC /* BookReactionBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE374EF6BEA01AE559052260 /* BookReactionBubble.swift */; };
 		CBABFAEFA23FEFB1A073C6B4 /* ClassActionConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD842A41CC4EA805761CD275 /* ClassActionConfiguration.swift */; };
 		CC5249441D0267288AAF4690 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A704FA474D0443A40224B764 /* SettingsStore.swift */; };
+		CD25CDC4C951A2D9B1F49F70 /* LoreMangaAccessibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B1E76136E17EEDC9E5F7532 /* LoreMangaAccessibility.swift */; };
 		CEDF2A499DB305DF5ACF02C9 /* SettingsSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F1ACAF83DE0C417D08CC08E /* SettingsSessionTests.swift */; };
 		D12F51121C8BCBAB20F16BE5 /* EnvironmentMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47C35A975941EEBB55C9FF53 /* EnvironmentMonitorTests.swift */; };
 		D4513337D26E2073DD1F2E53 /* LoreMangaPanelShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A6B29567BADF5C6DF4D023 /* LoreMangaPanelShape.swift */; };
@@ -192,6 +194,7 @@
 		2D253BB0C40215356823845B /* volume1-level10-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level10-safe.png"; sourceTree = "<group>"; };
 		2DD84DF83A09A54CE9034537 /* LoreBookLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreBookLayout.swift; sourceTree = "<group>"; };
 		30B64AA25E17738C495E8392 /* SaveMigrationRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveMigrationRegistry.swift; sourceTree = "<group>"; };
+		30E59D77EA4DA608ADE9121B /* LoreMangaAccessibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreMangaAccessibilityTests.swift; sourceTree = "<group>"; };
 		36E4509B61BEEFA0FF1C5FE4 /* GameSimulationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSimulationTests.swift; sourceTree = "<group>"; };
 		3D23D28184BD8A05F30D6359 /* FullscreenWindowClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenWindowClassifierTests.swift; sourceTree = "<group>"; };
 		3E7699A4FA7579E552E49A7A /* ManagementViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagementViewTests.swift; sourceTree = "<group>"; };
@@ -243,6 +246,7 @@
 		84F6FA499E6AE2993911B18F /* volume1-level20-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level20-safe.png"; sourceTree = "<group>"; };
 		8586F52C6908F4FE4E5B9E0A /* OverlayState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayState.swift; sourceTree = "<group>"; };
 		87C1B7D532091DA5C524FDC4 /* SimulationDriverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationDriverTests.swift; sourceTree = "<group>"; };
+		8B1E76136E17EEDC9E5F7532 /* LoreMangaAccessibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreMangaAccessibility.swift; sourceTree = "<group>"; };
 		8C8EFD41D1A07F9F10FE207C /* volume1-level5-context-safe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume1-level5-context-safe.png"; sourceTree = "<group>"; };
 		91D4B8399E4D0BB95638F44A /* LoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreModels.swift; sourceTree = "<group>"; };
 		943AD75B3E2A18F1AC085766 /* DockBarHero.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DockBarHero.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -381,6 +385,7 @@
 				A2F36207173FF2A5AE9DD894 /* LoreBookLayoutTests.swift */,
 				5799E80DDEB4CA18DAC529DF /* LoreCatalogTests.swift */,
 				A24B45A0A0DDAC3A23BF00F8 /* LoreContextSheetTests.swift */,
+				30E59D77EA4DA608ADE9121B /* LoreMangaAccessibilityTests.swift */,
 				9D492E14395BAA5B3F6DD4C5 /* LoreMangaLayoutTests.swift */,
 				D02118DC5C64C058B2733253 /* LoreProgressResolverTests.swift */,
 				2307BDF142D241BE51EE8EA4 /* LoreReaderControllerTests.swift */,
@@ -519,6 +524,7 @@
 				FAB39E0FB32961E18A2C1F88 /* LoreBookView.swift */,
 				7C86A376C9311B9A96931763 /* LoreCatalog.swift */,
 				DE7D372E21F25DBC9F08EB36 /* LoreContextSheet.swift */,
+				8B1E76136E17EEDC9E5F7532 /* LoreMangaAccessibility.swift */,
 				7D2A47D4C8CD3356F8D3098A /* LoreMangaLayout.swift */,
 				66A6B29567BADF5C6DF4D023 /* LoreMangaPanelShape.swift */,
 				9D35B7DD2F88FAA8D4270A84 /* LoreMangaTextOverlay.swift */,
@@ -732,6 +738,7 @@
 				A843303C2F15CF6F91277FBF /* LoreBookLayoutTests.swift in Sources */,
 				B5770621EE102360E5B0C4EF /* LoreCatalogTests.swift in Sources */,
 				15EA1AF28DA0BDDDED26ACC2 /* LoreContextSheetTests.swift in Sources */,
+				36A9978F1486497DF0CC478E /* LoreMangaAccessibilityTests.swift in Sources */,
 				6A2F99B10DBA2312243220D4 /* LoreMangaLayoutTests.swift in Sources */,
 				B1F70CA677EE4E3ACBA45C0D /* LoreProgressResolverTests.swift in Sources */,
 				A159D58FDCEB43F0A3704215 /* LoreReaderControllerTests.swift in Sources */,
@@ -802,6 +809,7 @@
 				0694E01EE15762FF6CA99745 /* LoreBookView.swift in Sources */,
 				83C736E2594D0C6CF631648B /* LoreCatalog.swift in Sources */,
 				9227C3C16ED3D6857ABB7F1C /* LoreContextSheet.swift in Sources */,
+				CD25CDC4C951A2D9B1F49F70 /* LoreMangaAccessibility.swift in Sources */,
 				4377B91DA895F66C07EEF4B5 /* LoreMangaLayout.swift in Sources */,
 				D4513337D26E2073DD1F2E53 /* LoreMangaPanelShape.swift in Sources */,
 				74E681D5A9C8CFE10F98D103 /* LoreMangaTextOverlay.swift in Sources */,

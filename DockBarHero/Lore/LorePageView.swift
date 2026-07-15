@@ -65,7 +65,7 @@ struct LorePageView: View {
                     .font(.largeTitle)
                     .accessibilityHidden(true)
                 Text("THE ILLUSTRATOR HAS BEEN EATEN")
-                    .font(.caption.bold())
+                    .font(.system(size: 13, weight: .bold))
             }
             .foregroundStyle(.white.opacity(0.8))
         }
@@ -104,7 +104,8 @@ struct LorePageView: View {
             }
         }
         .frame(width: size.width, height: size.height)
-        .accessibilityElement(children: .contain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(LoreMangaAccessibility.narrative(for: page))
     }
 
     private func panelView(
@@ -129,11 +130,8 @@ struct LorePageView: View {
                         alignment: alignment(for: overlay.placement)
                     )
                     .padding(6)
-                    .accessibilitySortPriority(accessibilityPriority(for: panel, overlay: overlay))
             }
         }
-        .accessibilityElement(children: .contain)
-        .accessibilitySortPriority(Double(10_000 - panel.readingOrder))
     }
 
     private func attachedOverlays(
@@ -213,7 +211,6 @@ struct LorePageView: View {
                 alignment: nearestPageEdgeAlignment(for: panelRect, canvasSize: canvasSize)
             )
             .position(x: canvasSize.width / 2, y: canvasSize.height / 2)
-            .accessibilitySortPriority(accessibilityPriority(for: panel, overlay: overlay))
     }
 
     private func panelRect(
@@ -247,13 +244,5 @@ struct LorePageView: View {
             (canvasSize.height - rect.midY, rect.midX < canvasSize.width / 2 ? .bottomLeading : .bottomTrailing)
         ]
         return candidates.min(by: { $0.distance < $1.distance })?.alignment ?? .topLeading
-    }
-
-    private func accessibilityPriority(
-        for panel: LorePanelDefinition,
-        overlay: ResolvedLoreTextOverlay
-    ) -> Double {
-        let overlayOrder = page.composition.textOverlays.firstIndex(where: { $0.id == overlay.id }) ?? 0
-        return Double(10_000 - panel.readingOrder * 100 - overlayOrder)
     }
 }
