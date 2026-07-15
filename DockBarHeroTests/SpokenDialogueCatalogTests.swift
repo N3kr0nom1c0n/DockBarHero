@@ -35,6 +35,48 @@ final class SpokenDialogueCatalogTests: XCTestCase {
         XCTAssertFalse(cue.text.lowercased().contains("jackass"))
         XCTAssertTrue(cue.text.contains("hamburger enthusiast"))
     }
+
+    func testEveryOverlayDialogueCueExistsAndMatchesSpokenSidecar() throws {
+        let lore = try LoreCatalog.bundled()
+        let spoken = try SpokenDialogueCatalog.bundled(loreCatalog: lore)
+        let cueIDs = Set(spoken.cues.map(\.id))
+
+        for overlay in lore.pages.flatMap({ $0.composition.textOverlays }) {
+            guard let cueID = overlay.dialogueCueID else { continue }
+            XCTAssertTrue(cueIDs.contains(cueID), cueID)
+            XCTAssertEqual(
+                spoken.resolve(cueID: cueID, languageMode: .unfiltered)?.text,
+                overlay.copy.unfiltered,
+                cueID
+            )
+            XCTAssertEqual(
+                spoken.resolve(cueID: cueID, languageMode: .clean)?.text,
+                overlay.copy.clean,
+                cueID
+            )
+        }
+    }
+
+    func testOnlyApprovedOverlayLinesAreVoiced() throws {
+        let lore = try LoreCatalog.bundled()
+        let overlayCueIDs = lore.pages.flatMap { page in
+            page.composition.textOverlays.compactMap(\.dialogueCueID)
+        }
+
+        XCTAssertEqual(overlayCueIDs, [
+            "prologue.book.wrong-way", "prologue.book.arrow-denial",
+            "book.level1.summary", "kevin.not-kevin",
+            "book.level5.summary", "kevin.supervisor",
+            "book.level10.summary",
+            "book.level15.summary", "brick.policy-warning",
+            "book.level20.summary", "mercy.therapy-referral"
+        ])
+
+        let voicedStyles = lore.pages.flatMap(\.composition.textOverlays)
+            .filter { $0.dialogueCueID != nil }
+            .map(\.style)
+        XCTAssertFalse(voicedStyles.contains(.soundEffect))
+    }
 }
 
 extension DialogueSpeaker {

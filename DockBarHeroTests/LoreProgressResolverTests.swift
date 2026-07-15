@@ -60,6 +60,34 @@ final class LoreProgressResolverTests: XCTestCase {
         XCTAssertEqual(resolved.composition.contextSheetName, "adult-context-context-adult")
         XCTAssertEqual(resolved.composition.textOverlays.first?.text, "adult-context narration")
     }
+
+    func testBundledLevelTwentyAdultModeUsesAdultMotionAndSafeContext() throws {
+        let page = try XCTUnwrap(LoreProgressResolver.resolve(
+            catalog: try LoreCatalog.bundled(), highestUnlockedLevel: 21,
+            languageMode: .unfiltered, illustrationMode: .adult
+        ).last)
+
+        XCTAssertEqual(page.id.rawValue, "volume-1.level-20")
+        XCTAssertEqual(page.spriteSheetName, "volume1-level20-adult")
+        XCTAssertEqual(page.composition.contextSheetName, "volume1-level20-context-safe")
+    }
+
+    func testBundledOverlayOrderIsStableWhenResolvingLanguageModes() throws {
+        let catalog = try LoreCatalog.bundled()
+        let unfiltered = LoreProgressResolver.resolve(
+            catalog: catalog, highestUnlockedLevel: 21,
+            languageMode: .unfiltered, illustrationMode: .safe
+        )
+        let clean = LoreProgressResolver.resolve(
+            catalog: catalog, highestUnlockedLevel: 21,
+            languageMode: .clean, illustrationMode: .safe
+        )
+
+        XCTAssertEqual(unfiltered.map { $0.composition.textOverlays.map(\.id) },
+                       catalog.pages.map { $0.composition.textOverlays.map(\.id) })
+        XCTAssertEqual(clean.map { $0.composition.textOverlays.map(\.id) },
+                       unfiltered.map { $0.composition.textOverlays.map(\.id) })
+    }
 }
 
 private func makeCatalog() throws -> LoreCatalog {

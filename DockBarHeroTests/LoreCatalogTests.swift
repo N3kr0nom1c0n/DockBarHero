@@ -57,6 +57,37 @@ final class LoreCatalogTests: XCTestCase {
         XCTAssertFalse(prologue.body.clean.lowercased().contains("fuck"))
     }
 
+    func testBundledRequiredCopyIsNonemptyAndCleanOverlaysContainNoProfanity() throws {
+        let catalog = try LoreCatalog.bundled()
+
+        for page in catalog.pages {
+            let requiredPageCopy = [
+                page.title.unfiltered, page.title.clean,
+                page.body.unfiltered, page.body.clean,
+                page.art.accessibilitySafe
+            ]
+            XCTAssertTrue(requiredPageCopy.allSatisfy { !$0.trimmedForLoreTest.isEmpty }, page.id.rawValue)
+
+            for overlay in page.composition.textOverlays {
+                XCTAssertFalse(overlay.copy.unfiltered.trimmedForLoreTest.isEmpty, overlay.id)
+                XCTAssertFalse(overlay.copy.clean.trimmedForLoreTest.isEmpty, overlay.id)
+                XCTAssertFalse(overlay.copy.clean.lowercased().contains("fuck"), overlay.id)
+            }
+        }
+    }
+
+    func testBundledOverlaysFollowPanelReadingOrder() throws {
+        for page in try LoreCatalog.bundled().pages {
+            let panelOrder = Dictionary(uniqueKeysWithValues:
+                page.composition.panels.map { ($0.id, $0.readingOrder) }
+            )
+            let overlayPanelOrders = try page.composition.textOverlays.map { overlay in
+                try XCTUnwrap(panelOrder[overlay.panelID], overlay.panelID)
+            }
+            XCTAssertEqual(overlayPanelOrders, overlayPanelOrders.sorted(), page.id.rawValue)
+        }
+    }
+
     func testAcceptsEachSupportedLayoutWithItsExpectedPanelCount() throws {
         let expected: [(LoreMangaLayoutID, Int)] = [
             (.cascadeFive, 5),
@@ -291,6 +322,12 @@ final class LoreCatalogTests: XCTestCase {
         XCTAssertThrowsError(try LoreCatalog.validated(.init(schemaVersion: 2, pages: [cuePage]))) {
             XCTAssertEqual($0 as? LoreCatalogError, .invalidComposition("bad-copy"))
         }
+    }
+}
+
+private extension String {
+    var trimmedForLoreTest: String {
+        trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 
