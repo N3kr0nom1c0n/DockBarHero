@@ -45,6 +45,20 @@ struct GameSimulation {
 
     var presentation: GamePresentation {
         let fallbackHero = state.party.heroes.first?.combat
+        let campaign = (try? CampaignResolver().resolve(level: state.encounter.enemyLevel))
+            .flatMap { resolved -> CampaignPresentation? in
+                guard let area = resolved.area, let enemy = resolved.enemy else { return nil }
+                return CampaignPresentation(
+                    areaID: area.id,
+                    areaFullName: area.fullName,
+                    areaShortName: area.shortName,
+                    enemyID: enemy.id,
+                    enemyName: enemy.displayName,
+                    enemySpriteID: enemy.spriteID,
+                    tier: resolved.tier,
+                    level: resolved.level
+                )
+            }
         return GamePresentation(
             state: state,
             heroAttack: (try? combatResolver.effectiveAttack(for: .hero, in: state)) ?? fallbackHero?.baseAttack ?? 0,
@@ -65,7 +79,8 @@ struct GameSimulation {
                     defense: (try? combatResolver.effectiveDefense(forHeroAt: slot, in: state))
                         ?? state.party.heroes[slot].combat.baseDefense
                 )
-            }
+            },
+            campaign: campaign
         )
     }
 
@@ -448,6 +463,10 @@ struct GameSimulation {
               Set(state.party.heroes.map(\.classID)).count == state.party.heroes.count else {
             throw SimulationError.invalidState
         }
+        guard let resolved = try? CampaignResolver().resolve(level: state.encounter.enemyLevel),
+              resolved.tier == state.encounter.tier else {
+            throw SimulationError.invalidState
+        }
         guard state.campaign.highestUnlockedLevel >= 1,
               state.campaign.selectedLevel >= 1,
               state.campaign.selectedLevel <= state.campaign.highestUnlockedLevel,
@@ -455,7 +474,6 @@ struct GameSimulation {
               state.campaign.mode != .push ||
                   state.campaign.selectedLevel == state.campaign.highestUnlockedLevel,
               state.encounter.enemyLevel == state.campaign.selectedLevel,
-              EncounterSchedule.standard.tier(for: state.encounter.enemyLevel) == state.encounter.tier,
               state.campaign.queuedLevel.map({
                   $0 >= 1 && $0 <= state.campaign.highestUnlockedLevel
               }) ?? true else {
@@ -549,8 +567,12 @@ struct GameSimulation {
         }
         let (nextLevel, overflow) = state.encounter.enemyLevel.addingReportingOverflow(1)
         guard !overflow,
-              let nextTier = EncounterSchedule.standard.tier(for: nextLevel),
-              balance.enemy(level: nextLevel, tier: nextTier, progression: .standard) != nil else {
+              let nextResolved = try? CampaignResolver().resolve(level: nextLevel),
+              balance.enemy(
+                  level: nextLevel,
+                  tier: nextResolved.tier,
+                  progression: .standard
+              ) != nil else {
             throw SimulationError.invalidBalance
         }
     }

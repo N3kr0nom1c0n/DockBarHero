@@ -186,6 +186,10 @@ struct SaveCodec: Sendable {
         guard state.economy.gold >= 0 else {
             throw SaveValidationError.invalidEconomy
         }
+        guard let resolved = try? CampaignResolver().resolve(level: state.encounter.enemyLevel),
+              resolved.tier == state.encounter.tier else {
+            throw SaveValidationError.invalidCampaign
+        }
         guard state.campaign.highestUnlockedLevel >= 1,
               state.campaign.selectedLevel >= 1,
               state.campaign.selectedLevel <= state.campaign.highestUnlockedLevel,
@@ -195,8 +199,7 @@ struct SaveCodec: Sendable {
               state.campaign.queuedLevel.map({
                   $0 >= 1 && $0 <= state.campaign.highestUnlockedLevel
               }) ?? true,
-              state.encounter.enemyLevel == state.campaign.selectedLevel,
-              EncounterSchedule.standard.tier(for: state.encounter.enemyLevel) == state.encounter.tier else {
+              state.encounter.enemyLevel == state.campaign.selectedLevel else {
             throw SaveValidationError.invalidCampaign
         }
 
@@ -212,9 +215,14 @@ struct SaveCodec: Sendable {
 
         guard balance.enemy(
             level: state.encounter.enemyLevel,
-            tier: state.encounter.tier,
+            tier: resolved.tier,
             progression: .standard
         ) != nil else {
+            throw SaveValidationError.invalidEnemyLevel
+        }
+        let (nextLevel, overflow) = state.encounter.enemyLevel.addingReportingOverflow(1)
+        guard !overflow,
+              (try? CampaignResolver().resolve(level: nextLevel)) != nil else {
             throw SaveValidationError.invalidEnemyLevel
         }
         guard state.party.heroes.allSatisfy({

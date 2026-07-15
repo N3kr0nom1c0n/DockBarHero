@@ -148,6 +148,47 @@ final class SpriteCatalogTests: XCTestCase {
         XCTAssertTrue(clip.repeats)
     }
 
+    func testBundledCatalogUsesCampaignEnemyIdentityClip() throws {
+        let manifest = Data("""
+        {
+          "version": 1,
+          "cell": {"width": 96, "height": 64},
+          "clips": [
+            {
+              "token": "enemy",
+              "action": "idle",
+              "resource": "enemy/idle.png",
+              "frameCount": 1,
+              "secondsPerFrame": 0.2,
+              "repeats": true
+            },
+            {
+              "token": "goblin",
+              "action": "idle",
+              "resource": "goblin/idle.png",
+              "frameCount": 1,
+              "secondsPerFrame": 0.2,
+              "repeats": true
+            }
+          ]
+        }
+        """.utf8)
+        let image = try XCTUnwrap(Self.image(width: 96, height: 64))
+        var requestedResources: [String] = []
+        let catalog = try BundledSpriteCatalog(
+            manifestData: manifest,
+            imageProvider: { resource in
+                requestedResources.append(resource)
+                return image
+            },
+            fallback: BuiltinSpriteCatalog()
+        )
+
+        _ = catalog.textures(forEnemy: .goblin, action: .idle)
+
+        XCTAssertEqual(requestedResources, ["goblin/idle.png"])
+    }
+
     private static func image(width: Int, height: Int) -> CGImage? {
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         guard let context = CGContext(
@@ -164,5 +205,178 @@ final class SpriteCatalogTests: XCTestCase {
         context.setFillColor(NSColor.systemBlue.cgColor)
         context.fill(CGRect(x: width / 2, y: 0, width: width / 2, height: height))
         return context.makeImage()
+    }
+
+    func testEnemyIdentityActionOverridesGenericEnemy() {
+        let identityAttack = PixelSpriteDefinition(
+            width: 1,
+            height: 1,
+            palette: ["I": 0x112233FF],
+            rows: ["I"]
+        )
+        let genericAttack = PixelSpriteDefinition(
+            width: 1,
+            height: 1,
+            palette: ["G": 0x445566FF],
+            rows: ["G"]
+        )
+        let spriteID = EnemySpriteID(rawValue: "test.enemy")
+        let catalog = BuiltinSpriteCatalog(
+            definitions: [.enemy: [.attack: [genericAttack]]],
+            enemyDefinitions: [spriteID: [.attack: [identityAttack]]]
+        )
+
+        XCTAssertEqual(
+            catalog.pixelData(forEnemy: spriteID, action: .attack),
+            [[0x112233FF]]
+        )
+    }
+
+    func testMissingEnemyActionFallsBackToIdentityIdle() {
+        let identityIdle = PixelSpriteDefinition(
+            width: 1,
+            height: 1,
+            palette: ["I": 0x112233FF],
+            rows: ["I"]
+        )
+        let spriteID = EnemySpriteID(rawValue: "test.enemy")
+        let catalog = BuiltinSpriteCatalog(
+            definitions: [:],
+            enemyDefinitions: [spriteID: [.idle: [identityIdle]]]
+        )
+
+        XCTAssertEqual(
+            catalog.pixelData(forEnemy: spriteID, action: .attack),
+            [[0x112233FF]]
+        )
+    }
+
+    func testMissingEnemyIdentityUsesGenericEnemy() {
+        let catalog = BuiltinSpriteCatalog()
+
+        XCTAssertEqual(
+            catalog.pixelData(
+                forEnemy: EnemySpriteID(rawValue: "missing.enemy"),
+                action: .attack
+            ),
+            catalog.pixelData(for: .enemy, action: .attack)
+        )
+    }
+
+    func testMissingEnemyAndGenericActionsFallBackToGenericIdle() {
+        let genericIdle = PixelSpriteDefinition(
+            width: 1,
+            height: 1,
+            palette: ["G": 0x445566FF],
+            rows: ["G"]
+        )
+        let catalog = BuiltinSpriteCatalog(definitions: [.enemy: [.idle: [genericIdle]]])
+
+        XCTAssertEqual(
+            catalog.pixelData(
+                forEnemy: EnemySpriteID(rawValue: "missing.enemy"),
+                action: .attack
+            ),
+            [[0x445566FF]]
+        )
+    }
+
+    func testEmptyEnemyIdentityActionFallsBackToIdentityIdle() {
+        let identityIdle = PixelSpriteDefinition(
+            width: 1,
+            height: 1,
+            palette: ["I": 0x112233FF],
+            rows: ["I"]
+        )
+        let spriteID = EnemySpriteID(rawValue: "test.enemy")
+        let catalog = BuiltinSpriteCatalog(
+            definitions: [:],
+            enemyDefinitions: [spriteID: [.idle: [identityIdle], .attack: []]]
+        )
+
+        XCTAssertEqual(
+            catalog.pixelData(forEnemy: spriteID, action: .attack),
+            [[0x112233FF]]
+        )
+    }
+
+    func testEmptyEnemyIdentityIdleFallsBackToGenericAction() {
+        let genericAttack = PixelSpriteDefinition(
+            width: 1,
+            height: 1,
+            palette: ["G": 0x445566FF],
+            rows: ["G"]
+        )
+        let spriteID = EnemySpriteID(rawValue: "test.enemy")
+        let catalog = BuiltinSpriteCatalog(
+            definitions: [.enemy: [.attack: [genericAttack]]],
+            enemyDefinitions: [spriteID: [.idle: []]]
+        )
+
+        XCTAssertEqual(
+            catalog.pixelData(forEnemy: spriteID, action: .attack),
+            [[0x445566FF]]
+        )
+    }
+
+    func testEmptyGenericEnemyActionFallsBackToGenericIdle() {
+        let genericIdle = PixelSpriteDefinition(
+            width: 1,
+            height: 1,
+            palette: ["G": 0x445566FF],
+            rows: ["G"]
+        )
+        let catalog = BuiltinSpriteCatalog(
+            definitions: [.enemy: [.idle: [genericIdle], .attack: []]]
+        )
+
+        XCTAssertEqual(
+            catalog.pixelData(
+                forEnemy: EnemySpriteID(rawValue: "missing.enemy"),
+                action: .attack
+            ),
+            [[0x445566FF]]
+        )
+    }
+
+    func testEmptyGenericEnemyIdleUsesMagentaDiagnosticFallback() throws {
+        let catalog = BuiltinSpriteCatalog(definitions: [.enemy: [.idle: []]])
+
+        let pixels = try XCTUnwrap(
+            catalog.pixelData(
+                forEnemy: EnemySpriteID(rawValue: "missing.enemy"),
+                action: .attack
+            ).first
+        )
+        XCTAssertEqual(pixels.count, 16)
+        XCTAssertEqual(pixels[0], 0xFF00FFFF)
+        XCTAssertEqual(pixels[1], 0x000000FF)
+    }
+
+    func testInvalidEnemyIdentityPixelsUseMagentaDiagnosticFallback() throws {
+        let invalidIdentity = PixelSpriteDefinition(
+            width: 2,
+            height: 1,
+            palette: ["I": 0x112233FF],
+            rows: ["I"]
+        )
+        let genericIdle = PixelSpriteDefinition(
+            width: 1,
+            height: 1,
+            palette: ["G": 0x445566FF],
+            rows: ["G"]
+        )
+        let spriteID = EnemySpriteID(rawValue: "test.enemy")
+        let catalog = BuiltinSpriteCatalog(
+            definitions: [.enemy: [.idle: [genericIdle]]],
+            enemyDefinitions: [spriteID: [.idle: [invalidIdentity]]]
+        )
+
+        let pixels = try XCTUnwrap(
+            catalog.pixelData(forEnemy: spriteID, action: .idle).first
+        )
+        XCTAssertEqual(pixels.count, 16)
+        XCTAssertEqual(pixels[0], 0xFF00FFFF)
+        XCTAssertEqual(pixels[1], 0x000000FF)
     }
 }

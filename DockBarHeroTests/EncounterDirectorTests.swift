@@ -70,7 +70,8 @@ final class EncounterDirectorTests: XCTestCase {
 
         XCTAssertEqual(result.encounter.enemyLevel, 5)
         XCTAssertEqual(result.encounter.tier, .elite)
-        XCTAssertEqual(result.enemy.maxHealth, 54)
+        XCTAssertEqual(result.enemy.maxHealth, 68)
+        XCTAssertEqual(result.enemy.baseDefense, 3)
     }
 
     func testBeginNextEncounterCreatesNextLevelAndResetsHeroAndTimers() throws {
@@ -85,7 +86,9 @@ final class EncounterDirectorTests: XCTestCase {
 
         XCTAssertEqual(result.encounter.enemyLevel, 2)
         XCTAssertEqual(result.hero.currentHealth, result.hero.maxHealth)
-        XCTAssertEqual(result.enemy, BalanceConfiguration.standard.enemy(level: 2))
+        XCTAssertEqual(result.enemy.maxHealth, 23)
+        XCTAssertEqual(result.enemy.baseAttack, 3)
+        XCTAssertEqual(result.enemy.attackInterval, .nanoseconds(900_000_000))
         XCTAssertEqual(result.encounter.phase, .active)
         XCTAssertEqual(result.encounter.activeElapsed, .zero)
         XCTAssertEqual(result.encounter.heroDamage, 0)
@@ -141,6 +144,32 @@ final class EncounterDirectorTests: XCTestCase {
         XCTAssertThrowsError(try EncounterDirector().beginNextEncounter(in: state, balance: .standard)) { error in
             XCTAssertEqual(error as? SimulationError, .arithmeticOverflow)
         }
+        XCTAssertEqual(state, original)
+    }
+
+    func testEncounterConstructionFailureLeavesPriorStateUnchanged() {
+        var catalog = CampaignCatalog.standard
+        let bat = catalog.enemies.firstIndex { $0.id == .bat }!
+        catalog.enemies[bat] = EnemyDefinition(
+            id: .bat,
+            displayName: "Bat",
+            tier: .normal,
+            spriteID: .bat,
+            profile: EnemyStatProfile(
+                healthBasisPoints: .max,
+                attackBasisPoints: 10_000,
+                defenseBonus: 0,
+                attackIntervalBasisPoints: 10_000
+            )
+        )
+        let director = EncounterDirector(
+            resolver: CampaignResolver(catalog: catalog),
+            enemyFactory: EnemyFactory()
+        )
+        let state = GameState.newGame(balance: .standard)
+        let original = state
+
+        XCTAssertThrowsError(try director.beginNextEncounter(in: state, balance: .standard))
         XCTAssertEqual(state, original)
     }
 

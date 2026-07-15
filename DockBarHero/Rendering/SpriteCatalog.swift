@@ -11,6 +11,23 @@ enum SpriteToken: String, Codable, Hashable, Sendable {
     case eliteKnight, dreadSkeleton, infernalBrute, frostWraith
     case poisonNaga, stormLich, dragonWhelp, ancientGolem
     case ironrootWarchief, ossuarySovereign, embermawColossus, astralWyrm
+
+    init(enemySpriteID: EnemySpriteID) {
+        self = switch enemySpriteID.rawValue {
+        case "goblin": .goblin
+        case "bandit": .bandit
+        case "slime": .slime
+        case "mimic": .mimic
+        case "skeleton": .skeleton
+        case "bat": .bat
+        case "zombie": .zombie
+        case "knight": .eliteKnight
+        case "frost-wraith": .frostWraith
+        case "poison-naga-queen": .poisonNaga
+        case "ancient-golem": .ancientGolem
+        default: .enemy
+        }
+    }
 }
 
 enum SpriteAction: String, Codable, Hashable, Sendable {
@@ -24,6 +41,7 @@ enum SpriteAction: String, Codable, Hashable, Sendable {
 protocol SpriteCatalog: AnyObject {
     func textures(for token: SpriteToken, action: SpriteAction) -> [SKTexture]
     func clip(for token: SpriteToken, action: SpriteAction) -> SpriteClip
+    func textures(forEnemy spriteID: EnemySpriteID, action: SpriteAction) -> [SKTexture]
 }
 
 extension SpriteCatalog {
@@ -33,6 +51,10 @@ extension SpriteCatalog {
             secondsPerFrame: 0.08,
             repeats: action == .idle
         )
+    }
+
+    func textures(forEnemy spriteID: EnemySpriteID, action: SpriteAction) -> [SKTexture] {
+        textures(for: SpriteToken(enemySpriteID: spriteID), action: action)
     }
 }
 
@@ -110,6 +132,10 @@ final class BundledSpriteCatalog: SpriteCatalog {
         clip(for: token, action: action).textures
     }
 
+    func textures(forEnemy spriteID: EnemySpriteID, action: SpriteAction) -> [SKTexture] {
+        textures(for: SpriteToken(enemySpriteID: spriteID), action: action)
+    }
+
     func clip(for token: SpriteToken, action: SpriteAction) -> SpriteClip {
         let key = Key(token: token, action: action)
         if let cached = cachedClips[key] { return cached }
@@ -180,12 +206,15 @@ final class BundledSpriteCatalog: SpriteCatalog {
 @MainActor
 final class BuiltinSpriteCatalog: SpriteCatalog {
     private let definitions: [SpriteToken: [SpriteAction: [PixelSpriteDefinition]]]
+    private let enemyDefinitions: [EnemySpriteID: [SpriteAction: [PixelSpriteDefinition]]]
     private var loggedInvalidDefinitions: Set<String> = []
 
     init(
-        definitions: [SpriteToken: [SpriteAction: [PixelSpriteDefinition]]] = BuiltinPixelSprites.definitions
+        definitions: [SpriteToken: [SpriteAction: [PixelSpriteDefinition]]] = BuiltinPixelSprites.definitions,
+        enemyDefinitions: [EnemySpriteID: [SpriteAction: [PixelSpriteDefinition]]] = [:]
     ) {
         self.definitions = definitions
+        self.enemyDefinitions = enemyDefinitions
     }
 
     func textures(for token: SpriteToken, action: SpriteAction) -> [SKTexture] {
@@ -210,6 +239,28 @@ final class BuiltinSpriteCatalog: SpriteCatalog {
         }
     }
 
+    func textures(forEnemy spriteID: EnemySpriteID, action: SpriteAction) -> [SKTexture] {
+        pixelDefinitions(forEnemy: spriteID, action: action).map { definition in
+            do {
+                return try texture(for: definition)
+            } catch {
+                logInvalidOnce(spriteID: spriteID, action: action)
+                return fallbackTexture()
+            }
+        }
+    }
+
+    func pixelData(forEnemy spriteID: EnemySpriteID, action: SpriteAction) -> [[UInt32]] {
+        pixelDefinitions(forEnemy: spriteID, action: action).map { definition in
+            do {
+                return try definition.rgbaPixels()
+            } catch {
+                logInvalidOnce(spriteID: spriteID, action: action)
+                return (try? Self.fallback.rgbaPixels()) ?? [0xFF00FFFF]
+            }
+        }
+    }
+
     private func pixelDefinitions(
         for token: SpriteToken,
         action: SpriteAction
@@ -217,6 +268,24 @@ final class BuiltinSpriteCatalog: SpriteCatalog {
         definitions[token]?[action]
             ?? definitions[token]?[.idle]
             ?? [Self.fallback]
+    }
+
+    private func pixelDefinitions(
+        forEnemy spriteID: EnemySpriteID,
+        action: SpriteAction
+    ) -> [PixelSpriteDefinition] {
+        nonEmpty(enemyDefinitions[spriteID]?[action])
+            ?? nonEmpty(enemyDefinitions[spriteID]?[.idle])
+            ?? nonEmpty(definitions[.enemy]?[action])
+            ?? nonEmpty(definitions[.enemy]?[.idle])
+            ?? [Self.fallback]
+    }
+
+    private func nonEmpty(
+        _ definitions: [PixelSpriteDefinition]?
+    ) -> [PixelSpriteDefinition]? {
+        guard let definitions, !definitions.isEmpty else { return nil }
+        return definitions
     }
 
     private func texture(for definition: PixelSpriteDefinition) throws -> SKTexture {
@@ -246,6 +315,12 @@ final class BuiltinSpriteCatalog: SpriteCatalog {
 
     private func logInvalidOnce(token: SpriteToken, action: SpriteAction) {
         let key = "\(token)-\(action)"
+        guard loggedInvalidDefinitions.insert(key).inserted else { return }
+        AppLog.scene.error("Invalid sprite definition for \(key, privacy: .public)")
+    }
+
+    private func logInvalidOnce(spriteID: EnemySpriteID, action: SpriteAction) {
+        let key = "enemy-\(spriteID.rawValue)-\(action)"
         guard loggedInvalidDefinitions.insert(key).inserted else { return }
         AppLog.scene.error("Invalid sprite definition for \(key, privacy: .public)")
     }

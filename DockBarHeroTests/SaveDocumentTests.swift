@@ -5,6 +5,10 @@ import XCTest
 final class SaveDocumentTests: XCTestCase {
     private let savedAt = Date(timeIntervalSince1970: 1_783_641_600)
 
+    func testSchemaVersionRemainsTwo() {
+        XCTAssertEqual(SaveDocument.currentVersion, 2)
+    }
+
     func testV1SaveIsRejectedWithoutMigration() {
         XCTAssertThrowsError(try SaveCodec().decode(SaveV1GoldenFixture.data)) { error in
             XCTAssertEqual(error as? SaveDecodingError, .unsupportedVersion(1))
@@ -31,6 +35,33 @@ final class SaveDocumentTests: XCTestCase {
         XCTAssertEqual(document.schemaVersion, SaveDocument.currentVersion)
         XCTAssertEqual(document.savedAt, savedAt)
         XCTAssertEqual(document.state, state)
+    }
+
+    func testAuthoredSaveRoundTripPreservesInProgressEnemyState() throws {
+        var state = try campaignState(level: 9)
+        state.enemy.currentHealth = state.enemy.maxHealth - 3
+        state.enemy.timeUntilNextAttack = .nanoseconds(123_456_789)
+
+        let data = try SaveCodec().encode(
+            state: state,
+            savedAt: Date(timeIntervalSince1970: 0)
+        )
+
+        XCTAssertEqual(try SaveCodec().decode(data).state, state)
+    }
+
+    func testProceduralLevel192RoundTrips() throws {
+        let state = try campaignState(level: 192)
+        let data = try SaveCodec().encode(state: state, savedAt: savedAt)
+
+        XCTAssertEqual(try SaveCodec().decode(data).state, state)
+    }
+
+    func testWrongAuthoredTierIsRejected() throws {
+        var state = try campaignState(level: 9)
+        state.encounter.tier = .elite
+
+        assertValidation(.invalidCampaign, for: state)
     }
 
     func testStackedInventoryOverflowAndExpansionRoundTrip() throws {
@@ -402,6 +433,26 @@ final class SaveDocumentTests: XCTestCase {
             savedAt: savedAt,
             runState: .active(state)
         ))
+    }
+
+    private func campaignState(level: Int) throws -> GameState {
+        let resolved = try CampaignResolver().resolve(level: level)
+        var state = GameState.newGame(balance: .standard)
+        state.campaign = CampaignState(
+            highestUnlockedLevel: level,
+            selectedLevel: level,
+            queuedLevel: nil,
+            mode: .push,
+            consecutiveDefeats: 0
+        )
+        state.encounter.enemyLevel = level
+        state.encounter.tier = resolved.tier
+        state.enemy = try EnemyFactory().makeEnemy(
+            for: resolved,
+            balance: .standard,
+            progression: .standard
+        )
+        return state
     }
 
     private func combatant(
