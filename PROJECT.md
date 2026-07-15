@@ -7,7 +7,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 ## Current Milestone
 
 - Goal: integrate the authored Area One campaign, current Heroes/Class Actions/Loot/sprites, multi-panel manga Book, and recorded Book voiceover into one verified local milestone.
-- Current checkpoint: local `main` merge `08542fe` contains all four source workstreams, live-QA repairs, and synchronized management-window titles.
+- Current checkpoint: local `main` contains all four source workstreams, live-QA repairs, synchronized management-window titles, and the procedural enemy combat-identity repair.
 - Area One replaces Levels 1 through 25 with authored dungeon encounters, then preserves the procedural campaign from Level 26 onward.
 - Remaining: user review of the open Book; no push or source-worktree deletion is authorized.
 
@@ -58,7 +58,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Active Work
 
-- Parent orchestrator: keep the exact local-`main` Book bundle open for user review.
+- Parent orchestrator: keep the exact local-`main` bundle running for user review.
 - Preserve every source worktree and its branch after integration.
 - Merge to local `main` only after live QA succeeds; do not push.
 - Manual evidence stays explicit in the review packets; automated results never substitute for visual/audio inspection.
@@ -66,11 +66,12 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 ## Last Verified State
 
 - Date: 2026-07-15.
-- Combined checkpoint: 544 arm64 XCTest tests passed with zero failures (`** TEST SUCCEEDED **`).
+- Combined checkpoint: 545 arm64 XCTest tests passed with zero failures (`** TEST SUCCEEDED **`).
 - Sprite-pipeline suite: 16 Python tests passed with zero failures.
 - Clean unsigned arm64 build succeeded; context guard, `git diff --check`, and unmerged-entry check passed.
 - Focused merge gates passed: 30 sprite/catalog tests, 49 lore/audio/catalog tests, and 111 campaign/rendering/catalog tests.
 - Exact integration bundle launched as the only process. Direct QA passed wide/compact Book layout, fixed captions, RTL navigation, dark/Aqua contrast, clean/unfiltered copy, Adult confirmation, reversed volume/reaction behavior, route titles, Area One management/rail presentation, and frontier restoration.
+- Procedural Level 74 live QA passed across idle, hit, defeated, and the next combat cycle: the resolved wolf sprite remained stable instead of swapping to the generic fallback.
 - Recorded Replay opened the expected bundled MP3; leaving the Book immediately closed it. Subjective voice/cast audibility, Reduced Motion, and a human VoiceOver pass remain unclaimed.
 - Local `main` merge `08542fe` independently passed 544 arm64 tests, 16 Python tests, a clean unsigned build, and exact-bundle launch as one process from `/Users/n3kr0/Projects/TBH/.build/RunDerivedData`.
 
@@ -83,6 +84,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - Inventory is party-shared, equipped item IDs are exclusive per hero, and overflow prevents item loss.
 - Production sprites are checksum-locked, normalized into transparent 96x64 cells, nearest-filtered, and selected deterministically without save-state changes.
 - Authored campaign sprite identity takes precedence for Levels 1 through 25; procedural presentations continue through the level-based sprite resolver.
+- Procedural enemy combat actions and idle restoration use that same level-resolved token; authored encounters retain their explicit campaign sprite identity.
 - Rail actors retain their normal 54x36 size and scale proportionally only when a narrow three-hero lane cannot fit them.
 - Lore speech defaults off, never starts outside the open active Book, and stops when the Book closes or the app resigns active.
 - Recorded speech completion advances every authored cue in order, rejects stale callbacks after interruption, and falls back to system synthesis when recorded assets cannot validate.

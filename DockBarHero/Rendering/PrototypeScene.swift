@@ -633,6 +633,15 @@ final class PrototypeScene: SKScene {
         returnsToIdle: Bool = true
     ) {
         guard let node = childNode(withName: "enemy") as? SKSpriteNode else { return }
+        if renderedCampaign == nil {
+            playSpriteAction(
+                on: node,
+                token: renderedEnemyToken,
+                action: action,
+                returnsToIdle: returnsToIdle
+            )
+            return
+        }
         let textures = spriteCatalog.textures(forEnemy: renderedEnemySpriteID, action: action)
         guard let first = textures.first else { return }
         node.removeAction(forKey: "spriteLoop")
@@ -685,6 +694,10 @@ final class PrototypeScene: SKScene {
 
     private func setEnemyIdleTexture() {
         guard let node = childNode(withName: "enemy") as? SKSpriteNode else { return }
+        if renderedCampaign == nil {
+            startSpriteLoop(on: node, token: renderedEnemyToken)
+            return
+        }
         node.removeAction(forKey: "spriteAction")
         node.removeAction(forKey: "spriteLoop")
         let textures = spriteCatalog.textures(

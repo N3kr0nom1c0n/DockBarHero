@@ -661,6 +661,25 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertTrue(catalog.calls.contains(.init(token: expectedToken, action: .idle)))
     }
 
+    func testProceduralEnemyKeepsLevelResolvedIdentityDuringCombatAction() throws {
+        let catalog = RecordingSpriteCatalog()
+        let host = try PrototypeSceneHost(spriteCatalog: catalog)
+        var state = GameState.newGame(balance: .standard)
+        state.encounter.enemyLevel = 74
+        state.encounter.tier = .normal
+        var presentation = GameSimulation(state: state).presentation
+        presentation.campaign = nil
+        host.scene.render(presentation)
+        catalog.calls.removeAll()
+
+        host.scene.handle([.heroAttack(slot: 0, damage: 1)])
+
+        let expectedToken = EnemySpriteResolver.token(level: 74, tier: .normal)
+        XCTAssertEqual(expectedToken, .wolf)
+        XCTAssertTrue(catalog.calls.contains(.init(token: expectedToken, action: .hit)))
+        XCTAssertFalse(catalog.calls.contains(.init(token: .enemy, action: .hit)))
+    }
+
     func testVictoryKeepsEnemyDefeatSpriteWithoutProceduralFade() throws {
         let host = try PrototypeSceneHost()
         let enemy = try XCTUnwrap(host.scene.childNode(withName: "enemy"))
