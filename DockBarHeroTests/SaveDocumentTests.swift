@@ -5,6 +5,10 @@ import XCTest
 final class SaveDocumentTests: XCTestCase {
     private let savedAt = Date(timeIntervalSince1970: 1_783_641_600)
 
+    func testSchemaVersionRemainsTwo() {
+        XCTAssertEqual(SaveDocument.currentVersion, 2)
+    }
+
     func testV1SaveIsRejectedWithoutMigration() {
         XCTAssertThrowsError(try SaveCodec().decode(SaveV1GoldenFixture.data)) { error in
             XCTAssertEqual(error as? SaveDecodingError, .unsupportedVersion(1))
@@ -31,6 +35,50 @@ final class SaveDocumentTests: XCTestCase {
         XCTAssertEqual(document.schemaVersion, SaveDocument.currentVersion)
         XCTAssertEqual(document.savedAt, savedAt)
         XCTAssertEqual(document.state, state)
+    }
+
+    func testAuthoredSaveRoundTripPreservesInProgressEnemyState() throws {
+        var state = try campaignState(level: 9)
+        state.enemy.currentHealth = state.enemy.maxHealth - 3
+        state.enemy.timeUntilNextAttack = .nanoseconds(123_456_789)
+
+        let data = try SaveCodec().encode(
+            state: state,
+            savedAt: Date(timeIntervalSince1970: 0)
+        )
+
+        XCTAssertEqual(try SaveCodec().decode(data).state, state)
+    }
+
+    func testProceduralLevel192RoundTrips() throws {
+        let state = try campaignState(level: 192)
+        let data = try SaveCodec().encode(state: state, savedAt: savedAt)
+
+        XCTAssertEqual(try SaveCodec().decode(data).state, state)
+    }
+
+    func testWrongAuthoredTierIsRejected() throws {
+        var state = try campaignState(level: 9)
+        state.encounter.tier = .elite
+
+        assertValidation(.invalidCampaign, for: state)
+    }
+
+    func testStackedInventoryOverflowAndExpansionRoundTrip() throws {
+        var state = GameState.newGame(balance: .standard)
+        state.inventory = [
+            Item(id: ItemID(rawValue: 1), level: 2, slot: .weapon, primaryStat: 2, creationSequence: 1, quantity: 12),
+        ]
+        state.overflowInventory = [
+            Item(id: ItemID(rawValue: 2), level: 3, slot: .armor, primaryStat: 3, creationSequence: 2, quantity: 99),
+        ]
+        state.inventoryExpansionPurchases = 2
+        state.lootSequence = 2
+
+        let codec = SaveCodec()
+        let decoded = try codec.decode(try codec.encode(state: state, savedAt: savedAt))
+
+        XCTAssertEqual(decoded.state, state)
     }
 
     func testRevivingStateRoundTripsWithoutChangingEncounterPhase() throws {
@@ -241,6 +289,70 @@ final class SaveDocumentTests: XCTestCase {
         assertValidation(.equipmentSlotMismatch(armor.id), for: wrongSlot)
     }
 
+    func testTwoHeroPartyRoundTripsWithIndependentLifecycleState() throws {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        var second = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        second.consecutiveDeaths = 2
+        second.encounterAliveDuration = .nanoseconds(750_000_000)
+        state.encounter.activeElapsed = .nanoseconds(1_000_000_000)
+        state.party = PartyState(heroes: [state.party.heroes[0], second], unlocks: .secondUnlocked)
+
+        let codec = SaveCodec()
+        let decoded = try codec.decode(try codec.encode(state: state, savedAt: savedAt))
+
+        XCTAssertEqual(decoded.state, state)
+    }
+
+    func testActivePartyRoundTripsWithOneHeroDown() throws {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        var second = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        second.combat.currentHealth = 0
+        second.wasDownThisEncounter = true
+        state.party = PartyState(heroes: [state.party.heroes[0], second], unlocks: .secondUnlocked)
+
+        let codec = SaveCodec()
+        XCTAssertNoThrow(try codec.decode(try codec.encode(state: state, savedAt: savedAt)))
+    }
+
+    func testPendingBoss25ChoiceRoundTripsAtDefeatedEncounterBoundary() throws {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        state.campaign.highestUnlockedLevel = 25
+        state.campaign.selectedLevel = 25
+        state.encounter.enemyLevel = 25
+        state.encounter.tier = .boss
+        state.encounter.phase = .awaitingPartyChoice
+        state.enemy = try XCTUnwrap(BalanceConfiguration.standard.enemy(level: 25, tier: .boss, progression: .standard))
+        state.enemy.currentHealth = 0
+        state.party.unlocks = .pendingSecond(PendingPartyUnlock(
+            milestone: .boss25,
+            choices: [.dps, .healer]
+        ))
+
+        let codec = SaveCodec()
+        let decoded = try codec.decode(try codec.encode(state: state, savedAt: savedAt))
+
+        XCTAssertEqual(decoded.state, state)
+    }
+
+    func testDuplicatePartyClassesAreRejected() {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        state.party = PartyState(heroes: [state.party.heroes[0], state.party.heroes[0]], unlocks: .secondUnlocked)
+
+        assertValidation(.invalidHero, for: state)
+    }
+
+    func testEquipmentCannotBeSharedByMultipleHeroes() {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        var second = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        let weapon = Item(id: ItemID(rawValue: 1), level: 1, slot: .weapon, primaryStat: 2, creationSequence: 1)
+        state.inventory = [weapon]
+        state.party.heroes[0].equipment.weaponID = weapon.id
+        second.equipment.weaponID = weapon.id
+        state.party = PartyState(heroes: [state.party.heroes[0], second], unlocks: .secondUnlocked)
+
+        assertValidation(.sharedEquipment(weapon.id), for: state)
+    }
+
     func testEquippedPrimaryStatMustNotOverflowEffectiveHeroStat() {
         var state = GameState.newGame(balance: .standard)
         state.hero = combatant(state.hero, baseAttack: Int.max)
@@ -321,6 +433,26 @@ final class SaveDocumentTests: XCTestCase {
             savedAt: savedAt,
             runState: .active(state)
         ))
+    }
+
+    private func campaignState(level: Int) throws -> GameState {
+        let resolved = try CampaignResolver().resolve(level: level)
+        var state = GameState.newGame(balance: .standard)
+        state.campaign = CampaignState(
+            highestUnlockedLevel: level,
+            selectedLevel: level,
+            queuedLevel: nil,
+            mode: .push,
+            consecutiveDefeats: 0
+        )
+        state.encounter.enemyLevel = level
+        state.encounter.tier = resolved.tier
+        state.enemy = try EnemyFactory().makeEnemy(
+            for: resolved,
+            balance: .standard,
+            progression: .standard
+        )
+        return state
     }
 
     private func combatant(

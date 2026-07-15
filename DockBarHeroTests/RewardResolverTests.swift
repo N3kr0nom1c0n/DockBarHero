@@ -136,4 +136,73 @@ final class RewardResolverTests: XCTestCase {
         }
         XCTAssertEqual(state, original)
     }
+
+    func testPartyXPIsProportionalToAliveDurationAndUpdatesStreaksIndependently() throws {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        var second = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        state.party.heroes[0].consecutiveDeaths = 2
+        state.party.heroes[0].encounterAliveDuration = .nanoseconds(10)
+        second.consecutiveDeaths = 2
+        second.encounterAliveDuration = .nanoseconds(3)
+        second.wasDownThisEncounter = true
+        second.combat.currentHealth = 0
+        state.party = PartyState(heroes: [state.party.heroes[0], second], unlocks: .secondUnlocked)
+        state.encounter.activeElapsed = .nanoseconds(10)
+
+        let result = try RewardResolver().applyVictory(
+            defeatedLevel: 1,
+            tier: .normal,
+            to: state,
+            balance: .standard
+        )
+
+        XCTAssertTrue(result.events.contains(.xpGained(classID: .tank, amount: 25)))
+        XCTAssertTrue(result.events.contains(.xpGained(classID: .dps, amount: 7)))
+        XCTAssertEqual(result.state.party.heroes[0].consecutiveDeaths, 0)
+        XCTAssertEqual(result.state.party.heroes[1].consecutiveDeaths, 3)
+    }
+
+    func testPositiveAliveDurationAlwaysAwardsAtLeastOneXP() throws {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        var second = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        state.party.heroes[0].encounterAliveDuration = .nanoseconds(100)
+        second.encounterAliveDuration = .nanoseconds(1)
+        state.party = PartyState(heroes: [state.party.heroes[0], second], unlocks: .secondUnlocked)
+        state.encounter.activeElapsed = .nanoseconds(100)
+
+        let result = try RewardResolver().applyVictory(defeatedLevel: 1, to: state, balance: .standard)
+
+        XCTAssertTrue(result.events.contains(.xpGained(classID: .dps, amount: 1)))
+    }
+
+    func testPartyAutoEquipChoosesGreatestClassWeightedImprovement() throws {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        let second = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        state.party = PartyState(heroes: [state.party.heroes[0], second], unlocks: .secondUnlocked)
+
+        let result = try RewardResolver().applyVictory(defeatedLevel: 1, to: state, balance: .standard)
+
+        XCTAssertNil(result.state.party.heroes[0].equipment.weaponID)
+        XCTAssertEqual(result.state.party.heroes[1].equipment.weaponID, ItemID(rawValue: 1))
+        XCTAssertTrue(result.events.contains(.equippedHero(
+            heroSlot: 1,
+            slot: .weapon,
+            itemID: ItemID(rawValue: 1)
+        )))
+    }
+
+    func testPartyAutoEquipUsesOnlyHeroWithStrictUpgrade() throws {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        let second = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        let strong = Item(id: ItemID(rawValue: 99), level: 1, slot: .weapon, primaryStat: 99, creationSequence: 99)
+        state.inventory = [strong]
+        state.lootSequence = 0
+        state.party.heroes[0].equipment.weaponID = strong.id
+        state.party = PartyState(heroes: [state.party.heroes[0], second], unlocks: .secondUnlocked)
+
+        let result = try RewardResolver().applyVictory(defeatedLevel: 1, to: state, balance: .standard)
+
+        XCTAssertEqual(result.state.party.heroes[0].equipment.weaponID, strong.id)
+        XCTAssertEqual(result.state.party.heroes[1].equipment.weaponID, ItemID(rawValue: 1))
+    }
 }

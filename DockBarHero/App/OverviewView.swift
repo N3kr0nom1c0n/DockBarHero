@@ -23,14 +23,34 @@ struct OverviewView: View {
 
     private var progressionSection: some View {
         let state = presentation.state
-        let hero = state.party.heroes[0]
-        let requiredXP = (try? ProgressionConfiguration.standard.xpRequired(for: hero.level)) ?? 0
         return VStack(alignment: .leading, spacing: 10) {
             Text("Progression").font(.title2.weight(.semibold))
+            if let campaign = presentation.campaign {
+                labeledValue("Area", campaign.areaFullName)
+            }
+            ForEach(Array(state.party.heroes.enumerated()), id: \.offset) { slot, hero in
+                let requiredXP = (try? ProgressionConfiguration.standard.xpRequired(for: hero.level)) ?? 0
+                let stats = presentation.heroes.first(where: { $0.slot == slot })
+                HStack(spacing: 20) {
+                    labeledValue("Hero \(slot + 1)", hero.classID.displayName)
+                    labeledValue("Level", ManagementFormat.heroLevel(hero.level))
+                    labeledValue("XP", "\(hero.currentXP)/\(requiredXP)")
+                    labeledValue("Health", hero.combat.currentHealth > 0
+                        ? "\(hero.combat.currentHealth)/\(hero.combat.maxHealth)"
+                        : "Down")
+                    labeledValue("Attack", "\(stats?.attack ?? hero.combat.baseAttack)")
+                    labeledValue("Defense", "\(stats?.defense ?? hero.combat.baseDefense)")
+                    labeledValue(ManagementFormat.currentDeathStreakTitle, "\(hero.consecutiveDeaths)")
+                }
+            }
             HStack(spacing: 24) {
-                labeledValue("Hero", ManagementFormat.heroLevel(hero.level))
-                labeledValue("XP", "\(hero.currentXP)/\(requiredXP)")
-                labeledValue("Enemy", "\(state.encounter.tier.rawValue.capitalized) · \(ManagementFormat.enemyLevel(state.encounter.enemyLevel))")
+                labeledValue(
+                    "Enemy",
+                    [presentation.campaign?.enemyName, state.encounter.tier.rawValue.capitalized,
+                     ManagementFormat.enemyLevel(state.encounter.enemyLevel)]
+                        .compactMap { $0 }
+                        .joined(separator: " · ")
+                )
                 labeledValue("Gold", "\(state.economy.gold)")
             }
             HStack(spacing: 16) {
@@ -44,7 +64,7 @@ struct OverviewView: View {
             HStack {
                 Menu("Farm Cleared Level") {
                     ForEach(1..<state.campaign.highestUnlockedLevel, id: \.self) { level in
-                        Button(ManagementFormat.enemyLevel(level)) {
+                        Button(ManagementFormat.destination(level: level)) {
                             model.send(ManagementIntent.selectLevel(level))
                         }
                     }
@@ -63,15 +83,6 @@ struct OverviewView: View {
             Text("Combat").font(.title2.weight(.semibold))
             HStack(alignment: .top, spacing: 28) {
                 statGrid(
-                    title: "Hero",
-                    values: [
-                        ("Health", "\(presentation.state.hero.currentHealth)/\(presentation.state.hero.maxHealth)"),
-                        ("Attack", "\(presentation.heroAttack)"),
-                        ("Defense", "\(presentation.heroDefense)"),
-                        ("Interval", ManagementFormat.interval(presentation.state.hero.attackInterval)),
-                    ]
-                )
-                statGrid(
                     title: "Enemy",
                     values: [
                         ("Health", "\(presentation.state.enemy.currentHealth)/\(presentation.state.enemy.maxHealth)"),
@@ -89,7 +100,7 @@ struct OverviewView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Damage per second").font(.headline)
             HStack(spacing: 32) {
-                metric("Rolling", ManagementFormat.dps(presentation.rollingDPS))
+                metric("Stable average", ManagementFormat.dps(presentation.rollingDPS))
                 metric("Encounter average", ManagementFormat.dps(presentation.encounterDPS))
             }
         }
@@ -98,8 +109,11 @@ struct OverviewView: View {
     private var equipmentSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Equipment").font(.headline)
-            equipmentRow(for: .weapon)
-            equipmentRow(for: .armor)
+            ForEach(Array(presentation.state.party.heroes.enumerated()), id: \.offset) { slot, hero in
+                Text("Hero \(slot + 1) · \(hero.classID.displayName)").font(.subheadline.weight(.semibold))
+                equipmentRow(for: .weapon, heroSlot: slot)
+                equipmentRow(for: .armor, heroSlot: slot)
+            }
         }
     }
 
@@ -133,8 +147,9 @@ struct OverviewView: View {
         }
     }
 
-    private func equipmentRow(for slot: EquipmentSlot) -> some View {
-        let item = presentation.state.inventory.first { $0.id == presentation.state.equipment[slot] }
+    private func equipmentRow(for slot: EquipmentSlot, heroSlot: Int) -> some View {
+        let equipment = presentation.state.party.heroes[heroSlot].equipment
+        let item = presentation.state.inventory.first { $0.id == equipment[slot] }
         return HStack {
             Text(slot.rawValue.capitalized).frame(width: 80, alignment: .leading)
             if let item {

@@ -25,33 +25,30 @@ struct LootSystem {
         }
 
         let slot: EquipmentSlot = sequence.isMultiple(of: 2) ? .weapon : .armor
-        guard let baselineStat = balance.itemPrimaryStat(level: defeatedLevel, slot: slot) else {
-            throw SimulationError.invalidBalance
-        }
-        let primaryStat: Int
-        do {
-            let scaled = try ProgressionConfiguration.standard.applying(
-                ProgressionConfiguration.standard.tierDefinition(for: tier).itemStatRatio,
-                to: Int64(baselineStat),
-                rounding: .up
-            )
-            guard scaled <= Int64(Int.max) else { throw SimulationError.arithmeticOverflow }
-            primaryStat = Int(scaled)
-        } catch let error as SimulationError {
-            throw error
-        } catch {
-            throw SimulationError.arithmeticOverflow
-        }
-
-        let item = Item(
-            id: itemID,
-            level: defeatedLevel,
-            slot: slot,
-            primaryStat: primaryStat,
-            creationSequence: rawID
+        let item = try LootGenerator(balance: balance).generate(
+            defeatedLevel: defeatedLevel,
+            tier: tier,
+            sequence: sequence,
+            slot: slot
         )
-        state.inventory.append(item)
+        guard item.id == itemID, item.creationSequence == rawID else {
+            throw SimulationError.invalidState
+        }
         state.lootSequence = rawID
-        return item
+        let insertion = try InventoryResolver().insertDrop(item, into: state)
+        state = insertion.state
+        return Item(
+            id: insertion.entryID,
+            level: item.level,
+            slot: item.slot,
+            primaryStat: item.primaryStat,
+            creationSequence: item.creationSequence,
+            templateID: item.templateID,
+            rarity: item.rarity,
+            affixes: item.affixes,
+            isLocked: item.isLocked,
+            uniqueName: item.uniqueName,
+            quantity: 1
+        )
     }
 }

@@ -1,4 +1,30 @@
 struct EncounterDirector: Sendable {
+    let resolver: CampaignResolver
+    let enemyFactory: EnemyFactory
+
+    init(
+        resolver: CampaignResolver = CampaignResolver(),
+        enemyFactory: EnemyFactory = EnemyFactory()
+    ) {
+        self.resolver = resolver
+        self.enemyFactory = enemyFactory
+    }
+
+    func prepareNewGame(in state: GameState, balance: BalanceConfiguration) throws -> GameState {
+        guard state.campaign.highestUnlockedLevel == 1,
+              state.campaign.selectedLevel == 1,
+              state.encounter.enemyLevel == 1 else {
+            throw SimulationError.invalidState
+        }
+        return try activate(
+            level: 1,
+            mode: .push,
+            resetDefeats: true,
+            in: state,
+            balance: balance
+        )
+    }
+
     func beginNextEncounter(in state: GameState, balance: BalanceConfiguration) throws -> GameState {
         try completeVictory(in: state, balance: balance)
     }
@@ -33,6 +59,18 @@ struct EncounterDirector: Sendable {
                 level: queued,
                 mode: mode,
                 resetDefeats: true,
+                resetHeroDeathStreaks: true,
+                in: result,
+                balance: balance
+            )
+        }
+
+        if result.party.heroes.contains(where: { $0.consecutiveDeaths >= 3 }) {
+            return try activate(
+                level: fallback(afterFailing: result.campaign.selectedLevel),
+                mode: .farming,
+                resetDefeats: true,
+                resetHeroDeathStreaks: true,
                 in: result,
                 balance: balance
             )
@@ -64,11 +102,26 @@ struct EncounterDirector: Sendable {
         }
     }
 
+    func completeDeferredVictory(in state: GameState, balance: BalanceConfiguration) throws -> GameState {
+        guard state.party.unlocks == .secondUnlocked,
+              state.party.heroes.count == 2,
+              state.encounter.enemyLevel == 25,
+              state.enemy.currentHealth == 0 else {
+            throw SimulationError.invalidState
+        }
+        return try completeVictory(in: state, balance: balance)
+    }
+
     func beginDefeat(in state: GameState, balance: BalanceConfiguration) throws -> GameState {
         var result = state
         let (streak, overflow) = result.campaign.consecutiveDefeats.addingReportingOverflow(1)
         guard !overflow else { throw SimulationError.arithmeticOverflow }
         result.campaign.consecutiveDefeats = streak
+        for slot in result.party.heroes.indices where result.party.heroes[slot].wasDownThisEncounter {
+            let (heroStreak, heroOverflow) = result.party.heroes[slot].consecutiveDeaths.addingReportingOverflow(1)
+            guard !heroOverflow else { throw SimulationError.arithmeticOverflow }
+            result.party.heroes[slot].consecutiveDeaths = heroStreak
+        }
         return try beginRevive(in: result, balance: balance)
     }
 
@@ -101,6 +154,10 @@ struct EncounterDirector: Sendable {
         }
 
         var result = state
+        for slot in result.party.heroes.indices {
+            result.party.heroes[slot].encounterAliveDuration = .zero
+            result.party.heroes[slot].wasDownThisEncounter = false
+        }
         result.encounter.phase = .reviving
         result.encounter.activeElapsed = .zero
         result.encounter.heroDamage = 0
@@ -115,15 +172,18 @@ struct EncounterDirector: Sendable {
                 level: queued,
                 mode: mode,
                 resetDefeats: true,
+                resetHeroDeathStreaks: true,
                 in: state,
                 balance: balance
             )
         }
-        if state.campaign.consecutiveDefeats >= 3 {
+        if state.campaign.consecutiveDefeats >= 3 ||
+            state.party.heroes.contains(where: { $0.consecutiveDeaths >= 3 }) {
             return try activate(
                 level: fallback(afterFailing: state.campaign.selectedLevel),
                 mode: .farming,
                 resetDefeats: true,
+                resetHeroDeathStreaks: true,
                 in: state,
                 balance: balance
             )
@@ -142,15 +202,20 @@ struct EncounterDirector: Sendable {
         level: Int,
         mode: CampaignMode,
         resetDefeats: Bool,
+        resetHeroDeathStreaks: Bool = false,
         in state: GameState,
         balance: BalanceConfiguration
     ) throws -> GameState {
         guard level >= 1,
-              level <= state.campaign.highestUnlockedLevel,
-              let tier = EncounterSchedule.standard.tier(for: level),
-              let enemy = balance.enemy(level: level, tier: tier, progression: .standard) else {
+              level <= state.campaign.highestUnlockedLevel else {
             throw SimulationError.invalidBalance
         }
+        let resolved = try resolver.resolve(level: level)
+        let enemy = try enemyFactory.makeEnemy(
+            for: resolved,
+            balance: balance,
+            progression: .standard
+        )
 
         var result = state
         result.campaign.selectedLevel = level
@@ -159,11 +224,20 @@ struct EncounterDirector: Sendable {
         if resetDefeats {
             result.campaign.consecutiveDefeats = 0
         }
+        if resetHeroDeathStreaks {
+            for slot in result.party.heroes.indices {
+                result.party.heroes[slot].consecutiveDeaths = 0
+            }
+        }
         result.encounter.enemyLevel = level
-        result.encounter.tier = tier
-        result.hero.currentHealth = result.hero.maxHealth
+        result.encounter.tier = resolved.tier
+        for slot in result.party.heroes.indices {
+            result.party.heroes[slot].combat.currentHealth = result.party.heroes[slot].combat.maxHealth
+            result.party.heroes[slot].encounterAliveDuration = .zero
+            result.party.heroes[slot].wasDownThisEncounter = false
+        }
         result.enemy = enemy
-        resetEncounter(in: &result, phase: .active, reviveRemaining: .zero)
+        try resetEncounter(in: &result, phase: .active, reviveRemaining: .zero)
         return result
     }
 
@@ -171,12 +245,16 @@ struct EncounterDirector: Sendable {
         in state: inout GameState,
         phase: EncounterPhase,
         reviveRemaining: SimulationDuration
-    ) {
+    ) throws {
         state.encounter.phase = phase
         state.encounter.activeElapsed = .zero
         state.encounter.heroDamage = 0
         state.encounter.reviveRemaining = reviveRemaining
-        state.hero.timeUntilNextAttack = state.hero.attackInterval
+        for slot in state.party.heroes.indices {
+            state.party.heroes[slot].combat.timeUntilNextAttack = try ItemStatResolver()
+                .stats(heroSlot: slot, in: state)
+                .attackInterval
+        }
         state.enemy.timeUntilNextAttack = state.enemy.attackInterval
     }
 }
