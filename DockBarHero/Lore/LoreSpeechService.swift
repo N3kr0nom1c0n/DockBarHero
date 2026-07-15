@@ -58,6 +58,83 @@ protocol LoreSpeechControlling: AnyObject {
 }
 
 @MainActor
+protocol LoreAudioPlaying: AnyObject {
+    func play(resourceName: String, gain: Float)
+    func stop()
+}
+
+@MainActor
+final class AVFoundationLoreAudioPlayer: NSObject, LoreAudioPlaying {
+    private var player: AVAudioPlayer?
+    private let bundle: Bundle
+
+    init(bundle: Bundle = .main) {
+        self.bundle = bundle
+    }
+
+    func play(resourceName: String, gain: Float) {
+        stop()
+        let name = (resourceName as NSString).deletingPathExtension
+        let ext = (resourceName as NSString).pathExtension
+        guard let url = bundle.url(forResource: name, withExtension: ext) else { return }
+        do {
+            let player = try AVAudioPlayer(contentsOf: url)
+            player.volume = gain
+            player.prepareToPlay()
+            player.play()
+            self.player = player
+        } catch {
+            self.player = nil
+        }
+    }
+
+    func stop() {
+        player?.stop()
+        player = nil
+    }
+}
+
+@MainActor
+final class RecordedLoreSpeechService: LoreSpeechControlling {
+    private let manifest: LoreAudioManifest
+    private let player: LoreAudioPlaying
+    private let previewPlayer: LoreAudioPlaying
+
+    init(manifest: LoreAudioManifest, player: LoreAudioPlaying, previewPlayer: LoreAudioPlaying) {
+        self.manifest = manifest
+        self.player = player
+        self.previewPlayer = previewPlayer
+    }
+
+    convenience init(bundle: Bundle = .main) throws {
+        try self.init(
+            manifest: .bundled(bundle: bundle),
+            player: AVFoundationLoreAudioPlayer(bundle: bundle),
+            previewPlayer: AVFoundationLoreAudioPlayer(bundle: bundle)
+        )
+    }
+
+    func speak(_ cue: ResolvedDialogueCue, gain: Float) {
+        guard let assetName = manifest.assetName(cueID: cue.id, languageMode: cue.languageMode) else { return }
+        player.play(resourceName: assetName, gain: gain)
+    }
+
+    func stop() { player.stop() }
+    func stopPreview() { previewPlayer.stop() }
+
+    func previewGiggle(_ text: String, gain: Float) {
+        let cueID: String
+        switch text {
+        case "Hehehehe.": cueID = "interaction.volume.giggle-02"
+        case "Oh ho ho.": cueID = "interaction.volume.giggle-03"
+        default: cueID = "interaction.volume.giggle-01"
+        }
+        guard let assetName = manifest.assetName(cueID: cueID, languageMode: .unfiltered) else { return }
+        previewPlayer.play(resourceName: assetName, gain: gain)
+    }
+}
+
+@MainActor
 final class SystemLoreSpeechService: NSObject, LoreSpeechControlling {
     private let synthesizer = AVSpeechSynthesizer()
     private let previewSynthesizer = AVSpeechSynthesizer()
