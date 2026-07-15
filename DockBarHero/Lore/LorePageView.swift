@@ -77,11 +77,14 @@ struct LorePageView: View {
         let template = LoreMangaLayout.template(for: page.composition.layoutID)
         let gutter = LoreBookLayout.panelGutter(forPageWidth: size.width)
         let panels = page.composition.panels.sorted { $0.readingOrder < $1.readingOrder }
+        let visiblePanels = panels.filter {
+            $0.role != .gag || $0.sourceCell.map(contextCells.indices.contains) == true
+        }
+        let visiblePanelIDs = Set(visiblePanels.map(\.id))
 
         return ZStack(alignment: .topLeading) {
-            ForEach(panels, id: \.id) { panel in
-                if let slot = template.slot(id: panel.slotID),
-                   panel.role != .gag || panel.sourceCell.map(contextCells.indices.contains) == true {
+            ForEach(visiblePanels, id: \.id) { panel in
+                if let slot = template.slot(id: panel.slotID) {
                     let rect = panelRect(for: slot, canvasSize: size, gutter: gutter)
                     panelView(panel, slot: slot, rect: rect)
                         .frame(width: rect.width, height: rect.height)
@@ -92,7 +95,7 @@ struct LorePageView: View {
             ForEach(page.composition.textOverlays, id: \.id) { overlay in
                 if let panel = page.composition.panels.first(where: { $0.id == overlay.panelID }),
                    let slot = template.slot(id: panel.slotID),
-                   panel.role != .gag || panel.sourceCell.map(contextCells.indices.contains) == true {
+                   visiblePanelIDs.contains(panel.id) {
                     let rect = panelRect(for: slot, canvasSize: size, gutter: gutter)
                     if LoreBookLayout.usesPageCallout(
                         characterCount: overlay.text.count,
@@ -105,7 +108,10 @@ struct LorePageView: View {
         }
         .frame(width: size.width, height: size.height)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(LoreMangaAccessibility.narrative(for: page))
+        .accessibilityLabel(LoreMangaAccessibility.narrative(
+            for: page,
+            visiblePanelIDs: visiblePanelIDs
+        ))
     }
 
     private func panelView(

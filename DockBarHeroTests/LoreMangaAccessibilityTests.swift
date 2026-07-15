@@ -10,7 +10,10 @@ final class LoreMangaAccessibilityTests: XCTestCase {
         ])
 
         XCTAssertEqual(
-            LoreMangaAccessibility.narrative(for: page),
+            LoreMangaAccessibility.narrative(
+                for: page,
+                visiblePanelIDs: ["early", "late"]
+            ),
             "Page art\nEarly\nLate first\nLate second"
         )
     }
@@ -21,7 +24,28 @@ final class LoreMangaAccessibilityTests: XCTestCase {
             overlay(id: "sound", panelID: "early", style: .soundEffect, text: "KRAK")
         ])
 
-        XCTAssertEqual(LoreMangaAccessibility.narrative(for: page), "Page art\nSpoken")
+        XCTAssertEqual(
+            LoreMangaAccessibility.narrative(
+                for: page,
+                visiblePanelIDs: ["early", "late"]
+            ),
+            "Page art\nSpoken"
+        )
+    }
+
+    func testNarrativeOmitsSpeechAttachedToAnOmittedGagPanel() {
+        let page = makePage(overlays: [
+            overlay(id: "visible", panelID: "early", text: "Visible speech"),
+            overlay(id: "missing-gag", panelID: "gag", text: "Hidden gag speech")
+        ])
+
+        XCTAssertEqual(
+            LoreMangaAccessibility.narrative(
+                for: page,
+                visiblePanelIDs: ["early", "late"]
+            ),
+            "Page art\nVisible speech"
+        )
     }
 
     private func makePage(overlays: [ResolvedLoreTextOverlay]) -> ResolvedLorePage {
@@ -36,7 +60,8 @@ final class LoreMangaAccessibilityTests: XCTestCase {
                 contextSheetName: "test-context",
                 panels: [
                     panel(id: "late", readingOrder: 1),
-                    panel(id: "early", readingOrder: 0)
+                    panel(id: "early", readingOrder: 0),
+                    panel(id: "gag", role: .gag, sourceCell: nil, readingOrder: 2)
                 ],
                 textOverlays: overlays
             ),
@@ -46,12 +71,17 @@ final class LoreMangaAccessibilityTests: XCTestCase {
         )
     }
 
-    private func panel(id: String, readingOrder: Int) -> LorePanelDefinition {
+    private func panel(
+        id: String,
+        role: LorePanelRole = .still,
+        sourceCell: Int? = 0,
+        readingOrder: Int
+    ) -> LorePanelDefinition {
         LorePanelDefinition(
             id: id,
             slotID: "slot1",
-            role: .still,
-            sourceCell: 0,
+            role: role,
+            sourceCell: sourceCell,
             readingOrder: readingOrder,
             focalPoint: LoreFocalPoint(x: 0.5, y: 0.5)
         )
