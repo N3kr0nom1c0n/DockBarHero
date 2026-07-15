@@ -68,13 +68,13 @@ enum LoreMangaLayout {
             ]
         case .shatteredSeven:
             frames = [
-                .init(x: 0.015, y: 0.015, width: 0.393, height: 0.200),
-                .init(x: 0.420, y: 0.015, width: 0.565, height: 0.650),
-                .init(x: 0.015, y: 0.227, width: 0.393, height: 0.200),
-                .init(x: 0.015, y: 0.439, width: 0.393, height: 0.226),
-                .init(x: 0.015, y: 0.677, width: 0.300, height: 0.308),
-                .init(x: 0.327, y: 0.677, width: 0.318, height: 0.308),
-                .init(x: 0.657, y: 0.677, width: 0.328, height: 0.308)
+                .init(x: 0.650, y: 0.015, width: 0.335, height: 0.220),
+                .init(x: 0.440, y: 0.247, width: 0.545, height: 0.660),
+                .init(x: 0.015, y: 0.015, width: 0.623, height: 0.220),
+                .init(x: 0.015, y: 0.247, width: 0.413, height: 0.200),
+                .init(x: 0.015, y: 0.459, width: 0.413, height: 0.200),
+                .init(x: 0.227, y: 0.671, width: 0.201, height: 0.314),
+                .init(x: 0.015, y: 0.671, width: 0.200, height: 0.314)
             ]
         }
 

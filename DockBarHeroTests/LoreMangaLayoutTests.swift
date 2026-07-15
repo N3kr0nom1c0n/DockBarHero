@@ -44,13 +44,13 @@ final class LoreMangaLayoutTests: XCTestCase {
                 .init(x: 0.015, y: 0.671, width: 0.413, height: 0.314)
             ],
             .shatteredSeven: [
-                .init(x: 0.015, y: 0.015, width: 0.393, height: 0.200),
-                .init(x: 0.420, y: 0.015, width: 0.565, height: 0.650),
-                .init(x: 0.015, y: 0.227, width: 0.393, height: 0.200),
-                .init(x: 0.015, y: 0.439, width: 0.393, height: 0.226),
-                .init(x: 0.015, y: 0.677, width: 0.300, height: 0.308),
-                .init(x: 0.327, y: 0.677, width: 0.318, height: 0.308),
-                .init(x: 0.657, y: 0.677, width: 0.328, height: 0.308)
+                .init(x: 0.650, y: 0.015, width: 0.335, height: 0.220),
+                .init(x: 0.440, y: 0.247, width: 0.545, height: 0.660),
+                .init(x: 0.015, y: 0.015, width: 0.623, height: 0.220),
+                .init(x: 0.015, y: 0.247, width: 0.413, height: 0.200),
+                .init(x: 0.015, y: 0.459, width: 0.413, height: 0.200),
+                .init(x: 0.227, y: 0.671, width: 0.201, height: 0.314),
+                .init(x: 0.015, y: 0.671, width: 0.200, height: 0.314)
             ]
         ]
         let oddClip = [
@@ -104,5 +104,32 @@ final class LoreMangaLayoutTests: XCTestCase {
             XCTAssertTrue((0.35...0.45).contains(dominantArea))
             XCTAssertEqual(dominantArea, template.slots.map { $0.frame.width * $0.frame.height }.max())
         }
+    }
+
+    func testShatteredSevenSequentialSlotsFollowRightToLeftStoryLanes() throws {
+        let template = LoreMangaLayout.template(for: .shatteredSeven)
+        let slots = try (1...7).map { number in
+            try XCTUnwrap(template.slot(id: "slot\(number)"))
+        }
+
+        let slot1 = slots[0].frame
+        let slot2 = slots[1].frame
+        let slot3 = slots[2].frame
+        let slot4 = slots[3].frame
+        let slot5 = slots[4].frame
+        let slot6 = slots[5].frame
+        let slot7 = slots[6].frame
+
+        XCTAssertGreaterThan(slot1.x, slot3.x + slot3.width)
+        XCTAssertLessThan(slot1.y + slot1.height, slot2.y)
+        XCTAssertGreaterThan(slot2.x, slot4.x + slot4.width)
+        XCTAssertGreaterThan(slot2.x, slot5.x + slot5.width)
+
+        XCTAssertLessThan(slot3.y, slot4.y)
+        XCTAssertLessThan(slot4.y, slot5.y)
+        XCTAssertLessThan(slot5.y + slot5.height, slot6.y)
+
+        XCTAssertEqual(slot6.y, slot7.y)
+        XCTAssertGreaterThan(slot6.x, slot7.x + slot7.width)
     }
 }
