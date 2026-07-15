@@ -112,7 +112,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let loadedLore = try LoreCatalog.bundled()
             let dialogue = try SpokenDialogueCatalog.bundled(loreCatalog: loadedLore)
             loreCatalog = loadedLore
-            loreReader = LoreReaderController(dialogue: dialogue, speech: SystemLoreSpeechService())
+            let loreSpeech: LoreSpeechControlling
+            do {
+                loreSpeech = try RecordedLoreSpeechService(bundle: .main, dialogue: dialogue)
+            } catch {
+                loreSpeech = SystemLoreSpeechService()
+            }
+            loreReader = LoreReaderController(dialogue: dialogue, speech: loreSpeech)
         } catch {
             loreCatalog = nil
             loreReader = SilentLoreReaderController()

@@ -38,7 +38,7 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
     private let dialogue: SpokenDialogueCatalog
     private let speech: LoreSpeechControlling
     private var settings = AppSettings.defaults
-    private var applicationIsActive = true
+    private var applicationIsActive = false
     private var cueIndex = 0
     private var playbackGeneration: UInt = 0
     private var giggleIndex = 0
@@ -59,6 +59,7 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
         if !settings.spokenDialogueEnabled {
             stopPlayback()
         }
+        autoReadCurrentPageIfNeeded()
     }
 
     func open() {
@@ -76,6 +77,7 @@ final class LoreReaderController: ObservableObject, LoreReaderControlling {
 
     func applicationBecameActive() {
         applicationIsActive = true
+        autoReadCurrentPageIfNeeded()
     }
 
     func applicationBecameInactive() {

@@ -22,6 +22,7 @@ struct ResolvedDialogueCue: Equatable, Sendable {
     let speaker: DialogueSpeaker
     let text: String
     let delivery: String
+    let languageMode: LoreLanguageMode
 }
 
 struct SpokenDialogueCatalog: Codable, Equatable, Sendable {
@@ -92,7 +93,8 @@ extension SpokenDialogueCatalog {
         return ResolvedDialogueCue(
             id: cue.id, speaker: speaker,
             text: languageMode == .clean ? cue.clean : cue.unfiltered,
-            delivery: cue.delivery
+            delivery: cue.delivery,
+            languageMode: languageMode
         )
     }
 }
