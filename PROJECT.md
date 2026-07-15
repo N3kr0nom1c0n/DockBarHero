@@ -7,9 +7,9 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 ## Current Milestone
 
 - Goal: integrate the authored Area One campaign, current Heroes/Class Actions/Loot/sprites, multi-panel manga Book, and recorded Book voiceover into one verified local milestone.
-- Current checkpoint: local `main` contains all four source workstreams, live-QA repairs, synchronized management-window titles, and the procedural enemy combat-identity repair.
+- Current checkpoint: local `main` contains all four source workstreams, live-QA repairs, synchronized management-window titles, the procedural enemy combat-identity repair, and the owner's integrated-build review backlog.
 - Area One replaces Levels 1 through 25 with authored dungeon encounters, then preserves the procedural campaign from Level 26 onward.
-- Remaining: user review of the open Book; no push or source-worktree deletion is authorized.
+- Remaining: work through `BACKLOG.md` as separately designed and verified slices; no push or source-worktree deletion is authorized.
 
 ## Architecture
 
@@ -26,6 +26,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Key Paths
 
+- `BACKLOG.md`: current owner-review queue, design gates, acceptance intent, and new-chat handoff.
 - `docs/superpowers/plans/2026-07-15-dockbarhero-worktree-integration.md`: current integration and verification plan.
 - `docs/superpowers/plans/2026-07-15-dockbarhero-recorded-lore-voiceover.md`: recorded dialogue implementation plan.
 - `docs/superpowers/specs/2026-07-13-dockbarhero-campaign-area-one-design.md`: authored Area One contract.
@@ -58,7 +59,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Active Work
 
-- Parent orchestrator: keep the exact local-`main` bundle running for user review.
+- Parent orchestrator: use `BACKLOG.md` as the current review queue; do not generate new manga pages before the cohesive-story design is discussed and approved.
 - Preserve every source worktree and its branch after integration.
 - Merge to local `main` only after live QA succeeds; do not push.
 - Manual evidence stays explicit in the review packets; automated results never substitute for visual/audio inspection.
