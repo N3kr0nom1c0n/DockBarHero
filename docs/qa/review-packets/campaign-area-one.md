@@ -19,7 +19,7 @@
 | Check | Result |
 |---|---|
 | Focused campaign/rendering/catalog suite | PASS (2026-07-15): 111 tests, 0 failures |
-| Full combined arm64 XCTest suite | PASS (2026-07-15): 543 tests, 0 failures (`** TEST SUCCEEDED **`) |
+| Full combined arm64 XCTest suite | PASS final (2026-07-15): 544 tests, 0 failures (`** TEST SUCCEEDED **`) |
 | Sprite-pipeline Python suite | PASS (2026-07-15): 16 tests, 0 failures |
 | Clean unsigned Apple Silicon build | PASS (2026-07-15): `** BUILD SUCCEEDED **` |
 | Context, whitespace, and merge checks | PASS (2026-07-15): context guard, `git diff --check`, and no unmerged entries |
@@ -33,4 +33,4 @@
 
 ## Live QA Status
 
-Exact integration-bundle inspection is pending. Automated evidence is not being treated as proof of the area marquee, enemy labels, hero visibility, or light/dark contrast in the running app.
+PASS on the exact integration bundle. The farming selector exposed named authored enemies for Levels 1 through 25 and procedural labels from Level 26 onward. Selecting Level 1 showed the full area name and `Slime · Normal · Enemy Lv. 1` in management; the rail exposed the same identity, readable outlined labels, both hero sprites, the full scrolling title, and its settled `Shallow Depths` title. The original Level 85 frontier was restored and verified in Push mode after inspection.

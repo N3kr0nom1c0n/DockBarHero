@@ -7,9 +7,9 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 ## Current Milestone
 
 - Goal: integrate the authored Area One campaign, current Heroes/Class Actions/Loot/sprites, multi-panel manga Book, and recorded Book voiceover into one verified local milestone.
-- Current checkpoint: `codex/integrate-current-worktrees` at `1bcce34` contains all four source workstreams and their conflict resolutions.
+- Current checkpoint: `codex/integrate-current-worktrees` through `90b7cac` contains all four source workstreams, live-QA repairs, and synchronized management-window titles.
 - Area One replaces Levels 1 through 25 with authored dungeon encounters, then preserves the procedural campaign from Level 26 onward.
-- Remaining: exact-bundle live UI/audio review, then merge the verified integration branch into local `main`; no push or source-worktree deletion is authorized.
+- Remaining: merge the verified integration branch into local `main`; no push or source-worktree deletion is authorized.
 
 ## Architecture
 
@@ -58,7 +58,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Active Work
 
-- Parent orchestrator: launch the exact integration bundle and perform direct Book, audio, campaign, and light/dark QA.
+- Parent orchestrator: merge the exact verified integration checkpoint to local `main` and repeat the final gate there.
 - Preserve every source worktree and its branch after integration.
 - Merge to local `main` only after live QA succeeds; do not push.
 - Manual evidence stays explicit in the review packets; automated results never substitute for visual/audio inspection.
@@ -66,11 +66,12 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 ## Last Verified State
 
 - Date: 2026-07-15.
-- Combined checkpoint: 543 arm64 XCTest tests passed with zero failures (`** TEST SUCCEEDED **`).
+- Combined checkpoint: 544 arm64 XCTest tests passed with zero failures (`** TEST SUCCEEDED **`).
 - Sprite-pipeline suite: 16 Python tests passed with zero failures.
 - Clean unsigned arm64 build succeeded; context guard, `git diff --check`, and unmerged-entry check passed.
 - Focused merge gates passed: 30 sprite/catalog tests, 49 lore/audio/catalog tests, and 111 campaign/rendering/catalog tests.
-- No current manual live UI or audio claims are recorded; exact integration-bundle inspection remains pending.
+- Exact integration bundle launched as the only process. Direct QA passed wide/compact Book layout, fixed captions, RTL navigation, dark/Aqua contrast, clean/unfiltered copy, Adult confirmation, reversed volume/reaction behavior, route titles, Area One management/rail presentation, and frontier restoration.
+- Recorded Replay opened the expected bundled MP3; leaving the Book immediately closed it. Subjective voice/cast audibility, Reduced Motion, and a human VoiceOver pass remain unclaimed.
 
 ## Decisions and Risks
 

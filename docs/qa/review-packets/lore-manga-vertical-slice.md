@@ -1,10 +1,10 @@
 # Lore Manga Vertical Slice Review Packet
 
-**Date:** 2026-07-14
+**Date:** 2026-07-15
 
 **Branch:** `codex/integrate-current-worktrees`
 
-**Source checkpoints:** manga through `11ef72f`; recorded runtime through `1595f6f`; combined integration checkpoint `1bcce34`.
+**Source checkpoints:** manga through `11ef72f`; recorded runtime through `1595f6f`; combined integration through `90b7cac`.
 
 **Scope:** dishonest Level 100,000 prologue plus Volume I pages unlocked at Levels 1, 5, 10, 15, and 20. Boss 25 remains intentionally out of scope until Heroes and Party defines the cast.
 
@@ -22,7 +22,7 @@
 
 | Check | Result |
 |---|---|
-| Combined integration `DockBarHeroTests` suite | PASS (2026-07-15): 543 tests, 0 failures (`** TEST SUCCEEDED **`) |
+| Combined integration `DockBarHeroTests` suite | PASS final (2026-07-15): 544 tests, 0 failures (`** TEST SUCCEEDED **`) |
 | Combined sprite-pipeline Python suite | PASS (2026-07-15): 16 tests, 0 failures |
 | Combined clean unsigned Apple Silicon build | PASS (2026-07-15): `** BUILD SUCCEEDED **` |
 | Combined focused lore/audio/catalog suite | PASS (2026-07-15): 49 tests, 0 failures |
@@ -46,9 +46,9 @@
 - Cast: Book Branok, Kevin Cooper, Brick Zoey, Mercy Dr. Lauren, Kaizen Horatius, Editor Adam.
 - Generated asset manifest: `DockBarHero/Lore/Resources/Audio/LoreAudioManifest.json`.
 - Automated checks: focused `LoreReaderControllerTests` and `LoreAudioManifestTests` pass with 15 tests and 0 failures; full `DockBarHeroTests` suite passes with 430 tests and 0 failures.
-- Combined integration checks: the 49-test lore/audio/catalog gate and 543-test full suite pass with zero failures.
+- Combined integration checks: the 49-test lore/audio/catalog gate and final 544-test full suite pass with zero failures.
 - Bundle checks: `RecordedLoreSpeechService` validates every manifest MP3 is present/readable, exact manifest coverage for every dialogue cue, and distinct clean/unfiltered assets whenever clean text differs.
-- Live audio QA: unchecked; build-and-run verification launched the app, but no inspectable manual audio session was available to verify cast distinction, detents 0/5/10, or immediate stop on window close.
+- Live audio operation: PASS for opt-in gating and Book scope. Replay opened the expected bundled Level 1 MP3 in the running process; leaving the Book immediately released it. Subjective cast distinction and audible quality remain unclaimed.
 
 ## Visual Asset Inspection
 
@@ -58,7 +58,7 @@ Each motion PNG was reopened at original detail after normalization. Each contex
 
 The parent launched the exact worktree bundle with `--open-book`, confirmed one process, and inspected every authored page in the 1100x752 live window. The first launch had no campaign save, so a Tank was selected; a DPS was selected when the running game reached its Boss 25 party reward during inspection.
 
-The live pass found two defects: the persistent Book reaction covered upper-right page art, and long narration overlapped neighboring speech on Levels 5, 15, and 20. `0c1a4c2` moved only those narration overlays to their large motion panels; `521453c` moved reactions into responsive reserved header flow. Final feature review then found and repaired automatic multi-cue TTS/catalog-order validation (`162d5cd`) and Level 10's reversed seven-panel geometry (`4bc33d2`). All review findings passed focused TDD, independent re-review, the final 441-test suite, and clean build. The source manga bundle launched as the only process at PID 64599, but that older session did not establish current combined-candidate UI/audio evidence. Exact integration-bundle inspection remains pending.
+The combined pass launched one exact-worktree process and directly inspected the Book in wide, compact, dark, and forced Aqua appearances. It exposed a Clean-only Level 1 bubble promotion that covered the top caption; `8e44734` keeps both language variants attached to their panel and a live Aqua recheck confirmed full separation. `90b7cac` also keeps the macOS window title synchronized as routes change. Both repairs passed focused checks, the final 544-test suite, and a clean unsigned build.
 
 ### Wide window
 
@@ -67,20 +67,21 @@ The live pass found two defects: the persistent Book reaction covered upper-righ
 - PASS: wheel input leaves both fixed caption cards anchored; no page scroll indicator appears.
 - PASS: complete, unclipped `Level 100,000: The Finaler Ending` title and body.
 - PASS: readable title/body against opaque caption cards in the currently active dark appearance.
-- PENDING: repeat caption contrast inspection in light appearance.
-- PENDING post-fix: repaired narration and header reaction containment at wide width.
-- PENDING: potentiometer changes only the reserved header reaction, not pages or bottom controls.
-- PENDING: lying-arrow correction changes only the arrow and anchored reaction bubble.
+- PASS: readable caption/header contrast in forced Aqua appearance.
+- PASS: repaired narration and header reaction remain contained at wide width.
+- PASS: potentiometer movement changed the reserved reaction to `Heh.` and left pages/controls anchored; decreasing the detent raised the accessible gain from 55% to 64%.
+- PASS: lying-arrow correction changed the arrow and anchored reaction without covering page art.
 - PASS: Next/Previous preserve right-to-left page placement and return to the original prologue spread.
-- PASS (code): reaction bubble remains non-hit-testing and is no longer in the page-covering root ZStack. PENDING: post-fix visual containment.
+- PASS: reaction bubble remains in reserved header flow and did not cover page art.
 
 ### Compact and preserved behavior
 
-- PENDING: minimum width shows one centered page with complete caption.
-- PENDING: restoring wide width returns the spread without changing the selected page.
+- PASS: minimum width shows one centered page with complete caption.
+- PASS: restoring wide width returns the spread without changing the selected page.
 - PENDING: Reduced Motion freezes the illustration on its static frame.
-- PENDING (audio): disabled speech yields only the visual Book giggle when moving the potentiometer.
-- PENDING (audio): enabled speech preserves Replay, Skip, volume preview, page-turn interruption, Book-close interruption, and app-deactivation silence.
+- PASS: disabled speech disables Replay/Skip while potentiometer movement still produces the visual Book reaction.
+- PARTIAL (audio): enabled speech exposes Replay/Skip, Replay opens the recorded MP3, and leaving the Book stops it. Audible cast quality and app-deactivation listening were not manually judged.
+- PASS: Adult illustrations require a confirmation sheet; the test enabled Adult, verified the setting, and restored Safe.
 - PENDING (VoiceOver): announces `Next Page`, `Previous Page`, and the honest effective Book volume.
 
 Automated tests cover controller behavior but are not manual visual, audio, or VoiceOver evidence.
