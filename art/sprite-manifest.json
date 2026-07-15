@@ -8,17 +8,23 @@
     "dps": {
       "path": "sprite-boards/dps-reference.png",
       "sha256": "fc43a019203daa866cca3566da6c8995ffac0cc5f8c171bd94b81b161824e00d",
-      "background": "#0e1218"
+      "background": "#0e1218",
+      "edgeConnectedBackground": true,
+      "backgroundFuzz": 2
     },
     "tank": {
       "path": "sprite-boards/tank-reference.png",
       "sha256": "2949a94a44da7a6661822bfe5758195d85360dd22b5469fcb674179a783095b6",
-      "background": "#090f14"
+      "background": "#090f14",
+      "edgeConnectedBackground": true,
+      "backgroundFuzz": 2
     },
     "healer": {
       "path": "sprite-boards/healer-reference.png",
       "sha256": "56f6fafe84ca6c0d00e20cfb3967598f73bcde893eb532318114a318fd9d5b1f",
-      "background": "#040b10"
+      "background": "#040b10",
+      "edgeConnectedBackground": true,
+      "backgroundFuzz": 2
     },
     "standard-enemies": {
       "path": "sprite-boards/standard-enemies-reference.png",

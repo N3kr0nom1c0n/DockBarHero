@@ -5,6 +5,42 @@ import SpriteKit
 final class PrototypeScene: SKScene {
     private let actorSize = CGSize(width: 54, height: 36)
     private let healthBarSize = CGSize(width: 150, height: 5)
+    private static let actorOutlineShader = SKShader(
+        source: """
+        void main() {
+            vec4 source = texture2D(u_texture, v_tex_coord);
+            vec2 step = u_outlineStep;
+            float adjacentAlpha = 0.0;
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(-step.x, -step.y)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(0.0, -step.y)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(step.x, -step.y)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(-step.x, 0.0)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(step.x, 0.0)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(-step.x, step.y)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(0.0, step.y)).a);
+            adjacentAlpha = max(adjacentAlpha, texture2D(u_texture, v_tex_coord + vec2(step.x, step.y)).a);
+
+            if (source.a > 0.0) {
+                gl_FragColor = source;
+            } else if (adjacentAlpha > 0.0) {
+                gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+            } else {
+                gl_FragColor = vec4(0.0);
+            }
+        }
+        """,
+        uniforms: [
+            SKUniform(
+                name: "u_outlineStep",
+                vectorFloat2: vector_float2(1.0 / 96.0, 1.0 / 64.0)
+            )
+        ]
+    )
+    private static let labelOutlineOffsets = [
+        CGPoint(x: -1, y: -1), CGPoint(x: 0, y: -1), CGPoint(x: 1, y: -1),
+        CGPoint(x: -1, y: 0), CGPoint(x: 1, y: 0),
+        CGPoint(x: -1, y: 1), CGPoint(x: 0, y: 1), CGPoint(x: 1, y: 1),
+    ]
     private let spriteCatalog: any SpriteCatalog
     private var renderedHeroClasses: [HeroClassID] = [.dps]
     private var renderedActions: [ClassActionID] = [.powerStrike]
@@ -82,33 +118,49 @@ final class PrototypeScene: SKScene {
                 current: hero.combat.currentHealth,
                 maximum: hero.combat.maxHealth
             )
-            (childNode(withName: "\(prefix)Level") as? SKLabelNode)?.text = ManagementFormat.heroLevel(hero.level)
+            if let level = childNode(withName: "\(prefix)Level") as? SKLabelNode {
+                setOutlinedText(ManagementFormat.heroLevel(hero.level), on: level)
+            }
             if let action = childNode(withName: "\(prefix)Action") as? SKLabelNode {
                 let remaining = hero.classAction.cooldownRemaining.timeInterval
-                action.text = remaining > 0
+                let text = remaining > 0
                     ? "\(actionAbbreviation(hero.classAction.actionID)) \(String(format: "%.1f", remaining))"
                     : "\(actionAbbreviation(hero.classAction.actionID)) READY"
+                setOutlinedText(text, on: action)
                 action.alpha = hero.combat.currentHealth > 0 && remaining == 0 ? 1 : 0.55
             }
         }
         setHealthFraction(for: "enemyHealthFill", current: enemy.currentHealth, maximum: enemy.maxHealth)
         let tier = presentation.state.encounter.tier.rawValue.capitalized
-        (childNode(withName: "enemyLevel") as? SKLabelNode)?.text = "\(tier) · \(ManagementFormat.enemyLevel(presentation.state.encounter.enemyLevel))"
+        if let enemyLevel = childNode(withName: "enemyLevel") as? SKLabelNode {
+            setOutlinedText(
+                "\(tier) · \(ManagementFormat.enemyLevel(presentation.state.encounter.enemyLevel))",
+                on: enemyLevel
+            )
+        }
         if let farmingStatus = childNode(withName: "farmingStatus") as? SKLabelNode {
             switch presentation.state.campaign.mode {
             case .farming:
-                farmingStatus.text = "FARMING • FRONTIER \(presentation.state.campaign.highestUnlockedLevel)"
+                setOutlinedText(
+                    "FARMING • FRONTIER \(presentation.state.campaign.highestUnlockedLevel)",
+                    on: farmingStatus
+                )
                 farmingStatus.isHidden = false
             case .push:
-                farmingStatus.text = nil
+                setOutlinedText(nil, on: farmingStatus)
                 farmingStatus.isHidden = true
             }
         }
-        (childNode(withName: "rollingDPS") as? SKLabelNode)?.text = String(
-            format: "%.1f DPS",
-            locale: Locale(identifier: "en_US_POSIX"),
-            presentation.rollingDPS
-        )
+        if let rollingDPS = childNode(withName: "rollingDPS") as? SKLabelNode {
+            setOutlinedText(
+                String(
+                    format: "%.1f DPS",
+                    locale: Locale(identifier: "en_US_POSIX"),
+                    presentation.rollingDPS
+                ),
+                on: rollingDPS
+            )
+        }
     }
 
     func render(_ run: RunPresentation) {
@@ -227,6 +279,7 @@ final class PrototypeScene: SKScene {
         )
         node.name = name
         node.position = CGPoint(x: x, y: 32)
+        node.shader = Self.actorOutlineShader
         return node
     }
 
@@ -331,14 +384,44 @@ final class PrototypeScene: SKScene {
         childNode(withName: "\(prefix)HealthFill")?.position = origin
     }
 
-    private func label(name: String, fontSize: CGFloat) -> SKLabelNode {
+    private func label(
+        name: String,
+        fontSize: CGFloat,
+        fontName: String? = nil
+    ) -> SKLabelNode {
         let node = SKLabelNode(text: nil)
         node.name = name
-        node.fontName = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular).fontName
+        node.fontName = fontName
+            ?? NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular).fontName
         node.fontSize = fontSize
         node.fontColor = .white
         node.horizontalAlignmentMode = .center
+        for offset in Self.labelOutlineOffsets {
+            let outline = SKLabelNode(text: nil)
+            outline.name = "textOutline"
+            outline.fontName = node.fontName
+            outline.fontSize = node.fontSize
+            outline.fontColor = .black
+            outline.horizontalAlignmentMode = node.horizontalAlignmentMode
+            outline.verticalAlignmentMode = node.verticalAlignmentMode
+            outline.position = offset
+            outline.zPosition = -1
+            outline.isUserInteractionEnabled = false
+            node.addChild(outline)
+        }
         return node
+    }
+
+    private func setOutlinedText(_ text: String?, on label: SKLabelNode) {
+        label.attributedText = nil
+        label.text = text
+        for outline in label.children.compactMap({ $0 as? SKLabelNode }) {
+            outline.text = text
+            outline.fontName = label.fontName
+            outline.fontSize = label.fontSize
+            outline.horizontalAlignmentMode = label.horizontalAlignmentMode
+            outline.verticalAlignmentMode = label.verticalAlignmentMode
+        }
     }
 
     private func setCombatHidden(_ isHidden: Bool) {
@@ -433,11 +516,8 @@ final class PrototypeScene: SKScene {
 
     private func showHit(at point: CGPoint?) {
         guard let point else { return }
-        let hit = SKLabelNode(text: "*")
-        hit.name = "hit"
-        hit.fontName = "Menlo-Bold"
-        hit.fontSize = 20
-        hit.fontColor = .white
+        let hit = label(name: "hit", fontSize: 20, fontName: "Menlo-Bold")
+        setOutlinedText("*", on: hit)
         hit.position = CGPoint(x: point.x, y: point.y + 24)
         addChild(hit)
         hit.run(.sequence([

@@ -75,6 +75,31 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertNil(pushedStatus.text)
     }
 
+    func testRailLabelsKeepVisibleForegroundAboveEightBlackOutlineLayers() throws {
+        let host = try PrototypeSceneHost(size: CGSize(width: 1_140, height: 96))
+        var state = GameState.newGame(balance: .standard)
+        state.campaign.mode = .farming
+
+        host.render(.active(GameSimulation(state: state).presentation))
+
+        let whiteLabelNames = ["heroLevel", "heroAction", "enemyLevel", "rollingDPS"]
+        for name in whiteLabelNames {
+            let label = try XCTUnwrap(
+                host.scene.childNode(withName: "//\(name)") as? SKLabelNode
+            )
+            XCTAssertNil(label.attributedText)
+            try assertColor(label.fontColor, equals: .white)
+            try assertOutlineLayers(of: label)
+        }
+
+        let farmingStatus = try XCTUnwrap(
+            host.scene.childNode(withName: "//farmingStatus") as? SKLabelNode
+        )
+        XCTAssertNil(farmingStatus.attributedText)
+        try assertColor(farmingStatus.fontColor, equals: .systemOrange)
+        try assertOutlineLayers(of: farmingStatus)
+    }
+
     func testClassSelectionHidesCombatPresentation() throws {
         let host = try PrototypeSceneHost()
 
@@ -104,6 +129,26 @@ final class PrototypeSceneHostTests: XCTestCase {
         XCTAssertEqual(hero.xScale, 1, accuracy: 0.001)
         XCTAssertEqual(enemy.xScale, -1, accuracy: 0.001)
         XCTAssertNotNil(host.scene.childNode(withName: "ground"))
+    }
+
+    func testActorsUseOneTexelExteriorOutlineWithoutChangingPresentation() throws {
+        let host = try PrototypeSceneHost()
+        let hero = try XCTUnwrap(host.scene.childNode(withName: "hero") as? SKSpriteNode)
+        let enemy = try XCTUnwrap(host.scene.childNode(withName: "enemy") as? SKSpriteNode)
+
+        for actor in [hero, enemy] {
+            let shader = try XCTUnwrap(actor.shader)
+            let step = try XCTUnwrap(shader.uniformNamed("u_outlineStep")).floatVector2Value
+            XCTAssertEqual(step.x, 1.0 / 96.0, accuracy: 0.000_001)
+            XCTAssertEqual(step.y, 1.0 / 64.0, accuracy: 0.000_001)
+            XCTAssertEqual(actor.texture?.filteringMode, .nearest)
+            XCTAssertEqual(actor.texture?.size(), CGSize(width: 96, height: 64))
+            XCTAssertEqual(actor.size, CGSize(width: 54, height: 36))
+            XCTAssertEqual(actor.alpha, 1, accuracy: 0.001)
+            XCTAssertEqual(actor.colorBlendFactor, 0, accuracy: 0.001)
+        }
+        XCTAssertEqual(hero.xScale, 1, accuracy: 0.001)
+        XCTAssertEqual(enemy.xScale, -1, accuracy: 0.001)
     }
 
     func testAnimationAndInteractionControls() throws {
@@ -368,6 +413,52 @@ final class PrototypeSceneHostTests: XCTestCase {
         host.scene.activateClassActionForTesting(slot: 0)
         XCTAssertEqual(casts.map(\.0), [0])
         XCTAssertEqual(casts.map(\.1), [.powerStrike])
+    }
+
+    private func assertColor(
+        _ value: Any?,
+        equals expected: NSColor,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        let actualRGB = try XCTUnwrap(
+            (value as? NSColor)?.usingColorSpace(.deviceRGB),
+            file: file,
+            line: line
+        )
+        let expectedRGB = try XCTUnwrap(
+            expected.usingColorSpace(.deviceRGB),
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(actualRGB.redComponent, expectedRGB.redComponent, accuracy: 0.001, file: file, line: line)
+        XCTAssertEqual(actualRGB.greenComponent, expectedRGB.greenComponent, accuracy: 0.001, file: file, line: line)
+        XCTAssertEqual(actualRGB.blueComponent, expectedRGB.blueComponent, accuracy: 0.001, file: file, line: line)
+        XCTAssertEqual(actualRGB.alphaComponent, expectedRGB.alphaComponent, accuracy: 0.001, file: file, line: line)
+    }
+
+    private func assertOutlineLayers(
+        of label: SKLabelNode,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        let layers = label.children.compactMap { $0 as? SKLabelNode }
+        XCTAssertEqual(layers.count, 8, file: file, line: line)
+        XCTAssertEqual(
+            Set(layers.map(\.position)),
+            Set([
+                CGPoint(x: -1, y: -1), CGPoint(x: 0, y: -1), CGPoint(x: 1, y: -1),
+                CGPoint(x: -1, y: 0), CGPoint(x: 1, y: 0),
+                CGPoint(x: -1, y: 1), CGPoint(x: 0, y: 1), CGPoint(x: 1, y: 1),
+            ]),
+            file: file,
+            line: line
+        )
+        for layer in layers {
+            XCTAssertEqual(layer.text, label.text, file: file, line: line)
+            XCTAssertEqual(layer.zPosition, -1, accuracy: 0.001, file: file, line: line)
+            try assertColor(layer.fontColor, equals: .black, file: file, line: line)
+        }
     }
 }
 
