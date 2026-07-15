@@ -98,6 +98,33 @@ final class LoreCatalogTests: XCTestCase {
         }
     }
 
+    func testBundledLongNarrationUsesTheLargeMotionPanelOnAffectedPages() throws {
+        let catalog = try LoreCatalog.bundled()
+        let affectedPageIDs = [
+            "volume-1.level-5",
+            "volume-1.level-15",
+            "volume-1.level-20"
+        ]
+
+        for pageID in affectedPageIDs {
+            let page = try XCTUnwrap(
+                catalog.pages.first { $0.id.rawValue == pageID },
+                pageID
+            )
+            let narration = try XCTUnwrap(
+                page.composition.textOverlays.first { $0.id == "o2" },
+                pageID
+            )
+            let targetPanel = try XCTUnwrap(
+                page.composition.panels.first { $0.id == narration.panelID },
+                pageID
+            )
+
+            XCTAssertEqual(narration.panelID, "p2", pageID)
+            XCTAssertEqual(targetPanel.role, .motion, pageID)
+        }
+    }
+
     func testAcceptsEachSupportedLayoutWithItsExpectedPanelCount() throws {
         let expected: [(LoreMangaLayoutID, Int)] = [
             (.cascadeFive, 5),

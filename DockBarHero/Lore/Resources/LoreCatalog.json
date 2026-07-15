@@ -97,7 +97,7 @@
         ],
         "textOverlays": [
           {"id":"o1","panelID":"p1","style":"title","placement":"topTrailing","speakerID":null,"dialogueCueID":null,"copy":{"unfiltered":"KEVIN'S SUPERVISOR","clean":"KEVIN'S SUPERVISOR"}},
-          {"id":"o2","panelID":"p1","style":"narration","placement":"bottomLeading","speakerID":"book","dialogueCueID":"book.level5.summary","copy":{"unfiltered":"Behold Kevin's supervisor: Kevin, but larger and legally a separate workplace incident.","clean":"Behold Kevin's supervisor: Kevin, but larger and legally a separate workplace incident."}},
+          {"id":"o2","panelID":"p2","style":"narration","placement":"bottomLeading","speakerID":"book","dialogueCueID":"book.level5.summary","copy":{"unfiltered":"Behold Kevin's supervisor: Kevin, but larger and legally a separate workplace incident.","clean":"Behold Kevin's supervisor: Kevin, but larger and legally a separate workplace incident."}},
           {"id":"o3","panelID":"p3","style":"speech","placement":"topTrailing","speakerID":"supervisor","dialogueCueID":null,"copy":{"unfiltered":"Initial here to acknowledge your replacement Kevin.","clean":"Initial here to acknowledge your replacement Kevin."}},
           {"id":"o4","panelID":"p4","style":"speech","placement":"bottomLeading","speakerID":"kevin","dialogueCueID":"kevin.supervisor","copy":{"unfiltered":"My name is Kévin. The accent mark makes this airtight.","clean":"My name is Kévin. The accent mark makes this airtight."}}
         ]
@@ -169,7 +169,7 @@
         ],
         "textOverlays": [
           {"id":"o1","panelID":"p1","style":"title","placement":"topTrailing","speakerID":null,"dialogueCueID":null,"copy":{"unfiltered":"THE NECROMANCER OF NEGATIVE FEEDBACK","clean":"THE NECROMANCER OF NEGATIVE FEEDBACK"}},
-          {"id":"o2","panelID":"p1","style":"narration","placement":"bottomLeading","speakerID":"book","dialogueCueID":"book.level15.summary","copy":{"unfiltered":"The necromancer raises the dead exclusively for customer-satisfaction surveys.","clean":"The necromancer raises the dead exclusively for customer-satisfaction surveys."}},
+          {"id":"o2","panelID":"p2","style":"narration","placement":"bottomLeading","speakerID":"book","dialogueCueID":"book.level15.summary","copy":{"unfiltered":"The necromancer raises the dead exclusively for customer-satisfaction surveys.","clean":"The necromancer raises the dead exclusively for customer-satisfaction surveys."}},
           {"id":"o3","panelID":"p3","style":"speech","placement":"topTrailing","speakerID":"necromancer","dialogueCueID":null,"copy":{"unfiltered":"On a scale from one to ten—","clean":"On a scale from one to ten—"}},
           {"id":"o4","panelID":"p5","style":"speech","placement":"bottomLeading","speakerID":"brick","dialogueCueID":"brick.policy-warning","copy":{"unfiltered":"Vomiting blood on the adventurers is against dungeon policy.","clean":"Vomiting blood on the adventurers is against dungeon policy."}}
         ]
@@ -203,7 +203,7 @@
         ],
         "textOverlays": [
           {"id":"o1","panelID":"p1","style":"title","placement":"topTrailing","speakerID":null,"dialogueCueID":null,"copy":{"unfiltered":"EMOTIONAL-SUPPORT ABOMINATION","clean":"EMOTIONAL-SUPPORT ABOMINATION"}},
-          {"id":"o2","panelID":"p1","style":"narration","placement":"bottomLeading","speakerID":"book","dialogueCueID":"book.level20.summary","copy":{"unfiltered":"The demon requested an emotional-support abomination. Insurance approved six tentacles and no weekends.","clean":"The demon requested an emotional-support abomination. Insurance approved six tentacles and no weekends."}},
+          {"id":"o2","panelID":"p2","style":"narration","placement":"bottomLeading","speakerID":"book","dialogueCueID":"book.level20.summary","copy":{"unfiltered":"The demon requested an emotional-support abomination. Insurance approved six tentacles and no weekends.","clean":"The demon requested an emotional-support abomination. Insurance approved six tentacles and no weekends."}},
           {"id":"o3","panelID":"p3","style":"speech","placement":"topTrailing","speakerID":"mercy","dialogueCueID":"mercy.therapy-referral","copy":{"unfiltered":"A cursed crown is not a substitute for therapy, sleep, boundaries, or properly supervised mood stabilizers.","clean":"A cursed crown is not a substitute for therapy, sleep, boundaries, or properly supervised medication."}},
           {"id":"o4","panelID":"p4","style":"speech","placement":"bottomLeading","speakerID":"abomination","dialogueCueID":null,"copy":{"unfiltered":"And how did becoming “Dread Queen” make you feel?","clean":"And how did becoming “Dread Queen” make you feel?"}}
         ]
