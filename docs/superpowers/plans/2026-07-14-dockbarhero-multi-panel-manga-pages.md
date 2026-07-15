@@ -683,7 +683,9 @@ Delete `PageRegions`, `captionHeight`, and `pageRegions`. Add:
 
 ```swift
 static func pageCanvasInsets(forPageWidth width: CGFloat) -> CGFloat { width < 420 ? 8 : 12 }
-static func panelGutter(forPageWidth width: CGFloat) -> CGFloat { min(8, max(5, width * 0.015)) }
+static func panelGutter(forPageWidth width: CGFloat) -> CGFloat {
+    min(8, max(5, (width * 0.015).rounded()))
+}
 static func usesPageCallout(characterCount: Int, panelWidth: CGFloat) -> Bool {
     panelWidth < 180 && characterCount > 55
 }
