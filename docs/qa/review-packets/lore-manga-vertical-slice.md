@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-15
 
-**Branch:** `codex/integrate-current-worktrees`
+**Branch:** local `main` at merge `08542fe`
 
 **Source checkpoints:** manga through `11ef72f`; recorded runtime through `1595f6f`; combined integration through `90b7cac`.
 
@@ -23,6 +23,7 @@
 | Check | Result |
 |---|---|
 | Combined integration `DockBarHeroTests` suite | PASS final (2026-07-15): 544 tests, 0 failures (`** TEST SUCCEEDED **`) |
+| Local `main` post-merge suite and launch | PASS (2026-07-15): 544 tests, clean unsigned build, one exact-root process, Book open |
 | Combined sprite-pipeline Python suite | PASS (2026-07-15): 16 tests, 0 failures |
 | Combined clean unsigned Apple Silicon build | PASS (2026-07-15): `** BUILD SUCCEEDED **` |
 | Combined focused lore/audio/catalog suite | PASS (2026-07-15): 49 tests, 0 failures |

@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-15
 
-**Branch:** `codex/integrate-current-worktrees`
+**Branch:** local `main` at merge `08542fe`
 
 **Scope:** deterministic authored dungeon encounters for Levels 1 through 25, campaign presentation, enemy identity/stat profiles, production sprite selection, and procedural compatibility from Level 26 onward.
 
@@ -20,6 +20,7 @@
 |---|---|
 | Focused campaign/rendering/catalog suite | PASS (2026-07-15): 111 tests, 0 failures |
 | Full combined arm64 XCTest suite | PASS final (2026-07-15): 544 tests, 0 failures (`** TEST SUCCEEDED **`) |
+| Local `main` post-merge gate | PASS (2026-07-15): 544 tests, 16 Python tests, clean unsigned build, exact-root launch |
 | Sprite-pipeline Python suite | PASS (2026-07-15): 16 tests, 0 failures |
 | Clean unsigned Apple Silicon build | PASS (2026-07-15): `** BUILD SUCCEEDED **` |
 | Context, whitespace, and merge checks | PASS (2026-07-15): context guard, `git diff --check`, and no unmerged entries |
