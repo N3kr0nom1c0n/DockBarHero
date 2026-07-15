@@ -46,6 +46,7 @@ struct ManagementRootView: View {
                 SettingsView(model: model)
             }
         }
+        .navigationTitle(model.managementRoute.title)
         .frame(minWidth: 720, minHeight: 520)
     }
 
