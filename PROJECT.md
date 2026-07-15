@@ -6,10 +6,10 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Current Milestone
 
-- Goal: deliver the lore Book as readable multi-panel manga pages alongside the newer Heroes, Class Actions, Loot, farming-status, and production-sprite work.
-- Current checkpoint: `codex/lore-manga-vertical-slice` at `4bc33d2` contains six five-to-seven-panel pages, one animated panel per page, six context atlases, automatic ordered TTS, and the final readability/RTL repairs.
-- Integration source: `feature/class-actions-and-loot` is the pushed sprite/game branch; local and remote `main` do not contain those changes.
-- Remaining: post-fix user/visual review plus compact, audio, VoiceOver, light-appearance, reduced-motion, potentiometer, and Adult-setting interaction checks. The Mac locked before post-fix screenshots could be captured.
+- Goal: integrate the authored Area One campaign, current Heroes/Class Actions/Loot/sprites, multi-panel manga Book, and recorded Book voiceover into one verified local milestone.
+- Current checkpoint: `codex/integrate-current-worktrees` at `1bcce34` contains all four source workstreams and their conflict resolutions.
+- Area One replaces Levels 1 through 25 with authored dungeon encounters, then preserves the procedural campaign from Level 26 onward.
+- Remaining: exact-bundle live UI/audio review, then merge the verified integration branch into local `main`; no push or source-worktree deletion is authorized.
 
 ## Architecture
 
@@ -20,11 +20,16 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - SaveCodec, SaveStore, SaveCoordinator: schema-v2 validation, atomic recovery/replacement, quarantine, and coalescing.
 - AppModel and management views: run presentation, routes, inventory, party, class actions, settings, and Book access.
 - PrototypeScene: snapshot-only SpriteKit rail with deterministic clip-driven production sprites and event-only reactions.
-- Lore: validated page/dialogue/composition sidecars, frontier unlock resolver, Book-scoped opt-in TTS, one four-frame motion region plus four-to-six context stills per page, irregular right-to-left layouts, and reactions reserved in the responsive header.
+- CampaignCatalog, CampaignResolver, and EnemyFactory: validated authored Area One identities and stat profiles, campaign presentation, and procedural compatibility after Level 25.
+- Lore: validated page/dialogue/composition/audio sidecars, frontier unlock resolver, Book-scoped opt-in recorded MP3 speech with system-TTS fallback, one four-frame motion region plus four-to-six context stills per page, irregular right-to-left layouts, and reactions reserved in the responsive header.
 - AppDelegate: production dependency construction, singleton management window, and bounded termination save.
 
 ## Key Paths
 
+- `docs/superpowers/plans/2026-07-15-dockbarhero-worktree-integration.md`: current integration and verification plan.
+- `docs/superpowers/plans/2026-07-15-dockbarhero-recorded-lore-voiceover.md`: recorded dialogue implementation plan.
+- `docs/superpowers/specs/2026-07-13-dockbarhero-campaign-area-one-design.md`: authored Area One contract.
+- `docs/superpowers/plans/2026-07-13-dockbarhero-campaign-area-one.md`: Area One implementation plan.
 - `docs/superpowers/plans/2026-07-14-lore-book-fixed-spread.md`: fixed-spread repair plan.
 - `docs/superpowers/specs/2026-07-14-dockbarhero-multi-panel-manga-pages-design.md`: approved multi-panel page design.
 - `docs/superpowers/plans/2026-07-14-dockbarhero-multi-panel-manga-pages.md`: implemented multi-panel plan and verification contract.
@@ -37,6 +42,7 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - `docs/qa/review-packets/class-actions-and-loot.md`: Heroes, Class Actions, and Loot evidence.
 - `docs/qa/review-packets/farming-status-indicator.md`: farming/frontier rail-status evidence.
 - `DockBarHero/Lore/`: manga reader, catalog, page animation, dialogue, speech, and layout policy.
+- `DockBarHero/Game/CampaignCatalog.swift`, `CampaignResolver.swift`, `EnemyFactory.swift`: authored encounter content and resolution.
 - `DockBarHero/Resources/Sprites/`: bundled production sprite clips and runtime manifest.
 - `DockBarHero/Game/`, `DockBarHero/Persistence/`, `DockBarHero/App/`, `DockBarHero/Rendering/`: runtime systems.
 - `DockBarHeroTests/`: focused and integration tests.
@@ -52,19 +58,19 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 
 ## Active Work
 
-- Parent orchestrator: keep the exact post-fix Book bundle open for user review and finish direct wide/compact QA after the Mac unlocks.
-- Preserve the clean `feature/class-actions-and-loot` worktree and branch as the accepted sprite/game source.
-- Do not merge the combined branch back to `main` or delete either worktree until combined verification and user review complete.
+- Parent orchestrator: launch the exact integration bundle and perform direct Book, audio, campaign, and light/dark QA.
+- Preserve every source worktree and its branch after integration.
+- Merge to local `main` only after live QA succeeds; do not push.
 - Manual evidence stays explicit in the review packets; automated results never substitute for visual/audio inspection.
 
 ## Last Verified State
 
-- Date: 2026-07-14.
-- Pre-merge lore checkpoint: 298 arm64 tests passed; clean unsigned build and exact-worktree launch succeeded.
-- Sprite/game source checkpoint: 355 arm64 tests passed; clean unsigned build, exact-worktree launch, and prior gameplay QA succeeded.
-- Final checkpoint: 441 arm64 tests and 15 sprite-pipeline tests passed with zero failures; clean unsigned arm64 build and context guard succeeded.
-- Exact worktree bundle launched with `--open-book` as the only DockBarHero process (PID 64599).
-- Direct pre-fix inspection confirmed all six authored manga pages render as five-to-seven-panel spreads and exposed narration/reaction overlap defects. Commits `0c1a4c2`, `521453c`, `162d5cd`, and `4bc33d2` repaired readability, multi-cue TTS, catalog-order validation, and Level 10 RTL geometry; each final-review finding passed focused tests and independent re-review. Post-fix visual confirmation remains pending because the Mac locked.
+- Date: 2026-07-15.
+- Combined checkpoint: 543 arm64 XCTest tests passed with zero failures (`** TEST SUCCEEDED **`).
+- Sprite-pipeline suite: 16 Python tests passed with zero failures.
+- Clean unsigned arm64 build succeeded; context guard, `git diff --check`, and unmerged-entry check passed.
+- Focused merge gates passed: 30 sprite/catalog tests, 49 lore/audio/catalog tests, and 111 campaign/rendering/catalog tests.
+- No current manual live UI or audio claims are recorded; exact integration-bundle inspection remains pending.
 
 ## Decisions and Risks
 
@@ -74,8 +80,10 @@ DockBarHero is a native macOS menu-bar idle RPG with a passive desktop rail, det
 - Party combat uses independent hero timers, ascending slot ties, lowest-living targeting, time-alive XP, and per-hero death streaks.
 - Inventory is party-shared, equipped item IDs are exclusive per hero, and overflow prevents item loss.
 - Production sprites are checksum-locked, normalized into transparent 96x64 cells, nearest-filtered, and selected deterministically without save-state changes.
+- Authored campaign sprite identity takes precedence for Levels 1 through 25; procedural presentations continue through the level-based sprite resolver.
+- Rail actors retain their normal 54x36 size and scale proportionally only when a narrow three-hero lane cannot fit them.
 - Lore speech defaults off, never starts outside the open active Book, and stops when the Book closes or the app resigns active.
-- Lore speech completion advances every authored cue in order and rejects stale callbacks after interruption.
+- Recorded speech completion advances every authored cue in order, rejects stale callbacks after interruption, and falls back to system synthesis when recorded assets cannot validate.
 - Clean mode rewrites jokes rather than blanking profanity; Adult art requires confirmation.
 - Long narration for Levels 5, 15, and 20 is anchored to each page's dominant motion panel so it cannot be promoted over neighboring top-row speech.
 - The Book is an unreliable interface character, but accessibility labels state controls plainly.

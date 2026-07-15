@@ -4,7 +4,7 @@
 
 **Branch:** `codex/integrate-current-worktrees`
 
-**Source checkpoints:** manga through `11ef72f`; recorded runtime through `9adee66`, with later voiceover-branch changes limited to QA evidence. Combined candidate verification is pending.
+**Source checkpoints:** manga through `11ef72f`; recorded runtime through `1595f6f`; combined integration checkpoint `1bcce34`.
 
 **Scope:** dishonest Level 100,000 prologue plus Volume I pages unlocked at Levels 1, 5, 10, 15, and 20. Boss 25 remains intentionally out of scope until Heroes and Party defines the cast.
 
@@ -22,6 +22,12 @@
 
 | Check | Result |
 |---|---|
+| Combined integration `DockBarHeroTests` suite | PASS (2026-07-15): 543 tests, 0 failures (`** TEST SUCCEEDED **`) |
+| Combined sprite-pipeline Python suite | PASS (2026-07-15): 16 tests, 0 failures |
+| Combined clean unsigned Apple Silicon build | PASS (2026-07-15): `** BUILD SUCCEEDED **` |
+| Combined focused lore/audio/catalog suite | PASS (2026-07-15): 49 tests, 0 failures |
+| Combined focused campaign/rendering/catalog suite | PASS (2026-07-15): 111 tests, 0 failures |
+| Combined context, whitespace, and merge checks | PASS (2026-07-15): context guard, `git diff --check`, and no unmerged entries |
 | Focused launch/window regressions | PASS (2026-07-14): 2 tests, 0 failures, after confirmed compile-failing red runs |
 | Manga source `DockBarHeroTests` suite | PASS final (2026-07-14): 441 tests, 0 failures (`** TEST SUCCEEDED **`) |
 | Recorded-voiceover source `DockBarHeroTests` suite | PASS (2026-07-14): 430 tests, 0 failures (`** TEST SUCCEEDED **`) |
@@ -40,6 +46,7 @@
 - Cast: Book Branok, Kevin Cooper, Brick Zoey, Mercy Dr. Lauren, Kaizen Horatius, Editor Adam.
 - Generated asset manifest: `DockBarHero/Lore/Resources/Audio/LoreAudioManifest.json`.
 - Automated checks: focused `LoreReaderControllerTests` and `LoreAudioManifestTests` pass with 15 tests and 0 failures; full `DockBarHeroTests` suite passes with 430 tests and 0 failures.
+- Combined integration checks: the 49-test lore/audio/catalog gate and 543-test full suite pass with zero failures.
 - Bundle checks: `RecordedLoreSpeechService` validates every manifest MP3 is present/readable, exact manifest coverage for every dialogue cue, and distinct clean/unfiltered assets whenever clean text differs.
 - Live audio QA: unchecked; build-and-run verification launched the app, but no inspectable manual audio session was available to verify cast distinction, detents 0/5/10, or immediate stop on window close.
 
@@ -51,7 +58,7 @@ Each motion PNG was reopened at original detail after normalization. Each contex
 
 The parent launched the exact worktree bundle with `--open-book`, confirmed one process, and inspected every authored page in the 1100x752 live window. The first launch had no campaign save, so a Tank was selected; a DPS was selected when the running game reached its Boss 25 party reward during inspection.
 
-The live pass found two defects: the persistent Book reaction covered upper-right page art, and long narration overlapped neighboring speech on Levels 5, 15, and 20. `0c1a4c2` moved only those narration overlays to their large motion panels; `521453c` moved reactions into responsive reserved header flow. Final feature review then found and repaired automatic multi-cue TTS/catalog-order validation (`162d5cd`) and Level 10's reversed seven-panel geometry (`4bc33d2`). All review findings passed focused TDD, independent re-review, the final 441-test suite, and clean build. The final bundle launched as the only process at PID 64599, but the Mac remains locked, so post-fix visual claims remain pending.
+The live pass found two defects: the persistent Book reaction covered upper-right page art, and long narration overlapped neighboring speech on Levels 5, 15, and 20. `0c1a4c2` moved only those narration overlays to their large motion panels; `521453c` moved reactions into responsive reserved header flow. Final feature review then found and repaired automatic multi-cue TTS/catalog-order validation (`162d5cd`) and Level 10's reversed seven-panel geometry (`4bc33d2`). All review findings passed focused TDD, independent re-review, the final 441-test suite, and clean build. The source manga bundle launched as the only process at PID 64599, but that older session did not establish current combined-candidate UI/audio evidence. Exact integration-bundle inspection remains pending.
 
 ### Wide window
 
