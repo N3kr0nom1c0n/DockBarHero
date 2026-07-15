@@ -4,53 +4,58 @@
 
 **Branch:** `codex/lore-manga-vertical-slice`
 
-**Candidate commit tested:** `8a819b3` (`merge: combine lore reader with sprite game systems`), including the fixed-spread and deterministic `--open-book` launch repairs
+**Candidate commit tested:** `521453c` (`fix: reserve header space for book reactions`), including the multi-panel implementation and narration-overlap repair
 
 **Scope:** dishonest Level 100,000 prologue plus Volume I pages unlocked at Levels 1, 5, 10, 15, and 20. Boss 25 remains intentionally out of scope until Heroes and Party defines the cast.
 
 ## Delivered
 
-- Right-to-left manga reader in the management window with responsive spread/single-page layout.
+- Right-to-left manga reader with four deterministic irregular layouts, five-to-seven panels per page, and responsive spread/single-page presentation.
 - Six validated lore pages with unfiltered/clean copy and frontier-completion unlock rules.
 - Separate validated `SpokenDialogue.json` with Book, Brick, Kaizen, Mercy, Kevin, and Editor voice profiles.
 - Opt-in AVSpeechSynthesizer dialogue that is gated to an open, active Book and stops on close/deactivation.
 - Reversed 0...10 Book potentiometer: 0 is loudest, 10 is quietest, accessible value is honest, and movement triggers rotating Book giggles.
 - Settings-v2 migration, clean/unfiltered language, safe/adult illustrations, speech opt-in, auto-read toggle, and adult-art confirmation.
-- Seven final 1024x1024 four-frame manga sheets. The adult alternate is a deliberately unnecessary pixel-censor gag over a fully clothed adult character because two non-explicit generation attempts were safety-blocked.
+- Seven final 1024x1024 four-frame motion sheets plus six 1536x1024 six-cell context atlases. Exactly one panel animates while surrounding panels remain distinct still beats. The adult alternate is a deliberately unnecessary pixel-censor gag over a fully clothed adult character.
 
 ## Automated Evidence
 
 | Check | Result |
 |---|---|
 | Focused launch/window regressions | PASS (2026-07-14): 2 tests, 0 failures, after confirmed compile-failing red runs |
-| Full combined `DockBarHeroTests` suite | PASS (2026-07-14): 400 tests, 0 failures (`** TEST SUCCEEDED **`) |
+| Full combined `DockBarHeroTests` suite | PASS post-fix (2026-07-14): 434 tests, 0 failures or skips (`** TEST SUCCEEDED **`) |
 | Sprite-pipeline Python suite | PASS (2026-07-14): 15 tests, 0 failures |
-| Every catalog image loads and crops | PASS: 7 sheets, 28 frames |
-| Mechanical image dimensions | PASS: all seven are 1024x1024 |
+| Motion sheets load and crop | PASS: 7 sheets, 28 frames |
+| Context atlases load and crop | PASS: 6 atlases, 36 cells |
+| Mechanical image dimensions | PASS: motion sheets are 1024x1024; context atlases are 1536x1024 |
 | Clean unsigned Apple Silicon build | PASS (2026-07-14): `** BUILD SUCCEEDED **` |
-| Exact combined launch | PASS (2026-07-14): one process, PID 39103, exact worktree bundle with `--open-book` |
+| Exact post-fix launch | PASS (2026-07-14): one process, PID 15790, exact worktree bundle with `--open-book` |
 | Runtime management-window frame | PASS (2026-07-14): 1100x752 outer frame after SwiftUI sizing repair |
-| `git diff --check` | PASS after conflict resolution and before the integration commit |
+| Context guard and `git diff --check` | PASS at the post-fix checkpoint |
 
 ## Visual Asset Inspection
 
-Each final bundled PNG was reopened at original detail after normalization. PASS for all seven: exact 2x2 grid, stable principal identity, clear four-step loop, no generated lettering, no watermark/logo, and correct safe/censored presentation. Detailed source paths and selection notes are in `docs/art/lore-volume1-chapter1-asset-manifest.md`.
+Each motion PNG was reopened at original detail after normalization. Each context atlas was inspected at original 1536x1024 detail for six distinct, text-free cells in physical right-to-left order. Detailed source paths, selections, and the regenerated Level 20 therapy sequence are in `docs/art/lore-volume1-chapter1-asset-manifest.md`.
 
 ## Parent-Owned Live QA Status
 
-The parent launched the exact combined worktree bundle with `--open-book`, confirmed one process at PID 39103, inspected the accessibility tree and live window, and exercised wheel input plus Next/Previous. Audio, VoiceOver, appearance switching, reduced motion, compact resizing, and the remaining controls were not exercised.
+The parent launched the exact worktree bundle with `--open-book`, confirmed one process, and inspected every authored page in the 1100x752 live window. The first launch had no campaign save, so a Tank was selected; a DPS was selected when the running game reached its Boss 25 party reward during inspection.
+
+The live pass found two defects: the persistent Book reaction covered upper-right page art, and long narration overlapped neighboring speech on Levels 5, 15, and 20. `0c1a4c2` moved only those narration overlays to their large motion panels; `521453c` moved reactions into responsive reserved header flow. Both fixes passed independent review, 64 focused lore tests, the 434-test full suite, and a clean build. The repaired bundle launched as the only process at PID 15790, but the Mac locked before a post-fix screenshot could be captured. Post-fix visual claims therefore remain pending.
 
 ### Wide window
 
-- PASS: the 1100-point initial window shows two pages, with the selected page on the right and following page on the left.
+- PASS (pre-fix observation): the 1100-point initial window shows two pages, with the selected page on the right and following page on the left.
+- PASS (pre-fix observation): all six pages render irregular five-to-seven-panel compositions with distinct surrounding still beats and an obvious right-to-left sequence.
 - PASS: wheel input leaves both fixed caption cards anchored; no page scroll indicator appears.
 - PASS: complete, unclipped `Level 100,000: The Finaler Ending` title and body.
 - PASS: readable title/body against opaque caption cards in the currently active dark appearance.
 - PENDING: repeat caption contrast inspection in light appearance.
-- PENDING: potentiometer changes only the Book reaction, not header, pages, or bottom controls.
+- PENDING post-fix: repaired narration and header reaction containment at wide width.
+- PENDING: potentiometer changes only the reserved header reaction, not pages or bottom controls.
 - PENDING: lying-arrow correction changes only the arrow and anchored reaction bubble.
 - PASS: Next/Previous preserve right-to-left page placement and return to the original prologue spread.
-- PENDING: reaction bubble cannot intercept page, navigation, Replay, Skip, or potentiometer input.
+- PASS (code): reaction bubble remains non-hit-testing and is no longer in the page-covering root ZStack. PENDING: post-fix visual containment.
 
 ### Compact and preserved behavior
 
