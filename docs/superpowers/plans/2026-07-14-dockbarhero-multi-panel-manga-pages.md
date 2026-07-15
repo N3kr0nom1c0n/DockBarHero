@@ -803,7 +803,9 @@ Repeat the exact failing command, then repeat Steps 2–4. Do not modify unrelat
 
 ```bash
 pkill -x DockBarHero || true
-./script/build_and_run.sh --verify -- --open-book
+./script/build_and_run.sh --verify
+pkill -x DockBarHero || true
+/usr/bin/open -n .build/RunDerivedData/Build/Products/Debug/DockBarHero.app --args --open-book
 pgrep -fl '/lore-manga-vertical-slice/.*/DockBarHero.*--open-book'
 ```
 
