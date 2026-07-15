@@ -28,29 +28,12 @@ private struct LoreBookReaderView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            VStack(spacing: 0) {
-                header
-                    .frame(height: 62)
-                Divider()
-
-                if model.lorePages.isEmpty {
-                    ContentUnavailableView("No Pages Yet", systemImage: "book.closed")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    GeometryReader { geometry in
-                        readerContent(for: LoreBookLayout.mode(forContentWidth: geometry.size.width))
-                    }
-                    .layoutPriority(1)
-                }
-
-                Divider()
-                controls
-            }
-
-            BookReactionBubble(text: controller.reactionText)
-                .padding(.top, 74)
-                .padding(.trailing, 18)
+        GeometryReader { geometry in
+            readerBody(
+                reactionPolicy: LoreBookLayout.reactionPolicy(
+                    forContentWidth: geometry.size.width
+                )
+            )
         }
         .background(Color(red: 0.20, green: 0.08, blue: 0.06))
         .task {
@@ -61,23 +44,76 @@ private struct LoreBookReaderView: View {
         }
     }
 
-    private var header: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("A COMPLETELY ACCURATE HISTORY")
-                    .font(.headline.smallCaps())
-                Text("Read right to left. Unless the arrow has mysteriously betrayed you.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+    private func readerBody(reactionPolicy: LoreBookLayout.ReactionPolicy) -> some View {
+        VStack(spacing: 0) {
+            header(reactionPolicy: reactionPolicy)
+            Divider()
+
+            if model.lorePages.isEmpty {
+                ContentUnavailableView("No Pages Yet", systemImage: "book.closed")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                GeometryReader { geometry in
+                    readerContent(for: LoreBookLayout.mode(forContentWidth: geometry.size.width))
+                }
+                .layoutPriority(1)
             }
-            Spacer()
-            Image(systemName: arrowPointsWrongWay ? "arrow.right.circle.fill" : "arrow.left.circle.fill")
-                .font(.system(size: 28, weight: .black))
-                .foregroundStyle(arrowPointsWrongWay ? .red : .black)
-                .accessibilityLabel(arrowPointsWrongWay ? "Misleading reading arrow pointing right" : "Corrected reading arrow pointing left")
+
+            Divider()
+            controls
+        }
+    }
+
+    @ViewBuilder
+    private func header(reactionPolicy: LoreBookLayout.ReactionPolicy) -> some View {
+        Group {
+            switch reactionPolicy.arrangement {
+            case .inline:
+                HStack(spacing: 12) {
+                    headerTitle
+                    Spacer(minLength: 8)
+                    reactionBubble(maximumWidth: reactionPolicy.maximumBubbleWidth)
+                    readingArrow
+                }
+            case .stacked:
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 12) {
+                        headerTitle
+                        Spacer(minLength: 8)
+                        readingArrow
+                    }
+                    reactionBubble(maximumWidth: reactionPolicy.maximumBubbleWidth)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+            }
         }
         .padding(12)
         .background(Color(red: 0.88, green: 0.76, blue: 0.52))
+    }
+
+    private var headerTitle: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("A COMPLETELY ACCURATE HISTORY")
+                .font(.headline.smallCaps())
+            Text("Read right to left. Unless the arrow has mysteriously betrayed you.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var readingArrow: some View {
+        Image(systemName: arrowPointsWrongWay ? "arrow.right.circle.fill" : "arrow.left.circle.fill")
+            .font(.system(size: 28, weight: .black))
+            .foregroundStyle(arrowPointsWrongWay ? .red : .black)
+            .accessibilityLabel(arrowPointsWrongWay ? "Misleading reading arrow pointing right" : "Corrected reading arrow pointing left")
+    }
+
+    @ViewBuilder
+    private func reactionBubble(maximumWidth: CGFloat) -> some View {
+        if !controller.reactionText.isEmpty {
+            BookReactionBubble(text: controller.reactionText)
+                .frame(maxWidth: maximumWidth, alignment: .leading)
+        }
     }
 
     private var twoPageSpread: some View {

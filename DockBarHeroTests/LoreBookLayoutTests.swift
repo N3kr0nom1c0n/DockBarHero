@@ -56,6 +56,18 @@ final class LoreBookLayoutTests: XCTestCase {
         XCTAssertFalse(LoreBookLayout.usesPageCallout(characterCount: 40, panelWidth: 220))
     }
 
+    func testBookReactionsAlwaysUseReservedHeaderSpace() {
+        let wide = LoreBookLayout.reactionPolicy(forContentWidth: 900)
+        let compact = LoreBookLayout.reactionPolicy(forContentWidth: 560)
+
+        XCTAssertEqual(wide.region, .reservedHeader)
+        XCTAssertEqual(compact.region, .reservedHeader)
+        XCTAssertEqual(wide.arrangement, .inline)
+        XCTAssertEqual(compact.arrangement, .stacked)
+        XCTAssertGreaterThan(wide.maximumBubbleWidth, 0)
+        XCTAssertGreaterThan(compact.maximumBubbleWidth, 0)
+    }
+
     func testDefaultManagementWindowCanShowSpreadBesideSidebar() {
         let maximumSidebarWidth: CGFloat = 230
 

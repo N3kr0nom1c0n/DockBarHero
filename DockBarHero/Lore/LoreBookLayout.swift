@@ -1,6 +1,21 @@
 import CoreGraphics
 
 enum LoreBookLayout {
+    enum ReactionRegion: Equatable {
+        case reservedHeader
+    }
+
+    enum ReactionArrangement: Equatable {
+        case inline
+        case stacked
+    }
+
+    struct ReactionPolicy: Equatable {
+        let region: ReactionRegion
+        let arrangement: ReactionArrangement
+        let maximumBubbleWidth: CGFloat
+    }
+
     enum Mode: Equatable {
         case spread
         case singlePage
@@ -36,5 +51,20 @@ enum LoreBookLayout {
 
     static func usesPageCallout(characterCount: Int, panelWidth: CGFloat) -> Bool {
         panelWidth < 180 && characterCount > 55
+    }
+
+    static func reactionPolicy(forContentWidth width: CGFloat) -> ReactionPolicy {
+        if width >= 760 {
+            return ReactionPolicy(
+                region: .reservedHeader,
+                arrangement: .inline,
+                maximumBubbleWidth: 320
+            )
+        }
+        return ReactionPolicy(
+            region: .reservedHeader,
+            arrangement: .stacked,
+            maximumBubbleWidth: min(420, max(240, width - 48))
+        )
     }
 }
