@@ -23,32 +23,45 @@ struct RewardResolver: Sendable {
         to state: GameState,
         balance: BalanceConfiguration
     ) throws -> VictoryReward {
-        guard state.party.heroes.count == 1,
-              state.party.heroes[0].level >= 1,
-              state.party.heroes[0].currentXP >= 0,
+        guard (1...3).contains(state.party.heroes.count),
+              state.party.heroes.allSatisfy({ $0.level >= 1 && $0.currentXP >= 0 }),
               state.economy.gold >= 0 else {
             throw SimulationError.invalidState
         }
         var result = state
         let progression = ProgressionConfiguration.standard
-        var hero = result.party.heroes[0]
         var events: [GameEvent] = []
 
         do {
-            let xp = try progression.xpReward(
-                enemyLevel: defeatedLevel,
-                heroLevel: hero.level,
-                tier: tier
-            )
-            hero.currentXP = try checkedAdd(hero.currentXP, xp)
-            events.append(.xpGained(classID: hero.classID, amount: xp))
+            for slot in result.party.heroes.indices {
+                var hero = result.party.heroes[slot]
+                let fullXP = try progression.xpReward(
+                    enemyLevel: defeatedLevel,
+                    heroLevel: hero.level,
+                    tier: tier
+                )
+                let xp = try proportionalXP(
+                    fullXP: fullXP,
+                    aliveDuration: hero.encounterAliveDuration,
+                    encounterDuration: result.encounter.activeElapsed,
+                    isAliveAtResolution: hero.combat.currentHealth > 0
+                )
+                hero.currentXP = try checkedAdd(hero.currentXP, xp)
+                events.append(.xpGained(classID: hero.classID, amount: xp))
 
-            while hero.currentXP >= (try progression.xpRequired(for: hero.level)) {
-                let required = try progression.xpRequired(for: hero.level)
-                hero.currentXP -= required
-                hero.level = try checkedIncrement(hero.level)
-                hero.combat = try leveledCombat(for: hero, progression: progression)
-                events.append(.heroLeveled(classID: hero.classID, level: hero.level))
+                while hero.currentXP >= (try progression.xpRequired(for: hero.level)) {
+                    let required = try progression.xpRequired(for: hero.level)
+                    hero.currentXP -= required
+                    hero.level = try checkedIncrement(hero.level)
+                    hero.combat = try leveledCombat(for: hero, progression: progression)
+                    events.append(.heroLeveled(classID: hero.classID, level: hero.level))
+                }
+                if hero.wasDownThisEncounter {
+                    hero.consecutiveDeaths = try checkedIncrement(hero.consecutiveDeaths)
+                } else {
+                    hero.consecutiveDeaths = 0
+                }
+                result.party.heroes[slot] = hero
             }
 
             let gold = try progression.goldReward(enemyLevel: defeatedLevel, tier: tier)
@@ -62,14 +75,47 @@ struct RewardResolver: Sendable {
             throw SimulationError.invalidState
         }
 
-        result.party.heroes[0] = hero
         var loot = LootSystem(balance: balance)
         let item = try loot.drop(defeatedLevel: defeatedLevel, tier: tier, state: &result)
         events.append(.loot(item))
 
-        if result.autoEquipEnabled, try CombatResolver().isStrictUpgrade(item, in: result) {
-            result.equipment[item.slot] = item.id
-            events.append(.equipped(slot: item.slot, itemID: item.id))
+        if result.autoEquipEnabled,
+           result.inventory.contains(where: { $0.id == item.id }) {
+            let resolver = ItemScoreResolver()
+            let candidates = try result.party.heroes.indices.compactMap { slot -> (slot: Int, amount: Int64)? in
+                let comparison = try resolver.compare(item: item, heroSlot: slot, in: result)
+                guard comparison.isStrictUpgrade else {
+                    return nil
+                }
+                return (slot, comparison.improvement)
+            }
+            if let selected = candidates.sorted(by: {
+                $0.amount != $1.amount ? $0.amount > $1.amount : $0.slot < $1.slot
+            }).first {
+                do {
+                    var candidate = result
+                    let extraction = try InventoryResolver().extractOne(itemID: item.id, from: candidate)
+                    candidate = extraction.state
+                    candidate.party.heroes[selected.slot].equipment[item.slot] = extraction.item.id
+                    candidate = try InventoryResolver().consolidateUnequippedStacks(in: candidate)
+                    guard candidate.inventory.count <= (try InventoryResolver().capacity(for: candidate)) else {
+                        throw SimulationError.invalidState
+                    }
+                    result = candidate
+                    if result.party.heroes.count == 1 {
+                        events.append(.equipped(slot: item.slot, itemID: extraction.item.id))
+                    } else {
+                        events.append(.equippedHero(
+                            heroSlot: selected.slot,
+                            slot: item.slot,
+                            itemID: extraction.item.id
+                        ))
+                    }
+                } catch SimulationError.invalidState {
+                    // A full inventory can accept a matching drop but may have no slot for
+                    // the extracted equipment identity. Keep the reward and skip auto-equip.
+                }
+            }
         }
 
         return VictoryReward(state: result, events: events)
@@ -85,6 +131,26 @@ struct RewardResolver: Sendable {
         let (incremented, overflow) = value.addingReportingOverflow(1)
         guard !overflow else { throw SimulationError.arithmeticOverflow }
         return incremented
+    }
+
+    private func proportionalXP(
+        fullXP: Int64,
+        aliveDuration: SimulationDuration,
+        encounterDuration: SimulationDuration,
+        isAliveAtResolution: Bool
+    ) throws -> Int64 {
+        guard aliveDuration >= .zero,
+              encounterDuration >= .zero,
+              aliveDuration <= encounterDuration else {
+            throw SimulationError.invalidState
+        }
+        if encounterDuration == .zero {
+            return isAliveAtResolution ? fullXP : 0
+        }
+        let (product, overflow) = fullXP.multipliedReportingOverflow(by: aliveDuration.rawValue)
+        guard !overflow else { throw SimulationError.arithmeticOverflow }
+        let proportional = product / encounterDuration.rawValue
+        return aliveDuration > .zero ? max(1, proportional) : 0
     }
 
     private func leveledCombat(

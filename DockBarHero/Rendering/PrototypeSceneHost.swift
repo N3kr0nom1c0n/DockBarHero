@@ -12,23 +12,30 @@ protocol SceneControlling: AnyObject {
     func render(_ presentation: GamePresentation)
     func render(_ run: RunPresentation)
     func handle(_ events: [GameEvent])
+    func setClassActionHandler(_ handler: @escaping (Int, ClassActionID) -> Void)
 }
 
 extension SceneControlling {
     func render(_ run: RunPresentation) {
-        guard case let .active(presentation) = run else { return }
-        render(presentation)
+        if case let .active(presentation) = run {
+            render(presentation)
+        }
     }
+
+    func setClassActionHandler(_ handler: @escaping (Int, ClassActionID) -> Void) { }
 }
 
 @MainActor
 final class PrototypeSceneHost: SceneControlling {
     let view: SKView
     let scene: PrototypeScene
+    var onClassAction: ((Int, ClassActionID) -> Void)? {
+        didSet { scene.onClassAction = onClassAction }
+    }
 
     init(
         size: CGSize = CGSize(width: 1_140, height: 96),
-        spriteCatalog: any SpriteCatalog = BuiltinSpriteCatalog()
+        spriteCatalog: any SpriteCatalog = BundledSpriteCatalog.productionCatalog()
     ) throws {
         view = SKView(frame: CGRect(origin: .zero, size: size))
         view.allowsTransparency = true
@@ -60,5 +67,9 @@ final class PrototypeSceneHost: SceneControlling {
 
     func handle(_ events: [GameEvent]) {
         scene.handle(events)
+    }
+
+    func setClassActionHandler(_ handler: @escaping (Int, ClassActionID) -> Void) {
+        onClassAction = handler
     }
 }

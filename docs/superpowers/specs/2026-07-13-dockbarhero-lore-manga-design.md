@@ -9,6 +9,8 @@
 - `docs/superpowers/specs/2026-07-12-dockbarhero-progression-safety-design.md`
 - `docs/superpowers/specs/2026-07-13-dockbarhero-spoken-dialogue-design.md`
 
+**Multi-panel page composition:** `2026-07-14-dockbarhero-multi-panel-manga-pages-design.md` supersedes the earlier one-illustration-plus-caption presentation details in Sections 7, 10, 11, 13, 16, and 18.
+
 ## 1. Purpose
 
 DockBarHero gains an authored comedy campaign presented as a right-to-left manga. Every 100 enemy levels forms one self-contained story Volume in a new setting and genre mash-up. The Volumes also advance a recurring mystery involving a dishonest sentient Book, a reality-redacting Editor, the player as the Reader, and a goblin named Kevin who should not remember previous stories but does.

@@ -462,6 +462,25 @@ final class GameSimulationTests: XCTestCase {
         XCTAssertNil(simulation.state.equipment.armorID)
     }
 
+    func testManualEquipTargetsOneHeroAndRejectsItemOwnedByAnother() throws {
+        var state = twoHeroState()
+        let firstWeapon = Item(id: ItemID(rawValue: 1), level: 1, slot: .weapon, primaryStat: 2, creationSequence: 1)
+        let secondWeapon = Item(id: ItemID(rawValue: 2), level: 1, slot: .weapon, primaryStat: 3, creationSequence: 2)
+        state.inventory = [firstWeapon, secondWeapon]
+        state.party.heroes[0].equipment.weaponID = firstWeapon.id
+        var simulation = GameSimulation(state: state)
+
+        XCTAssertEqual(
+            try simulation.apply(.equipHero(slot: 1, itemID: secondWeapon.id)),
+            [.equippedHero(heroSlot: 1, slot: .weapon, itemID: secondWeapon.id)]
+        )
+        XCTAssertThrowsError(try simulation.apply(.equipHero(slot: 1, itemID: firstWeapon.id))) { error in
+            XCTAssertEqual(error as? GameIntentError, .itemInUse)
+        }
+        XCTAssertEqual(simulation.state.party.heroes[0].equipment.weaponID, firstWeapon.id)
+        XCTAssertEqual(simulation.state.party.heroes[1].equipment.weaponID, secondWeapon.id)
+    }
+
     func testEnablingAutoEquipDoesNotRetroactivelyScanInventory() throws {
         var state = GameState.newGame(balance: .standard)
         let weapon = Item(id: ItemID(rawValue: 1), level: 1, slot: .weapon, primaryStat: 100, creationSequence: 1)
@@ -511,6 +530,149 @@ final class GameSimulationTests: XCTestCase {
         XCTAssertEqual(simulation.state.encounter, original.encounter)
         XCTAssertEqual(simulation.state.lootSequence, original.lootSequence)
         XCTAssertEqual(simulation.state, original)
+    }
+
+    func testBoss25VictoryCommitsRewardsThenPausesForSecondHero() throws {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        state.campaign.highestUnlockedLevel = 25
+        state.campaign.selectedLevel = 25
+        state.encounter.enemyLevel = 25
+        state.encounter.tier = .boss
+        state.encounter.activeElapsed = try duration(seconds: 1)
+        state.party.heroes[0].encounterAliveDuration = try duration(seconds: 1)
+        state.enemy = try XCTUnwrap(BalanceConfiguration.standard.enemy(level: 25, tier: .boss, progression: .standard))
+        state.enemy.currentHealth = 1
+        state.hero.timeUntilNextAttack = .zero
+        var simulation = GameSimulation(state: state)
+
+        let events = try simulation.advance(by: .zero)
+
+        XCTAssertTrue(events.contains(.partyUnlockPending(.boss25)))
+        XCTAssertEqual(simulation.state.encounter.phase, .awaitingPartyChoice)
+        XCTAssertEqual(simulation.state.party.unlocks.pendingUnlock?.choices, [.dps, .healer])
+        XCTAssertGreaterThan(simulation.state.economy.gold, 0)
+        XCTAssertEqual(simulation.state.encounter.enemyLevel, 25)
+        XCTAssertEqual(try simulation.advance(by: try duration(seconds: 1)), [])
+        XCTAssertEqual(simulation.state.encounter.enemyLevel, 25)
+    }
+
+    func testPartyHeroActionsResolveByAscendingSlotBeforeEnemy() throws {
+        var state = twoHeroState()
+        state.party.heroes[0].combat.timeUntilNextAttack = .zero
+        state.party.heroes[1].combat.timeUntilNextAttack = .zero
+        state.enemy.timeUntilNextAttack = .zero
+        var simulation = GameSimulation(state: state)
+
+        let events = try simulation.advance(by: .zero)
+
+        XCTAssertEqual(events.prefix(3), [
+            .heroAttack(slot: 0, damage: 8),
+            .heroAttack(slot: 1, damage: 12),
+            .enemyAttack(targetSlot: 0, damage: 1),
+        ])
+    }
+
+    func testEnemyTargetsLowestLivingHeroAndDoesNotDefeatLivingParty() throws {
+        var state = twoHeroState()
+        state.party.heroes[0].combat.currentHealth = 0
+        state.party.heroes[0].wasDownThisEncounter = true
+        state.enemy.timeUntilNextAttack = .zero
+        var simulation = GameSimulation(state: state)
+
+        let events = try simulation.advance(by: .zero)
+
+        XCTAssertEqual(events, [.enemyAttack(targetSlot: 1, damage: 3)])
+        XCTAssertEqual(simulation.state.party.heroes[0].combat.currentHealth, 0)
+        XCTAssertGreaterThan(simulation.state.party.heroes[1].combat.currentHealth, 0)
+        XCTAssertEqual(simulation.state.encounter.phase, .active)
+    }
+
+    func testPartyDefeatBeginsOnlyAfterEveryHeroIsDown() throws {
+        var state = twoHeroState()
+        state.party.heroes[0].combat.currentHealth = 1
+        state.party.heroes[1].combat.currentHealth = 1
+        state.party.heroes[0].combat.timeUntilNextAttack = try duration(seconds: 2)
+        state.party.heroes[1].combat.timeUntilNextAttack = try duration(seconds: 2)
+        state.enemy = CombatantState(
+            id: .enemy,
+            currentHealth: 1_000,
+            maxHealth: 1_000,
+            baseAttack: 3,
+            baseDefense: 0,
+            attackInterval: try duration(seconds: 1),
+            timeUntilNextAttack: .zero
+        )
+        var simulation = GameSimulation(state: state)
+
+        XCTAssertEqual(try simulation.advance(by: .zero), [
+            .enemyAttack(targetSlot: 0, damage: 1),
+            .heroDown(slot: 0),
+        ])
+        XCTAssertEqual(simulation.state.encounter.phase, .active)
+
+        let events = try simulation.advance(by: try duration(seconds: 1))
+        XCTAssertEqual(events, [
+            .enemyAttack(targetSlot: 1, damage: 3),
+            .heroDown(slot: 1),
+            .defeat(enemyLevel: 1),
+        ])
+        XCTAssertEqual(simulation.state.encounter.phase, .reviving)
+    }
+
+    func testVictoryRewardsCommitBeforeHeroDeathStreakRetreat() throws {
+        var state = twoHeroState()
+        state.campaign.highestUnlockedLevel = 50
+        state.campaign.selectedLevel = 50
+        state.encounter.enemyLevel = 50
+        state.encounter.tier = .boss
+        state.encounter.activeElapsed = try duration(seconds: 1)
+        state.party.heroes[0].encounterAliveDuration = try duration(seconds: 1)
+        state.party.heroes[0].combat.timeUntilNextAttack = .zero
+        state.party.heroes[1].combat.currentHealth = 0
+        state.party.heroes[1].wasDownThisEncounter = true
+        state.party.heroes[1].consecutiveDeaths = 2
+        state.enemy = try XCTUnwrap(BalanceConfiguration.standard.enemy(level: 50, tier: .boss, progression: .standard))
+        state.enemy.currentHealth = 1
+        var simulation = GameSimulation(state: state)
+
+        let events = try simulation.advance(by: .zero)
+
+        XCTAssertTrue(events.contains(.victory(defeatedLevel: 50)))
+        XCTAssertTrue(events.contains(where: { if case .loot = $0 { return true }; return false }))
+        XCTAssertGreaterThan(simulation.state.economy.gold, 0)
+        XCTAssertEqual(simulation.state.campaign.selectedLevel, 24)
+        XCTAssertEqual(simulation.state.campaign.mode, .farming)
+        XCTAssertEqual(simulation.state.party.heroes.map(\.consecutiveDeaths), [0, 0])
+    }
+
+    func testQueuedDestinationStillPrecedesHeroDeathStreakRetreat() throws {
+        var state = twoHeroState()
+        state.campaign.highestUnlockedLevel = 50
+        state.campaign.selectedLevel = 50
+        state.campaign.queuedLevel = 10
+        state.encounter.enemyLevel = 50
+        state.encounter.tier = .boss
+        state.encounter.activeElapsed = try duration(seconds: 1)
+        state.party.heroes[0].encounterAliveDuration = try duration(seconds: 1)
+        state.party.heroes[0].combat.timeUntilNextAttack = .zero
+        state.party.heroes[1].combat.currentHealth = 0
+        state.party.heroes[1].wasDownThisEncounter = true
+        state.party.heroes[1].consecutiveDeaths = 2
+        state.enemy = try XCTUnwrap(BalanceConfiguration.standard.enemy(level: 50, tier: .boss, progression: .standard))
+        state.enemy.currentHealth = 1
+        var simulation = GameSimulation(state: state)
+
+        _ = try simulation.advance(by: .zero)
+
+        XCTAssertEqual(simulation.state.campaign.selectedLevel, 10)
+        XCTAssertEqual(simulation.state.party.heroes.map(\.consecutiveDeaths), [0, 0])
+    }
+
+    private func twoHeroState() -> GameState {
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        let second = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        state.party = PartyState(heroes: [state.party.heroes[0], second], unlocks: .secondUnlocked)
+        return state
     }
 
     private func duration(milliseconds: Int64) throws -> SimulationDuration {
