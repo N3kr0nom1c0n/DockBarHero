@@ -32,6 +32,14 @@
 | Runtime management-window frame | PASS (2026-07-14): 1100x752 outer frame after SwiftUI sizing repair |
 | `git diff --check` | PASS after conflict resolution and before the integration commit |
 
+## Recorded Voiceover Evidence
+
+- Voice provider: ElevenLabs offline generation only; no runtime network dependency.
+- Cast: Book Branok, Kevin Cooper, Brick Zoey, Mercy Dr. Lauren, Kaizen Horatius, Editor Adam.
+- Generated asset manifest: `DockBarHero/Lore/Resources/Audio/LoreAudioManifest.json`.
+- Automated checks: focused lore suite PASS (2026-07-14): 29 tests, 0 failures; full `DockBarHeroTests` suite PASS (2026-07-14): 424 tests, 0 failures (`** TEST SUCCEEDED **`).
+- Live audio QA: unchecked; build-and-run verification launched the app, but no inspectable manual audio session was available to verify cast distinction, detents 0/5/10, or immediate stop on window close.
+
 ## Visual Asset Inspection
 
 Each final bundled PNG was reopened at original detail after normalization. PASS for all seven: exact 2x2 grid, stable principal identity, clear four-step loop, no generated lettering, no watermark/logo, and correct safe/censored presentation. Detailed source paths and selection notes are in `docs/art/lore-volume1-chapter1-asset-manifest.md`.
@@ -67,4 +75,4 @@ Automated tests cover controller behavior but are not manual visual, audio, or V
 
 - The slice stops at Level 20; no Boss 25 page is authored yet.
 - The mature-content alternate contains no nudity. It is a censorship satire asset gated behind the Adult confirmation.
-- TTS uses macOS system voices selected by authored rate/pitch traits; provider-specific voice casting is future work.
+- Recorded voiceover is the production provider; macOS system TTS remains a launch-safe fallback if bundled audio cannot load.
