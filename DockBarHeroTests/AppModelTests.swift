@@ -147,6 +147,45 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(settings.updates, submittedBeforeEnvironment)
     }
 
+    func testSettingsScaleUpdatesPersistAndApplyToScene() {
+        let dependencies = TestDependencies()
+        let settings = FakeSettingsController(initial: .defaults)
+        let model = dependencies.makeModel(settingsController: settings)
+        model.start()
+        settings.resolve()
+
+        model.updateActorScalePercent(125)
+        model.updateRailTextScalePercent(120)
+
+        XCTAssertEqual(model.appSettings.actorScalePercent, 125)
+        XCTAssertEqual(model.appSettings.railTextScalePercent, 120)
+        XCTAssertEqual(settings.updates.last?.actorScalePercent, 125)
+        XCTAssertEqual(settings.updates.last?.railTextScalePercent, 120)
+        XCTAssertEqual(
+            dependencies.scene.appearances.last,
+            RailAppearance(actorScalePercent: 125, railTextScalePercent: 120)
+        )
+    }
+
+    func testReceivedSettingsApplyAppearanceToConnectedScene() {
+        let dependencies = TestDependencies()
+        var initial = AppSettings.defaults
+        initial.actorScalePercent = 90
+        initial.railTextScalePercent = 115
+        let settings = FakeSettingsController(initial: initial)
+        let model = dependencies.makeModel(settingsController: settings)
+        model.start()
+
+        settings.resolve()
+
+        XCTAssertEqual(
+            dependencies.scene.appearances.last,
+            RailAppearance(actorScalePercent: 90, railTextScalePercent: 115)
+        )
+        XCTAssertEqual(model.appSettings.actorScalePercent, 90)
+        XCTAssertEqual(model.appSettings.railTextScalePercent, 115)
+    }
+
     func testActionsBeforeEnvironmentResolutionApplyAfterNormalSpaceCallback() {
         let dependencies = TestDependencies()
         let model = dependencies.makeModel()
@@ -557,6 +596,25 @@ final class AppModelTests: XCTestCase {
         XCTAssertNil(AppLaunchOptions.managementRoute(arguments: ["DockBarHero"]))
     }
 
+    func testSimulationSpeedLaunchArgumentParsesBoundedMultiplier() {
+        XCTAssertEqual(
+            AppLaunchOptions.simulationTimeScale(arguments: ["DockBarHero", "--simulation-speed", "10"]),
+            10
+        )
+        XCTAssertEqual(
+            AppLaunchOptions.simulationTimeScale(arguments: ["DockBarHero", "--simulation-speed=25"]),
+            25
+        )
+        XCTAssertEqual(
+            AppLaunchOptions.simulationTimeScale(arguments: ["DockBarHero", "--simulation-speed", "0"]),
+            1
+        )
+        XCTAssertEqual(
+            AppLaunchOptions.simulationTimeScale(arguments: ["DockBarHero", "--simulation-speed", "250"]),
+            100
+        )
+    }
+
     func testBundleDoesNotForceAgentOnlyActivationPolicy() {
         XCTAssertNil(Bundle.main.object(forInfoDictionaryKey: "LSUIElement"))
     }
@@ -677,11 +735,13 @@ private final class FakeScene: SceneControlling {
     let view = SKView()
     var animationEnabled: [Bool] = []
     var interactionEnabled: [Bool] = []
+    var appearances: [RailAppearance] = []
     var presentations: [GamePresentation] = []
     var events: [[GameEvent]] = []
 
     func setAnimating(_ isAnimating: Bool) { animationEnabled.append(isAnimating) }
     func setInteractive(_ isInteractive: Bool) { interactionEnabled.append(isInteractive) }
+    func setAppearance(_ appearance: RailAppearance) { appearances.append(appearance) }
     func render(_ presentation: GamePresentation) { presentations.append(presentation) }
     func handle(_ events: [GameEvent]) { self.events.append(events) }
 }

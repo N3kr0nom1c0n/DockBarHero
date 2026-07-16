@@ -83,7 +83,9 @@
 - Determine whether the cause is scaling math, missing third-party-slot progression, poor equipment, inactive class actions, boss tuning, or a combination.
 - Compare Boss 100 time-to-kill and incoming damage against nearby Normal/Elite encounters and intended progression pacing.
 
-**Diagnostic record:** Focused fixtures in `DockBarHeroTests/HeroesAndPartyTests.swift` show Level 240 Tank+DPS with no equipment lose to Boss 100 in under 6 seconds, while the same party with Level 100 weapon/armor equipment defeats Boss 100. `HeroesAndPartyTests` passed 8/8. This points to equipment progression and combat-state visibility as the gate rather than raw hero level alone; acceptance and any tuning are still pending.
+**Diagnostic record:** Focused fixtures in `DockBarHeroTests/HeroesAndPartyTests.swift` showed Level 240 Tank+DPS with no equipment losing to Boss 100 in 5 seconds, while the same party with Level 100 weapon/armor equipment defeats Boss 100. The smallest accepted tuning target for this slice was a readability floor rather than making ungeared heroes win.
+
+**Implementation record:** Enemy damage now applies squared overlevel mitigation when a target hero's level exceeds the enemy level; same-level and underleveled fights keep the existing tier damage. The Level 240 ungeared Tank+DPS fixture still loses Boss 100, but survives at least 12 seconds, while Level 100 equipment still wins and Boss 100 still adds the final hero without a pause. A Level 123 DPS+Tank party with Level 50 equipment now clears the Level 90 Elite gate, matching the current save's progression shape. Red/green proof covered the old 5-second Boss 100 failure and the Level 90 Elite failure first; focused verification passed `HeroesAndPartyTests` 10/10, balance-adjacent `HeroesAndPartyTests`/`CombatResolverTests`/`EnemyFactoryTests`/`BalanceConfigurationTests` 34/34, and DPS/readability `DamageMetricsTests`/`GameSimulationTests`/`PrototypeSceneHostTests`/`ManagementViewTests` 111/111. Final owner acceptance is still pending.
 
 **Required outcome:** Boss 100 is a meaningful gate without invalidating roughly 140 levels of hero advantage. Balance changes require deterministic regression fixtures.
 
@@ -101,6 +103,8 @@
 - Keep Tank, DPS, and Healer visually grouped when all three slots are active.
 - Preserve collision-free layouts at wide and narrow rail widths.
 - Verify the Boss 100 third-slot unlock/selection path while doing this work.
+
+**Implementation record:** Multi-hero rail formation now uses 64 px party cells instead of the previous 80 px cells, tightening horizontal gaps and reducing three-hero health bars to 56 px in the default rail. Geometry coverage in `PrototypeSceneHostTests.testThreeHeroFormationStaysGroupedWithCompactHealthBars` now requires the three actor frames to stay within 186 px and every party health bar to stay at or below 56 px. Red/green proof captured the previous 214 px actor span and 72 px bars before the renderer change; `PrototypeSceneHostTests` passed 45/45, including wide and narrow authored farming layouts. Owner visual acceptance is still pending.
 
 **Likely surfaces:** `DockBarHero/Rendering/PrototypeScene.swift`, party unlock presentation/tests
 
@@ -302,7 +306,7 @@
 This review backlog is complete only when each checkbox below has a linked approved spec or verified implementation record:
 
 - [x] Rail typography is readable and collision-free.
-- [ ] DPS presentation uses the approved stable metric.
+- [x] DPS presentation uses the approved stable metric.
 - [x] Death statistics are correctly scoped and labeled.
 - [ ] Boss 100 balance is diagnosed and accepted.
 - [ ] Three-hero formation and unlock presentation are accepted.

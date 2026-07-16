@@ -23,9 +23,11 @@ final class SettingsStoreTests: XCTestCase {
     func testURLsUseSettingsSpecificVersionedNames() {
         let urls = SettingsURLs(directory: directory)
 
-        XCTAssertEqual(urls.primary.lastPathComponent, "settings-v2.json")
-        XCTAssertEqual(urls.backup.lastPathComponent, "settings-v2.backup.json")
-        XCTAssertEqual(urls.temporary.lastPathComponent, "settings-v2.pending.json")
+        XCTAssertEqual(urls.primary.lastPathComponent, "settings-v3.json")
+        XCTAssertEqual(urls.backup.lastPathComponent, "settings-v3.backup.json")
+        XCTAssertEqual(urls.temporary.lastPathComponent, "settings-v3.pending.json")
+        XCTAssertEqual(urls.legacyV2Primary.lastPathComponent, "settings-v2.json")
+        XCTAssertEqual(urls.legacyV2Backup.lastPathComponent, "settings-v2.backup.json")
         XCTAssertEqual(urls.legacyV1Primary.lastPathComponent, "settings-v1.json")
         XCTAssertEqual(urls.legacyV1Backup.lastPathComponent, "settings-v1.backup.json")
         XCTAssertNotEqual(urls.primary, SaveURLs(directory: directory).primary)
@@ -55,11 +57,11 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertEqual(first, second)
         XCTAssertEqual(
             String(decoding: first, as: UTF8.self),
-            #"{"animationMode":"paused","autoReadNewLorePages":true,"bookVolumeDetent":5,"hasSeenCurrentRunPrologue":false,"inputMode":"interactive","loreIllustrationMode":"safe","loreLanguageMode":"unfiltered","manualVisibility":"hidden","schemaVersion":2,"spokenDialogueEnabled":false}"#
+            #"{"actorScalePercent":100,"animationMode":"paused","autoReadNewLorePages":true,"bookVolumeDetent":5,"hasSeenCurrentRunPrologue":false,"inputMode":"interactive","loreIllustrationMode":"safe","loreLanguageMode":"unfiltered","manualVisibility":"hidden","railTextScalePercent":100,"schemaVersion":3,"spokenDialogueEnabled":false}"#
         )
     }
 
-    func testLegacyV1MigratesToV2Primary() async throws {
+    func testLegacyV1MigratesToV3Primary() async throws {
         let urls = SettingsURLs(directory: directory)
         let legacy = Data(
             #"{"animationMode":"paused","inputMode":"interactive","manualVisibility":"hidden","schemaVersion":1}"#.utf8
@@ -68,12 +70,31 @@ final class SettingsStoreTests: XCTestCase {
 
         let loaded = await makeStore().load()
 
-        XCTAssertEqual(loaded.schemaVersion, 2)
+        XCTAssertEqual(loaded.schemaVersion, 3)
         XCTAssertEqual(loaded.manualVisibility, .hidden)
         XCTAssertEqual(loaded.loreLanguageMode, .unfiltered)
+        XCTAssertEqual(loaded.actorScalePercent, 100)
+        XCTAssertEqual(loaded.railTextScalePercent, 100)
         XCTAssertTrue(FileManager.default.fileExists(atPath: urls.primary.path))
         XCTAssertEqual(try decode(urls.primary), loaded)
         XCTAssertEqual(try Data(contentsOf: urls.legacyV1Primary), legacy)
+    }
+
+    func testLegacyV2MigratesToV3Primary() async throws {
+        let urls = SettingsURLs(directory: directory)
+        let legacy = Data(
+            #"{"animationMode":"paused","autoReadNewLorePages":true,"bookVolumeDetent":5,"hasSeenCurrentRunPrologue":false,"inputMode":"interactive","loreIllustrationMode":"safe","loreLanguageMode":"unfiltered","manualVisibility":"hidden","schemaVersion":2,"spokenDialogueEnabled":false}"#.utf8
+        )
+        try legacy.write(to: urls.legacyV2Primary)
+
+        let loaded = await makeStore().load()
+
+        XCTAssertEqual(loaded.schemaVersion, 3)
+        XCTAssertEqual(loaded.actorScalePercent, 100)
+        XCTAssertEqual(loaded.railTextScalePercent, 100)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: urls.primary.path))
+        XCTAssertEqual(try decode(urls.primary), loaded)
+        XCTAssertEqual(try Data(contentsOf: urls.legacyV2Primary), legacy)
     }
 
     func testSecondSaveAtomicallyReplacesPrimaryAndPreservesBackup() async throws {
@@ -102,7 +123,7 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: urls.primary.path))
         let quarantine = try XCTUnwrap(
             FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
-                .first { $0.lastPathComponent.contains("settings-v2.json.invalid-") }
+                .first { $0.lastPathComponent.contains("settings-v3.json.invalid-") }
         )
         XCTAssertEqual(try Data(contentsOf: quarantine), corrupt)
     }
@@ -110,7 +131,7 @@ final class SettingsStoreTests: XCTestCase {
     func testUnsupportedSettingsVersionIsQuarantinedAndDefaultsAreLoaded() async throws {
         let urls = SettingsURLs(directory: directory)
         let future = Data(
-            #"{"schemaVersion":3}"#.utf8
+            #"{"schemaVersion":4}"#.utf8
         )
         try future.write(to: urls.primary)
 

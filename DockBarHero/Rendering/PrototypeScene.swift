@@ -49,6 +49,7 @@ final class PrototypeScene: SKScene {
     private var renderedEnemySpriteID = EnemySpriteID(rawValue: "generic.enemy")
     private var marqueeState = AreaTitleMarqueeState()
     private var renderedCampaign: CampaignPresentation?
+    private var appearance = RailAppearance.defaults
     private var animationsEnabled = true
     private var pointerLocation: CGPoint?
     private var lastUpdateTime: TimeInterval?
@@ -125,6 +126,11 @@ final class PrototypeScene: SKScene {
 
     override func didChangeSize(_ oldSize: CGSize) {
         super.didChangeSize(oldSize)
+        updateLayout()
+    }
+
+    func setAppearance(_ appearance: RailAppearance) {
+        self.appearance = appearance
         updateLayout()
     }
 
@@ -295,13 +301,17 @@ final class PrototypeScene: SKScene {
         let availableHeroWidth = max(1, heroRight - heroLeft)
         let heroCount = max(1, renderedHeroClasses.count)
         let heroFormationWidth = renderedHeroClasses.count > 1
-            ? min(availableHeroWidth, CGFloat(heroCount) * 80)
+            ? min(availableHeroWidth, CGFloat(heroCount) * 64 * actorScale)
+            : availableHeroWidth
+        let healthFormationWidth = renderedHeroClasses.count > 1
+            ? min(availableHeroWidth, CGFloat(heroCount) * 64)
             : availableHeroWidth
         let heroStart = heroLeft + (availableHeroWidth - heroFormationWidth) / 2
         let heroCellWidth = heroFormationWidth / CGFloat(heroCount)
+        let healthCellWidth = healthFormationWidth / CGFloat(heroCount)
         let heroMaximumHealthBarWidth = renderedHeroClasses.count > 1 ? 72 : maximumHealthBarWidth
-        let heroHealthBarWidth = min(heroMaximumHealthBarWidth, max(8, heroCellWidth - 8))
-        let actorWidth = min(actorSize.width, max(1, heroCellWidth - 12))
+        let heroHealthBarWidth = min(heroMaximumHealthBarWidth, max(8, healthCellWidth - 8))
+        let actorWidth = min(actorSize.width * actorScale, max(1, heroCellWidth - 12))
         let renderedActorSize = CGSize(width: actorWidth, height: actorWidth / 1.5)
         for slot in renderedHeroClasses.indices {
             let x = heroStart + heroCellWidth * (CGFloat(slot) + 0.5)
@@ -312,18 +322,25 @@ final class PrototypeScene: SKScene {
             }
             positionHealthBar(prefix: prefix, x: x, y: 59, width: heroHealthBarWidth)
             if let level = childNode(withName: "\(prefix)Level") as? SKLabelNode {
-                level.fontSize = usesCompactHeroLabels ? 8 : 12
+                setFontSize(scaledFontSize(usesCompactHeroLabels ? 8 : 12), on: level)
                 level.position = CGPoint(x: x, y: 70)
             }
             if let action = childNode(withName: "\(prefix)Action") as? SKLabelNode {
-                action.fontSize = usesCompactHeroLabels ? 8 : 10
+                setFontSize(scaledFontSize(usesCompactHeroLabels ? 8 : 10), on: action)
                 action.position = CGPoint(x: x, y: 82)
             }
         }
-        childNode(withName: "enemy")?.position = CGPoint(x: enemyX, y: 32)
+        if let enemy = childNode(withName: "enemy") as? SKSpriteNode {
+            let enemyWidth = actorSize.width * actorScale
+            enemy.position = CGPoint(x: enemyX, y: 32)
+            enemy.size = CGSize(width: enemyWidth, height: enemyWidth / 1.5)
+        }
         positionHealthBar(prefix: "enemy", x: enemyX, y: 59, width: maximumHealthBarWidth)
         layoutEnemyLabels()
-        (childNode(withName: "rollingDPS") as? SKLabelNode)?.position = CGPoint(x: size.width / 2, y: 70)
+        if let rollingDPS = childNode(withName: "rollingDPS") as? SKLabelNode {
+            setFontSize(scaledFontSize(12), on: rollingDPS)
+            rollingDPS.position = CGPoint(x: size.width / 2, y: 70)
+        }
         let laneWidth = areaTitleLaneWidth
         if let crop = childNode(withName: "areaTitleCrop") as? SKCropNode {
             crop.position = CGPoint(x: size.width / 2, y: 84)
@@ -333,6 +350,12 @@ final class PrototypeScene: SKScene {
                     transform: nil
                 )
             }
+            if let title = crop.childNode(withName: "areaTitle") as? SKLabelNode {
+                setFontSize(scaledFontSize(10), on: title)
+            }
+        }
+        if renderedCampaign != nil {
+            applyMarqueeState()
         }
     }
 
@@ -345,11 +368,11 @@ final class PrototypeScene: SKScene {
         let leftBoundary = laneRight + 8
         let rightBoundary = size.width - 8
         guard rightBoundary > leftBoundary else {
-            identity.fontSize = 10
+            setFontSize(scaledFontSize(10), on: identity)
             identity.position = CGPoint(x: enemyX, y: 64)
-            level.fontSize = 10
+            setFontSize(scaledFontSize(10), on: level)
             level.position = CGPoint(x: enemyX, y: identity.isHidden ? 70 : 73)
-            status.fontSize = 10
+            setFontSize(scaledFontSize(10), on: status)
             status.position = CGPoint(x: enemyX, y: 82)
             return
         }
@@ -357,13 +380,14 @@ final class PrototypeScene: SKScene {
         let availableWidth = rightBoundary - leftBoundary
         let showsFarming = !status.isHidden
         let showsAuthoredFarming = !identity.isHidden && showsFarming
-        let maximumFontSize: CGFloat = if showsAuthoredFarming {
+        let baseMaximumFontSize: CGFloat = if showsAuthoredFarming {
             8
         } else if identity.isHidden {
             12
         } else {
             10
         }
+        let maximumFontSize = scaledFontSize(baseMaximumFontSize)
         fitEnemyLabel(identity, availableWidth: availableWidth, maximumFontSize: maximumFontSize)
         fitEnemyLabel(level, availableWidth: availableWidth, maximumFontSize: maximumFontSize)
         fitEnemyLabel(status, availableWidth: availableWidth, maximumFontSize: maximumFontSize)
@@ -504,6 +528,18 @@ final class PrototypeScene: SKScene {
         min(300, max(180, size.width * 0.32))
     }
 
+    private var actorScale: CGFloat {
+        CGFloat(appearance.actorScalePercent) / 100
+    }
+
+    private var railTextScale: CGFloat {
+        CGFloat(appearance.railTextScalePercent) / 100
+    }
+
+    private func scaledFontSize(_ base: CGFloat) -> CGFloat {
+        max(8, base * railTextScale)
+    }
+
     private var usesCompactHeroLabels: Bool {
         guard renderedHeroClasses.count > 1 else { return false }
         let heroLeft: CGFloat = 8
@@ -511,7 +547,7 @@ final class PrototypeScene: SKScene {
         let availableHeroWidth = max(1, heroRight - heroLeft)
         let heroFormationWidth = min(
             availableHeroWidth,
-            CGFloat(renderedHeroClasses.count) * 80
+            CGFloat(renderedHeroClasses.count) * 64 * actorScale
         )
         let cellWidth = heroFormationWidth / CGFloat(renderedHeroClasses.count)
         return cellWidth < 90

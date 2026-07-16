@@ -21,12 +21,14 @@ enum BookVolumeMapping {
 }
 
 struct AppSettings: Codable, Equatable, Sendable {
-    static let currentVersion = 2
+    static let currentVersion = 3
 
     let schemaVersion: Int
     var manualVisibility: ManualVisibility
     var animationMode: AnimationMode
     var inputMode: InputMode
+    var actorScalePercent: Int
+    var railTextScalePercent: Int
     var loreLanguageMode: LoreLanguageMode
     var loreIllustrationMode: LoreIllustrationMode
     var spokenDialogueEnabled: Bool
@@ -40,6 +42,8 @@ struct AppSettings: Codable, Equatable, Sendable {
         manualVisibility: ManualVisibility,
         animationMode: AnimationMode,
         inputMode: InputMode,
+        actorScalePercent: Int = 100,
+        railTextScalePercent: Int = 100,
         loreLanguageMode: LoreLanguageMode = .unfiltered,
         loreIllustrationMode: LoreIllustrationMode = .safe,
         spokenDialogueEnabled: Bool = false,
@@ -52,6 +56,8 @@ struct AppSettings: Codable, Equatable, Sendable {
         self.manualVisibility = manualVisibility
         self.animationMode = animationMode
         self.inputMode = inputMode
+        self.actorScalePercent = actorScalePercent
+        self.railTextScalePercent = railTextScalePercent
         self.loreLanguageMode = loreLanguageMode
         self.loreIllustrationMode = loreIllustrationMode
         self.spokenDialogueEnabled = spokenDialogueEnabled
@@ -76,6 +82,8 @@ struct AppSettings: Codable, Equatable, Sendable {
 enum SettingsDecodingError: Error, Equatable {
     case unsupportedVersion(Int)
     case invalidBookVolumeDetent(Int)
+    case invalidActorScalePercent(Int)
+    case invalidRailTextScalePercent(Int)
 }
 
 struct SettingsCodec: Sendable {
@@ -98,12 +106,31 @@ struct SettingsCodec: Sendable {
         switch header.schemaVersion {
         case 1:
             let legacy = try JSONDecoder().decode(LegacyV1Settings.self, from: data)
-            return AppSettings(
+            let settings = AppSettings(
                 schemaVersion: AppSettings.currentVersion,
                 manualVisibility: legacy.manualVisibility,
                 animationMode: legacy.animationMode,
                 inputMode: legacy.inputMode
             )
+            try validate(settings)
+            return settings
+        case 2:
+            let legacy = try JSONDecoder().decode(LegacyV2Settings.self, from: data)
+            let settings = AppSettings(
+                schemaVersion: AppSettings.currentVersion,
+                manualVisibility: legacy.manualVisibility,
+                animationMode: legacy.animationMode,
+                inputMode: legacy.inputMode,
+                loreLanguageMode: legacy.loreLanguageMode,
+                loreIllustrationMode: legacy.loreIllustrationMode,
+                spokenDialogueEnabled: legacy.spokenDialogueEnabled,
+                bookVolumeDetent: legacy.bookVolumeDetent,
+                autoReadNewLorePages: legacy.autoReadNewLorePages,
+                hasSeenCurrentRunPrologue: legacy.hasSeenCurrentRunPrologue,
+                lastAutoReadLorePageID: legacy.lastAutoReadLorePageID
+            )
+            try validate(settings)
+            return settings
         case AppSettings.currentVersion:
             let settings = try JSONDecoder().decode(AppSettings.self, from: data)
             try validate(settings)
@@ -117,11 +144,30 @@ struct SettingsCodec: Sendable {
         guard (0...10).contains(settings.bookVolumeDetent) else {
             throw SettingsDecodingError.invalidBookVolumeDetent(settings.bookVolumeDetent)
         }
+        guard (75...140).contains(settings.actorScalePercent) else {
+            throw SettingsDecodingError.invalidActorScalePercent(settings.actorScalePercent)
+        }
+        guard (85...130).contains(settings.railTextScalePercent) else {
+            throw SettingsDecodingError.invalidRailTextScalePercent(settings.railTextScalePercent)
+        }
     }
 
     private struct LegacyV1Settings: Decodable {
         let manualVisibility: ManualVisibility
         let animationMode: AnimationMode
         let inputMode: InputMode
+    }
+
+    private struct LegacyV2Settings: Decodable {
+        let manualVisibility: ManualVisibility
+        let animationMode: AnimationMode
+        let inputMode: InputMode
+        let loreLanguageMode: LoreLanguageMode
+        let loreIllustrationMode: LoreIllustrationMode
+        let spokenDialogueEnabled: Bool
+        let bookVolumeDetent: Int
+        let autoReadNewLorePages: Bool
+        let hasSeenCurrentRunPrologue: Bool
+        let lastAutoReadLorePageID: String?
     }
 }

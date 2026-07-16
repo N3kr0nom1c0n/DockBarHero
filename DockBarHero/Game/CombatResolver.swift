@@ -37,15 +37,21 @@ struct CombatResolver: Sendable {
     }
 
     func enemyDamage(targetingHeroAt index: Int, in state: GameState, tier: EnemyTierID) throws -> Int {
+        let hero = try validatedHero(at: index, in: state)
         let defense = try effectiveDefense(forHeroAt: index, in: state)
         let (difference, overflow) = state.enemy.baseAttack.subtractingReportingOverflow(defense)
         guard !overflow else { throw SimulationError.arithmeticOverflow }
         let baseline = max(1, difference)
         do {
-            let scaled = try ProgressionConfiguration.standard.applying(
+            let tierDamage = try ProgressionConfiguration.standard.applying(
                 ProgressionConfiguration.standard.tierDefinition(for: tier).damageRatio,
                 to: Int64(baseline),
                 rounding: .up
+            )
+            let scaled = try levelAdjustedEnemyDamage(
+                tierDamage,
+                enemyLevel: state.encounter.enemyLevel,
+                heroLevel: hero.level
             )
             guard scaled <= Int64(Int.max) else { throw SimulationError.arithmeticOverflow }
             return Int(scaled)
@@ -54,6 +60,30 @@ struct CombatResolver: Sendable {
         } catch {
             throw SimulationError.arithmeticOverflow
         }
+    }
+
+    private func levelAdjustedEnemyDamage(
+        _ damage: Int64,
+        enemyLevel: Int,
+        heroLevel: Int
+    ) throws -> Int64 {
+        guard enemyLevel >= 1, heroLevel >= 1 else {
+            throw SimulationError.invalidState
+        }
+        guard heroLevel > enemyLevel else {
+            return damage
+        }
+        let enemy = Int64(enemyLevel)
+        let hero = Int64(heroLevel)
+        let (enemySquared, enemyOverflow) = enemy.multipliedReportingOverflow(by: enemy)
+        guard !enemyOverflow else { throw SimulationError.arithmeticOverflow }
+        let (heroSquared, heroOverflow) = hero.multipliedReportingOverflow(by: hero)
+        guard !heroOverflow else { throw SimulationError.arithmeticOverflow }
+        let (product, overflow) = damage.multipliedReportingOverflow(by: enemySquared)
+        guard !overflow else { throw SimulationError.arithmeticOverflow }
+        let quotient = product / heroSquared
+        let adjusted = product % heroSquared == 0 ? quotient : quotient + 1
+        return max(1, adjusted)
     }
 
     func health(afterTaking damage: Int, from currentHealth: Int) throws -> Int {

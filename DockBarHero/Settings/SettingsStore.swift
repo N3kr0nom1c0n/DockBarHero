@@ -5,14 +5,18 @@ struct SettingsURLs: Sendable {
     let primary: URL
     let backup: URL
     let temporary: URL
+    let legacyV2Primary: URL
+    let legacyV2Backup: URL
     let legacyV1Primary: URL
     let legacyV1Backup: URL
 
     init(directory: URL) {
         self.directory = directory
-        self.primary = directory.appendingPathComponent("settings-v2.json", isDirectory: false)
-        self.backup = directory.appendingPathComponent("settings-v2.backup.json", isDirectory: false)
-        self.temporary = directory.appendingPathComponent("settings-v2.pending.json", isDirectory: false)
+        self.primary = directory.appendingPathComponent("settings-v3.json", isDirectory: false)
+        self.backup = directory.appendingPathComponent("settings-v3.backup.json", isDirectory: false)
+        self.temporary = directory.appendingPathComponent("settings-v3.pending.json", isDirectory: false)
+        self.legacyV2Primary = directory.appendingPathComponent("settings-v2.json", isDirectory: false)
+        self.legacyV2Backup = directory.appendingPathComponent("settings-v2.backup.json", isDirectory: false)
         self.legacyV1Primary = directory.appendingPathComponent("settings-v1.json", isDirectory: false)
         self.legacyV1Backup = directory.appendingPathComponent("settings-v1.backup.json", isDirectory: false)
     }
@@ -48,11 +52,12 @@ actor SettingsStore: SettingsStoring {
     }
 
     func load() async -> AppSettings {
-        for url in [urls.primary, urls.backup, urls.legacyV1Primary, urls.legacyV1Backup] {
+        let legacyURLs = [urls.legacyV2Primary, urls.legacyV2Backup, urls.legacyV1Primary, urls.legacyV1Backup]
+        for url in [urls.primary, urls.backup] + legacyURLs {
             guard fileManager.fileExists(atPath: url.path) else { continue }
             do {
                 let settings = try codec.decode(Data(contentsOf: url))
-                if url == urls.legacyV1Primary || url == urls.legacyV1Backup {
+                if legacyURLs.contains(url) {
                     do {
                         try await save(settings)
                     } catch {
@@ -103,7 +108,7 @@ actor SettingsStore: SettingsStoring {
 
     private func installBackup(from primaryData: Data) throws {
         let staged = urls.directory.appendingPathComponent(
-            ".settings-v2.backup-\(UUID().uuidString).pending",
+            ".settings-v3.backup-\(UUID().uuidString).pending",
             isDirectory: false
         )
         defer { try? removeIfPresent(staged) }

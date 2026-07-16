@@ -20,6 +20,20 @@ enum AppLaunchOptions {
     static func managementRoute(arguments: [String]) -> ManagementRoute? {
         arguments.contains("--open-book") ? .book : nil
     }
+
+    static func simulationTimeScale(arguments: [String]) -> Int {
+        let parsed = arguments.enumerated().compactMap { index, argument -> Int? in
+            if argument == "--simulation-speed",
+               arguments.indices.contains(index + 1) {
+                return Int(arguments[index + 1])
+            }
+            if argument.hasPrefix("--simulation-speed=") {
+                return Int(argument.dropFirst("--simulation-speed=".count))
+            }
+            return nil
+        }.first ?? 1
+        return max(1, min(parsed, 100))
+    }
 }
 
 @MainActor
@@ -141,14 +155,17 @@ struct TerminationRequestGate {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let model: AppModel
+    private let launchArguments: [String]
     private let dockPresence = ManagementDockPresenceController()
     private let managementWindowController: ManagementWindowController
     private var terminationGate = TerminationRequestGate()
 
     override init() {
+        let arguments = ProcessInfo.processInfo.arguments
+        launchArguments = arguments
         let store = SaveStore(urls: .applicationSupport)
         let coordinator = SaveCoordinator(store: store)
-        let driver = SimulationDriver()
+        let driver = SimulationDriver(timeScale: AppLaunchOptions.simulationTimeScale(arguments: arguments))
         let session = GameSession(driver: driver, store: store, coordinator: coordinator)
         let settingsSession = SettingsSession(store: SettingsStore())
         let loreCatalog: LoreCatalog?
@@ -191,7 +208,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let monitor = EnvironmentMonitor(evaluator: WorkspaceEnvironmentEvaluator())
             model.connect(window: window, scene: scene, screen: screen, monitor: monitor)
             model.start()
-            if let route = AppLaunchOptions.managementRoute(arguments: ProcessInfo.processInfo.arguments) {
+            if let route = AppLaunchOptions.managementRoute(arguments: launchArguments) {
                 model.selectManagementRoute(route)
                 managementWindowController.open()
             }
