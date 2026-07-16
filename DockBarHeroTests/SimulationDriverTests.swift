@@ -27,6 +27,18 @@ final class SimulationDriverTests: XCTestCase {
         XCTAssertEqual(driver.currentState.encounter.activeElapsed, .nanoseconds(1_000_000_000))
     }
 
+    func testTimeScaleMultipliesElapsedTimeForTesting() {
+        let clock = TestMonotonicClock(now: 10_000_000_000)
+        let driver = SimulationDriver(timeScale: 10, now: { clock.now })
+        driver.start(startLoop: false)
+
+        clock.now += 100_000_000
+        driver.step(at: clock.now)
+
+        XCTAssertEqual(driver.currentState.enemy.currentHealth, 20)
+        XCTAssertEqual(driver.currentState.encounter.activeElapsed, .nanoseconds(1_000_000_000))
+    }
+
     func testPresentationPublishesAtMostEvery250Milliseconds() {
         let clock = TestMonotonicClock(now: 10_000_000_000)
         let driver = SimulationDriver(now: { clock.now })

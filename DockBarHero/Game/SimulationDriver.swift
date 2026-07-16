@@ -18,6 +18,7 @@ final class SimulationDriver: SimulationDriving {
 
     private var simulation: GameSimulation
     private let now: @MainActor () -> UInt64
+    private let timeScale: Int64
     private var lastTick: UInt64 = 0
     private var lastPublish: UInt64 = 0
     private var loopTask: Task<Void, Never>?
@@ -29,9 +30,11 @@ final class SimulationDriver: SimulationDriving {
 
     init(
         simulation: GameSimulation = GameSimulation(),
+        timeScale: Int = 1,
         now: @escaping @MainActor () -> UInt64 = { DispatchTime.now().uptimeNanoseconds }
     ) {
         self.simulation = simulation
+        self.timeScale = Int64(max(1, min(timeScale, 100)))
         self.now = now
     }
 
@@ -69,8 +72,11 @@ final class SimulationDriver: SimulationDriving {
         guard isStarted, timestamp >= lastTick else { return }
 
         let rawDelta = timestamp - lastTick
+        let cappedDelta = Int64(min(rawDelta, 1_000_000_000))
+        let (scaledDelta, overflow) = cappedDelta.multipliedReportingOverflow(by: timeScale)
         let elapsed = SimulationDuration.nanoseconds(
-            Int64(min(rawDelta, 1_000_000_000))
+            overflow ? SimulationDuration.maximumAdvance.rawValue :
+                min(scaledDelta, SimulationDuration.maximumAdvance.rawValue)
         )
 
         do {

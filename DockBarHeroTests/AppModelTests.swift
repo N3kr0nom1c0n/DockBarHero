@@ -557,6 +557,25 @@ final class AppModelTests: XCTestCase {
         XCTAssertNil(AppLaunchOptions.managementRoute(arguments: ["DockBarHero"]))
     }
 
+    func testSimulationSpeedLaunchArgumentParsesBoundedMultiplier() {
+        XCTAssertEqual(
+            AppLaunchOptions.simulationTimeScale(arguments: ["DockBarHero", "--simulation-speed", "10"]),
+            10
+        )
+        XCTAssertEqual(
+            AppLaunchOptions.simulationTimeScale(arguments: ["DockBarHero", "--simulation-speed=25"]),
+            25
+        )
+        XCTAssertEqual(
+            AppLaunchOptions.simulationTimeScale(arguments: ["DockBarHero", "--simulation-speed", "0"]),
+            1
+        )
+        XCTAssertEqual(
+            AppLaunchOptions.simulationTimeScale(arguments: ["DockBarHero", "--simulation-speed", "250"]),
+            100
+        )
+    }
+
     func testBundleDoesNotForceAgentOnlyActivationPolicy() {
         XCTAssertNil(Bundle.main.object(forInfoDictionaryKey: "LSUIElement"))
     }
