@@ -73,6 +73,7 @@ final class AppModel: ObservableObject {
         scene.setClassActionHandler { [weak self] slot, actionID in
             self?.send(.castAction(heroSlot: slot, actionID: actionID))
         }
+        applyAppearance()
         if gameplayStarted {
             scene.render(runPresentation)
         }
@@ -212,6 +213,16 @@ final class AppModel: ObservableObject {
         loreReader.previewVolume(detent: appSettings.bookVolumeDetent)
     }
 
+    func updateActorScalePercent(_ percent: Int) {
+        appSettings.actorScalePercent = min(max(percent, 75), 140)
+        publishAppearanceSettings()
+    }
+
+    func updateRailTextScalePercent(_ percent: Int) {
+        appSettings.railTextScalePercent = min(max(percent, 85), 130)
+        publishAppearanceSettings()
+    }
+
     private func startGameplayIfNeeded() {
         guard !gameplayStarted, let gameSession else { return }
         gameplayStarted = true
@@ -246,6 +257,7 @@ final class AppModel: ObservableObject {
         state.inputMode = settings.inputMode
         hasResolvedSettings = true
         refreshLore()
+        applyAppearance()
         applyState()
     }
 
@@ -316,6 +328,18 @@ final class AppModel: ObservableObject {
     private func publishLoreSettings() {
         refreshLore()
         settingsController?.update(appSettings)
+    }
+
+    private func publishAppearanceSettings() {
+        applyAppearance()
+        settingsController?.update(appSettings)
+    }
+
+    private func applyAppearance() {
+        scene?.setAppearance(RailAppearance(
+            actorScalePercent: appSettings.actorScalePercent,
+            railTextScalePercent: appSettings.railTextScalePercent
+        ))
     }
 
     private func recordAutoRead(_ pageID: LorePageID) {

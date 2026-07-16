@@ -51,11 +51,19 @@ enum PrototypeSceneHostError: Error {
     case scenePresentationFailed
 }
 
+struct RailAppearance: Equatable, Sendable {
+    var actorScalePercent: Int
+    var railTextScalePercent: Int
+
+    static let defaults = RailAppearance(actorScalePercent: 100, railTextScalePercent: 100)
+}
+
 @MainActor
 protocol SceneControlling: AnyObject {
     var view: SKView { get }
     func setAnimating(_ isAnimating: Bool)
     func setInteractive(_ isInteractive: Bool)
+    func setAppearance(_ appearance: RailAppearance)
     func render(_ presentation: GamePresentation)
     func render(_ run: RunPresentation)
     func handle(_ events: [GameEvent])
@@ -70,6 +78,8 @@ extension SceneControlling {
     }
 
     func setClassActionHandler(_ handler: @escaping (Int, ClassActionID) -> Void) { }
+
+    func setAppearance(_ appearance: RailAppearance) { }
 }
 
 @MainActor
@@ -109,6 +119,10 @@ final class PrototypeSceneHost: SceneControlling {
     func setInteractive(_ isInteractive: Bool) {
         scene.setInteractive(isInteractive)
         (view as? RailTrackingView)?.setTrackingEnabled(isInteractive)
+    }
+
+    func setAppearance(_ appearance: RailAppearance) {
+        scene.setAppearance(appearance)
     }
 
     func render(_ presentation: GamePresentation) {

@@ -820,6 +820,56 @@ final class PrototypeSceneHostTests: XCTestCase {
         }
     }
 
+    func testActorScaleResizesPartyAndEnemyWithoutScalingHealthBars() throws {
+        let host = try PrototypeSceneHost(size: CGSize(width: 1_140, height: 96))
+        var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        let dps = GameState.newGame(classID: .dps, balance: .standard, progression: .standard).party.heroes[0]
+        let healer = GameState.newGame(classID: .healer, balance: .standard, progression: .standard).party.heroes[0]
+        state.party = PartyState(heroes: [state.party.heroes[0], dps, healer], unlocks: .complete)
+        host.render(.active(GameSimulation(state: state).presentation))
+
+        let heroes = try (0..<3).map { slot in
+            try requiredNode(slot == 0 ? "hero" : "hero-\(slot)", in: host.scene, file: #filePath, line: #line)
+        }
+        let enemy = try requiredNode("enemy", in: host.scene, file: #filePath, line: #line)
+        let healthBar = try requiredNode("heroHealthBackground", in: host.scene, file: #filePath, line: #line)
+        let defaultMidpoint = (heroes[0].position.x + heroes[2].position.x) / 2
+
+        host.scene.setAppearance(RailAppearance(actorScalePercent: 125, railTextScalePercent: 100))
+
+        XCTAssertEqual((heroes[0].position.x + heroes[2].position.x) / 2, defaultMidpoint, accuracy: 0.001)
+        for hero in heroes {
+            XCTAssertEqual(hero.frame.width, 67.5, accuracy: 0.001)
+            assertFrameIsOnRail(hero.frame, width: host.scene.size.width, file: #filePath, line: #line)
+        }
+        XCTAssertEqual(enemy.frame.width, 67.5, accuracy: 0.001)
+        XCTAssertEqual(healthBar.frame.width, 56, accuracy: 0.001)
+        assertPairwiseDisjoint(heroes.map(\.frame), file: #filePath, line: #line)
+    }
+
+    func testRailTextScaleResizesLabelsAndOutlines() throws {
+        let host = try PrototypeSceneHost(size: CGSize(width: 1_140, height: 96))
+        let state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
+        host.render(.active(GameSimulation(state: state).presentation))
+
+        let heroLevel = try XCTUnwrap(host.scene.childNode(withName: "//heroLevel") as? SKLabelNode)
+        let heroAction = try XCTUnwrap(host.scene.childNode(withName: "//heroAction") as? SKLabelNode)
+        let enemyLevel = try XCTUnwrap(host.scene.childNode(withName: "//enemyLevel") as? SKLabelNode)
+        let rollingDPS = try XCTUnwrap(host.scene.childNode(withName: "//rollingDPS") as? SKLabelNode)
+
+        host.scene.setAppearance(RailAppearance(actorScalePercent: 100, railTextScalePercent: 125))
+
+        XCTAssertEqual(heroLevel.fontSize, 15, accuracy: 0.001)
+        XCTAssertEqual(heroAction.fontSize, 12.5, accuracy: 0.001)
+        XCTAssertEqual(enemyLevel.fontSize, 12.5, accuracy: 0.001)
+        XCTAssertEqual(rollingDPS.fontSize, 15, accuracy: 0.001)
+        for label in [heroLevel, heroAction, enemyLevel, rollingDPS] {
+            for outline in label.children.compactMap({ $0 as? SKLabelNode }) {
+                XCTAssertEqual(outline.fontSize, label.fontSize, accuracy: 0.001)
+            }
+        }
+    }
+
     func testClusteredTwoHeroFormationUsesCompactNonOverlappingLabels() throws {
         let host = try PrototypeSceneHost(size: CGSize(width: 800, height: 96))
         var state = GameState.newGame(classID: .tank, balance: .standard, progression: .standard)
