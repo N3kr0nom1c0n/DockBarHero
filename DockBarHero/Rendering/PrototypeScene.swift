@@ -295,7 +295,7 @@ final class PrototypeScene: SKScene {
         let availableHeroWidth = max(1, heroRight - heroLeft)
         let heroCount = max(1, renderedHeroClasses.count)
         let heroFormationWidth = renderedHeroClasses.count > 1
-            ? min(availableHeroWidth, CGFloat(heroCount) * 80)
+            ? min(availableHeroWidth, CGFloat(heroCount) * 64)
             : availableHeroWidth
         let heroStart = heroLeft + (availableHeroWidth - heroFormationWidth) / 2
         let heroCellWidth = heroFormationWidth / CGFloat(heroCount)
@@ -511,7 +511,7 @@ final class PrototypeScene: SKScene {
         let availableHeroWidth = max(1, heroRight - heroLeft)
         let heroFormationWidth = min(
             availableHeroWidth,
-            CGFloat(renderedHeroClasses.count) * 80
+            CGFloat(renderedHeroClasses.count) * 64
         )
         let cellWidth = heroFormationWidth / CGFloat(renderedHeroClasses.count)
         return cellWidth < 90

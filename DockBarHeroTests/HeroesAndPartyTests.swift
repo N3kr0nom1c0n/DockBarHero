@@ -115,7 +115,7 @@ final class HeroesAndPartyTests: XCTestCase {
         XCTAssertEqual(two.enemy, three.enemy)
     }
 
-    func testBoss100WipesLevel240TankAndDPSWithoutEquipment() throws {
+    func testBoss100StillWipesLevel240TankAndDPSWithoutEquipment() throws {
         let simulation = try resolvedBoss100Outcome(
             heroLevel: 240,
             classes: [.tank, .dps],
@@ -126,7 +126,18 @@ final class HeroesAndPartyTests: XCTestCase {
         XCTAssertTrue(simulation.events.contains(.heroDown(slot: 1)))
         XCTAssertTrue(simulation.events.contains(.defeat(enemyLevel: 100)))
         XCTAssertFalse(simulation.events.contains(.victory(defeatedLevel: 100)))
-        XCTAssertLessThan(simulation.elapsedSeconds, 6)
+    }
+
+    func testBoss100GivesMassivelyOverleveledUnequippedPartyAReadableFailureWindow() throws {
+        let simulation = try resolvedBoss100Outcome(
+            heroLevel: 240,
+            classes: [.tank, .dps],
+            equipmentLevel: nil
+        )
+
+        XCTAssertTrue(simulation.events.contains(.defeat(enemyLevel: 100)))
+        XCTAssertFalse(simulation.events.contains(.victory(defeatedLevel: 100)))
+        XCTAssertGreaterThanOrEqual(simulation.elapsedSeconds, 12)
     }
 
     func testBoss100AcceptsLevel240TankAndDPSWithBossLevelEquipment() throws {
@@ -138,6 +149,18 @@ final class HeroesAndPartyTests: XCTestCase {
 
         XCTAssertTrue(simulation.events.contains(.victory(defeatedLevel: 100)))
         XCTAssertFalse(simulation.events.contains(.defeat(enemyLevel: 100)))
+    }
+
+    func testOverleveledTwoHeroPartyClearsLevel90EliteWithMidgameEquipment() throws {
+        let simulation = try resolvedOutcome(
+            enemyLevel: 90,
+            heroLevel: 123,
+            classes: [.dps, .tank],
+            equipmentLevel: 50
+        )
+
+        XCTAssertTrue(simulation.events.contains(.victory(defeatedLevel: 90)))
+        XCTAssertFalse(simulation.events.contains(.defeat(enemyLevel: 90)))
     }
 
     private func boss25State(classID: HeroClassID) throws -> GameState {
@@ -178,6 +201,29 @@ final class HeroesAndPartyTests: XCTestCase {
             events += try simulation.advance(by: .nanoseconds(1_000_000_000))
             if events.contains(.victory(defeatedLevel: 100)) ||
                 events.contains(.defeat(enemyLevel: 100)) {
+                return (events, elapsedSeconds + 1)
+            }
+        }
+        return (events, 600)
+    }
+
+    private func resolvedOutcome(
+        enemyLevel: Int,
+        heroLevel: Int,
+        classes: [HeroClassID],
+        equipmentLevel: Int?
+    ) throws -> (events: [GameEvent], elapsedSeconds: Int) {
+        var simulation = GameSimulation(state: try activeState(
+            enemyLevel: enemyLevel,
+            heroLevel: heroLevel,
+            classes: classes,
+            equipmentLevel: equipmentLevel
+        ))
+        var events: [GameEvent] = []
+        for elapsedSeconds in 0..<600 {
+            events += try simulation.advance(by: .nanoseconds(1_000_000_000))
+            if events.contains(.victory(defeatedLevel: enemyLevel)) ||
+                events.contains(.defeat(enemyLevel: enemyLevel)) {
                 return (events, elapsedSeconds + 1)
             }
         }

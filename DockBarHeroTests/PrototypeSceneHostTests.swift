@@ -814,9 +814,9 @@ final class PrototypeSceneHostTests: XCTestCase {
         }
         let heroSpan = heroes.map(\.frame).reduce(CGRect.null) { $0.union($1) }
 
-        XCTAssertLessThanOrEqual(heroSpan.width, 220)
+        XCTAssertLessThanOrEqual(heroSpan.width, 186)
         for healthBar in healthBars {
-            XCTAssertLessThanOrEqual(healthBar.frame.width, 72)
+            XCTAssertLessThanOrEqual(healthBar.frame.width, 56)
         }
     }
 
