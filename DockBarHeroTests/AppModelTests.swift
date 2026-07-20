@@ -473,6 +473,25 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(settings.updates.last?.bookVolumeDetent, 0)
     }
 
+    func testDisablingSpokenDialogueLeavesAutoReadSavedButInertForLoreReader() {
+        var initial = AppSettings.defaults
+        initial.spokenDialogueEnabled = true
+        initial.autoReadNewLorePages = true
+        let settings = FakeSettingsController(initial: initial)
+        let lore = LoreReaderControllerFake()
+        let model = AppModel(settingsController: settings, loreReader: lore)
+        model.start()
+        settings.resolve()
+
+        model.updateSpokenDialogue(false)
+
+        XCTAssertFalse(model.appSettings.spokenDialogueEnabled)
+        XCTAssertTrue(model.appSettings.autoReadNewLorePages)
+        XCTAssertFalse(lore.updates.last?.settings.spokenDialogueEnabled ?? true)
+        XCTAssertTrue(lore.updates.last?.settings.autoReadNewLorePages ?? false)
+        XCTAssertEqual(settings.updates.last, model.appSettings)
+    }
+
     func testAdultIllustrationsRequireExplicitConfirmation() {
         let settings = FakeSettingsController(initial: .defaults)
         let model = AppModel(settingsController: settings)

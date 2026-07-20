@@ -34,7 +34,7 @@ struct LoreSettingsSection: View {
             ))
             .disabled(!model.appSettings.spokenDialogueEnabled)
 
-            Text("Speech is opt-in and only plays while the Book is visibly open. Closing it shuts the Book up immediately.")
+            Text(LoreBookSpeechStatus.settingsExplanation)
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
