@@ -203,6 +203,8 @@
 
 **Required outcome:** Controls and short in-Book/Settings copy make these rules discoverable without requiring documentation. Speech remains opt-in and never plays while the Book is closed.
 
+**Implementation record:** Added shared Book speech status copy and surfaced it in Manga Book Settings plus the Book footer. Settings now states that speech only plays while the Book is visibly open and the app is active, newly unlocked pages can auto-read only when that option is on, and closing the Book stops speech. The Book footer now states whether spoken dialogue is off, whether Replay reads the current page, and whether new pages can auto-read. Focused tests cover all three footer states, Settings copy, compact footer length, existing `LoreReaderController` speech gating/replay/skip behavior, and the AppModel disabled-speech auto-read gate. Manual owner confirmation of the footer copy in the running app is still pending.
+
 ### C6. Build a real audio mixer in Settings
 
 **Design gate:** Specify persistence and precedence rules.
