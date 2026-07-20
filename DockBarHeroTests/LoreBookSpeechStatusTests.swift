@@ -49,4 +49,19 @@ final class LoreBookSpeechStatusTests: XCTestCase {
         XCTAssertTrue(LoreBookSpeechStatus.settingsExplanation.contains("Newly unlocked pages"))
         XCTAssertTrue(LoreBookSpeechStatus.settingsExplanation.contains("Closing the Book stops speech"))
     }
+
+    func testFooterCopyStaysCompact() {
+        for spoken in [false, true] {
+            for autoRead in [false, true] {
+                var settings = AppSettings.defaults
+                settings.spokenDialogueEnabled = spoken
+                settings.autoReadNewLorePages = autoRead
+
+                let text = LoreBookSpeechStatus.footerText(settings: settings)
+
+                XCTAssertLessThanOrEqual(text.count, 88)
+                XCTAssertFalse(text.contains("\n"))
+            }
+        }
+    }
 }

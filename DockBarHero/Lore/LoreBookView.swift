@@ -162,25 +162,35 @@ private struct LoreBookReaderView: View {
     }
 
     private var controls: some View {
-        HStack(spacing: 14) {
-            Button("Next ◀") { select(index: currentIndex + 1) }
-                .keyboardShortcut(.leftArrow, modifiers: [])
-                .disabled(currentIndex + 1 >= model.lorePages.count)
-                .accessibilityLabel("Next Page")
-            Button("Previous ▶") { select(index: currentIndex - 1) }
-                .keyboardShortcut(.rightArrow, modifiers: [])
-                .disabled(currentIndex == 0)
-                .accessibilityLabel("Previous Page")
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 14) {
+                Button("Next ◀") { select(index: currentIndex + 1) }
+                    .keyboardShortcut(.leftArrow, modifiers: [])
+                    .disabled(currentIndex + 1 >= model.lorePages.count)
+                    .accessibilityLabel("Next Page")
+                Button("Previous ▶") { select(index: currentIndex - 1) }
+                    .keyboardShortcut(.rightArrow, modifiers: [])
+                    .disabled(currentIndex == 0)
+                    .accessibilityLabel("Previous Page")
 
-            Divider().frame(height: 32)
-            Button("Replay", systemImage: "speaker.wave.2") { controller.replay() }
-                .disabled(!model.appSettings.spokenDialogueEnabled)
-            Button("Skip", systemImage: "forward.end") { controller.skip() }
-                .disabled(!model.appSettings.spokenDialogueEnabled)
+                Divider().frame(height: 32)
+                Button("Replay", systemImage: "speaker.wave.2") { controller.replay() }
+                    .disabled(!model.appSettings.spokenDialogueEnabled)
+                    .accessibilityLabel("Replay current Book page")
+                Button("Skip", systemImage: "forward.end") { controller.skip() }
+                    .disabled(!model.appSettings.spokenDialogueEnabled)
+                    .accessibilityLabel("Skip current Book line")
 
-            Spacer()
-            BookVolumePotentiometer(detent: model.appSettings.bookVolumeDetent) { model.updateBookVolume($0) }
-                .frame(width: 100)
+                Spacer()
+                BookVolumePotentiometer(detent: model.appSettings.bookVolumeDetent) { model.updateBookVolume($0) }
+                    .frame(width: 100)
+            }
+            Text(LoreBookSpeechStatus.footerText(settings: model.appSettings))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .accessibilityLabel(LoreBookSpeechStatus.footerText(settings: model.appSettings))
         }
         .buttonStyle(.bordered)
         .padding(.horizontal, LoreBookLayout.controlsPadding.horizontal)
