@@ -55,3 +55,15 @@ None identified within the focused scope. The generated project includes the two
 - Repair: `beginRevive` now resets only encounter metrics and revive delay; it preserves both attack countdowns.
 - GREEN: 36 `EncounterDirectorTests` and `GameSimulationTests` passed with 0 failures.
 - No re-review agent was dispatched because Task 1 Luna, Task 2 Luna, and the bounded Terra review consumed 91,213, 128,469, and 69,017 tokens respectively, triggering the routing skill's review-budget stop rule.
+
+## Task 2 Speech-Gate Copy Fix (Review Findings)
+
+### What changed
+- Updated `LoreBookSpeechStatus.settingsExplanation` to the approved global-copy text:
+  `Speech only plays while the Book is visibly open and the app is active. Newly unlocked pages can auto-read when that option is on. Closing the Book stops speech.`
+- Updated `LoreBookSpeechStatusTests` to assert the exact approved text and explicitly verify `Book is visibly open` plus `app is active` in `testSettingsExplanationIsShortEnoughForSettingsSection`.
+- Updated the length assertion in that test to match the approved copy length (`<= 170`).
+
+### Test run
+- Command: `xcodebuild -project DockBarHero.xcodeproj -scheme DockBarHero -destination 'platform=macOS,arch=arm64' -only-testing:DockBarHeroTests/LoreBookSpeechStatusTests test`
+- Result: **PASS**, 5 tests, 0 failures.

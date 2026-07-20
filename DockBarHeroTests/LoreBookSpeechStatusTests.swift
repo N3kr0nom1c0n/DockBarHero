@@ -38,13 +38,14 @@ final class LoreBookSpeechStatusTests: XCTestCase {
     func testSettingsExplanationNamesOpenBookAndNewPages() {
         XCTAssertEqual(
             LoreBookSpeechStatus.settingsExplanation,
-            "Speech only plays while the Book is open. Newly unlocked pages can auto-read when that option is on. Closing the Book stops speech."
+            "Speech only plays while the Book is visibly open and the app is active. Newly unlocked pages can auto-read when that option is on. Closing the Book stops speech."
         )
     }
 
     func testSettingsExplanationIsShortEnoughForSettingsSection() {
-        XCTAssertLessThanOrEqual(LoreBookSpeechStatus.settingsExplanation.count, 160)
-        XCTAssertTrue(LoreBookSpeechStatus.settingsExplanation.contains("Book is open"))
+        XCTAssertLessThanOrEqual(LoreBookSpeechStatus.settingsExplanation.count, 170)
+        XCTAssertTrue(LoreBookSpeechStatus.settingsExplanation.contains("Book is visibly open"))
+        XCTAssertTrue(LoreBookSpeechStatus.settingsExplanation.contains("app is active"))
         XCTAssertTrue(LoreBookSpeechStatus.settingsExplanation.contains("Newly unlocked pages"))
         XCTAssertTrue(LoreBookSpeechStatus.settingsExplanation.contains("Closing the Book stops speech"))
     }

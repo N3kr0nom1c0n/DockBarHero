@@ -1,6 +1,6 @@
 enum LoreBookSpeechStatus {
     static let settingsExplanation =
-        "Speech only plays while the Book is open. Newly unlocked pages can auto-read when that option is on. Closing the Book stops speech."
+        "Speech only plays while the Book is visibly open and the app is active. Newly unlocked pages can auto-read when that option is on. Closing the Book stops speech."
 
     static func footerText(settings: AppSettings) -> String {
         guard settings.spokenDialogueEnabled else {
